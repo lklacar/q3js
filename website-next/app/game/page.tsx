@@ -1,4 +1,4 @@
-import GamePage from "@/views/GamePage";
+import GamePage from "@/views/game-page";
 import type {Metadata} from "next";
 import {Suspense} from "react";
 import {buildPageMetadata} from "@/lib/seo";

@@ -74,7 +74,6 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     const gaMeasurementId = env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-    const queryClient = new QueryClient()
 
     return (
         <html lang="en-US">

@@ -1,4 +1,4 @@
-import ScoreboardPage from "@/views/ScoreboardPage";
+import ScoreboardPage from "@/views/scoreboard-page";
 import {getInitialKillDistribution, getInitialScoreboard} from "@/lib/initial-data";
 
 export async function ScoreboardPageContent() {

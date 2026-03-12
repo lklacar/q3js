@@ -1,5 +1,5 @@
 import type {Metadata} from "next";
-import PlayerProfilePage from "@/views/PlayerProfilePage";
+import PlayerProfilePage from "@/views/player-profile-page";
 import {buildPageMetadata} from "@/lib/seo";
 import {stripQ3Colors} from "@/lib/utils.ts";
 import {fetchPlayerStats} from "@/lib/player-stats.tsx";

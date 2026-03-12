@@ -1,5 +1,5 @@
 import type {Metadata} from "next";
-import GuidePage from "@/views/GuidePage";
+import GuidePage from "@/views/guide-page";
 import {buildPageMetadata} from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
