@@ -6,16 +6,15 @@ import {Badge} from "@/components/ui/badge.tsx";
 import Link from "next/link";
 import {
     SCOREBOARD_PERIOD_LABELS,
+    sortScoreboardEntries,
 } from "@/lib/scoreboard.ts";
-import {stripQ3Colors} from "@/lib/utils.ts";
-import {useMemo, useState} from "react";
+import {useMemo, useState, useTransition} from "react";
 import {Q3ColoredText} from "@/components/q3-colored-text.tsx";
 import {trackEvent} from "@/lib/analytics.ts";
 import {ScoreboardPeriodToggle} from "@/components/scoreboard-period-toggle.tsx";
 import {KillDistributionChart} from "@/components/kill-distribution-chart.tsx";
-import {useSuspenseQuery} from "@tanstack/react-query";
-import {getGlobalScoreboardOptions, getKillDistributionOptions} from "@/lib/client/@tanstack/react-query.gen.ts";
 import {KillDistributionPointResponse, ScoreboardEntryResponse, ScoreboardPeriod} from "@/lib/client";
+import {useRouter} from "next/navigation";
 
 function rankBadge(rank: number) {
     if (rank === 1) return <Badge className="min-w-10 justify-center bg-primary text-primary-foreground">#1</Badge>;
@@ -29,39 +28,26 @@ function formatKills(kills: number) {
 }
 
 export function ScoreboardClient(props: {
-    initialKillDistribution: KillDistributionPointResponse[];
-    initialScoreboard: ScoreboardEntryResponse[];
+    killDistributions: Record<ScoreboardPeriod, KillDistributionPointResponse[]>;
+    scoreboards: Record<ScoreboardPeriod, ScoreboardEntryResponse[]>;
+    initialPeriod?: ScoreboardPeriod;
 }) {
-    const [period, setPeriod] = useState<ScoreboardPeriod>("DAILY");
-
-    const scoreboardQuery = useSuspenseQuery({
-        ...getGlobalScoreboardOptions({
-            query: {
-                period
-            }
-        })
-    })
-
-    const distributionQuery = useSuspenseQuery({
-        ...getKillDistributionOptions({
-            query: {
-                period
-            }
-        })
-    });
-
+    const [period, setPeriod] = useState<ScoreboardPeriod>(props.initialPeriod ?? "DAILY");
+    const [isRefreshing, startRefreshTransition] = useTransition();
+    const router = useRouter();
 
     const scoreboard = useMemo(() => {
-        const rows = scoreboardQuery.data ?? [];
-        return [...rows].sort((a, b) => {
-            if (b.kills !== a.kills) return b.kills - a.kills;
-            return stripQ3Colors(a.playerName).localeCompare(stripQ3Colors(b.playerName));
-        });
-    }, [scoreboardQuery.data]);
+        const rows = props.scoreboards[period] ?? [];
+        return sortScoreboardEntries(rows);
+    }, [period, props.scoreboards]);
+
+    const distribution = props.killDistributions[period] ?? [];
 
     function refreshScoreboard(source: "refresh_button" | "error_retry") {
         trackEvent("scoreboard_refresh_click", {source, period});
-        void Promise.all([scoreboardQuery.refetch(), distributionQuery.refetch()]);
+        startRefreshTransition(() => {
+            router.refresh();
+        });
     }
 
     function selectPeriod(nextPeriod: ScoreboardPeriod) {
@@ -80,9 +66,7 @@ export function ScoreboardClient(props: {
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div>
                             <p className="text-sm text-muted-foreground">
-                                {scoreboardQuery.isPending
-                                    ? `Loading ${periodLabel.toLowerCase()} players...`
-                                    : `${scoreboard.length} players ranked`}
+                                {`${scoreboard.length} players ranked`}
                             </p>
                             <p className="text-xs text-muted-foreground">
                                 Showing {periodLabel.toLowerCase()} frags across reported servers.
@@ -94,9 +78,9 @@ export function ScoreboardClient(props: {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => refreshScoreboard("refresh_button")}
-                                disabled={scoreboardQuery.isFetching}
+                                disabled={isRefreshing}
                             >
-                                {scoreboardQuery.isFetching ? "Refreshing..." : "Refresh"}
+                                {isRefreshing ? "Refreshing..." : "Refresh"}
                             </Button>
                         </div>
                     </div>
@@ -104,42 +88,20 @@ export function ScoreboardClient(props: {
 
                 <KillDistributionChart
                     bucketUnit={period === "DAILY" ? "hour" : "day"}
-                    data={distributionQuery.data ?? []}
-                    isError={distributionQuery.isError}
-                    isPending={distributionQuery.isPending}
+                    data={distribution}
+                    isError={false}
+                    isPending={false}
                     periodLabel={periodLabel}
                 />
 
-                {scoreboardQuery.isError && (
-                    <div className="p-6 text-center space-y-3">
-                        <p className="text-sm text-destructive">Failed to load
-                            the {periodLabel.toLowerCase()} scoreboard.</p>
-                        <Button variant="outline" onClick={() => refreshScoreboard("error_retry")}>
-                            Retry
-                        </Button>
-                    </div>
-                )}
-
-                {!scoreboardQuery.isError && scoreboardQuery.isPending && (
-                    <div className="divide-y divide-border/50">
-                        {Array.from({length: 8}).map((_, idx) => (
-                            <div key={idx} className="grid grid-cols-[92px_1fr_110px] items-center gap-3 px-4 py-3">
-                                <div className="h-5 w-10 animate-pulse bg-muted"/>
-                                <div className="h-5 w-2/5 animate-pulse bg-muted"/>
-                                <div className="ml-auto h-5 w-14 animate-pulse bg-muted"/>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {!scoreboardQuery.isError && !scoreboardQuery.isPending && scoreboard.length === 0 && (
+                {scoreboard.length === 0 && (
                     <div className="p-10 text-center">
                         <p className="text-sm text-muted-foreground">No {periodLabel.toLowerCase()} frag events have
                             been recorded yet.</p>
-                    </div>
+                        </div>
                 )}
 
-                {!scoreboardQuery.isError && scoreboard.length > 0 && (
+                {scoreboard.length > 0 && (
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[500px] text-sm">
                             <thead>

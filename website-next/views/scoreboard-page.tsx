@@ -1,7 +1,7 @@
 import {ScoreboardClient} from "@/components/scoreboard-client";
 import {JsonLd} from "@/components/seo/json-ld";
 import {absoluteUrl, siteConfig} from "@/lib/seo";
-import {KillDistributionPointResponse, ScoreboardEntryResponse} from "@/lib/client";
+import {KillDistributionPointResponse, ScoreboardEntryResponse, ScoreboardPeriod} from "@/lib/client";
 
 const scoreboardStructuredData = {
     "@context": "https://schema.org",
@@ -18,8 +18,8 @@ const scoreboardStructuredData = {
 };
 
 export default function ScoreboardPage(props: {
-    initialKillDistribution: KillDistributionPointResponse[];
-    initialScoreboard: ScoreboardEntryResponse[];
+    killDistributions: Record<ScoreboardPeriod, KillDistributionPointResponse[]>;
+    scoreboards: Record<ScoreboardPeriod, ScoreboardEntryResponse[]>;
 }) {
     return (
         <main className="container mx-auto px-4 py-12 md:py-16">
@@ -33,8 +33,8 @@ export default function ScoreboardPage(props: {
                 </div>
 
                 <ScoreboardClient
-                    initialKillDistribution={props.initialKillDistribution}
-                    initialScoreboard={props.initialScoreboard}
+                    killDistributions={props.killDistributions}
+                    scoreboards={props.scoreboards}
                 />
             </section>
         </main>

@@ -3,10 +3,8 @@ import {Hero} from "@/components/hero.tsx";
 import {ScoreboardPreview} from "@/components/scoreboard-preview.tsx";
 import {JsonLd} from "@/components/seo/json-ld";
 import {absoluteUrl, siteConfig} from "@/lib/seo";
-import {stripQ3Colors} from "@/lib/utils.ts";
-import {Suspense} from "react";
-import ServerPickerSkeleton from "@/components/server-picker-skeleton.tsx";
-import {getInitialScoreboard, getInitialServers} from "@/lib/initial-data.tsx";
+import {getInitialScoreboards, getInitialServers} from "@/lib/initial-data.tsx";
+import {SCOREBOARD_PERIODS, sortScoreboardEntries} from "@/lib/scoreboard";
 
 
 const homeStructuredData = [
@@ -42,19 +40,17 @@ const homeStructuredData = [
 ];
 
 export default async function HomePage() {
-    const [initialServers, allTimeScoreboard, dailyScoreboard] = await Promise.all([
+    const [initialServers, scoreboards] = await Promise.all([
         getInitialServers(),
-        getInitialScoreboard("ALL_TIME"),
-        getInitialScoreboard("DAILY"),
+        getInitialScoreboards(SCOREBOARD_PERIODS),
     ]);
 
+    const allTimeScoreboard = scoreboards.ALL_TIME;
+    const dailyScoreboard = scoreboards.DAILY;
     const currentPlayerCount = initialServers.reduce((sum, server) => sum + server.players, 0);
     const totalKillCount = allTimeScoreboard.reduce((sum, entry) => sum + entry.kills, 0);
     const firstServer = initialServers[0];
-    const topDailyPlayer = [...dailyScoreboard].sort((a, b) => {
-        if (b.kills !== a.kills) return b.kills - a.kills;
-        return stripQ3Colors(a.playerName).localeCompare(stripQ3Colors(b.playerName));
-    })[0] ?? null;
+    const topDailyPlayer = sortScoreboardEntries(dailyScoreboard)[0] ?? null;
 
     return (
         <main>
@@ -66,11 +62,8 @@ export default async function HomePage() {
                 topDailyPlayer={topDailyPlayer}
                 firstServer={firstServer}
             />
-            <ScoreboardPreview initialPeriod="DAILY" initialScoreboard={dailyScoreboard}/>
-
-            <Suspense fallback={<ServerPickerSkeleton/>}>
-                <ServerPicker/>
-            </Suspense>
+            <ScoreboardPreview initialPeriod="DAILY" scoreboards={scoreboards}/>
+            <ServerPicker servers={initialServers}/>
         </main>
     )
 }

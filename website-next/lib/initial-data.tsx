@@ -24,6 +24,26 @@ export async function getInitialScoreboard(period: ScoreboardPeriod = "DAILY"): 
     return data;
 }
 
+export async function getInitialScoreboards(
+    periods: readonly ScoreboardPeriod[],
+): Promise<Record<ScoreboardPeriod, ScoreboardEntryResponse[]>> {
+    const entries = await Promise.all(
+        periods.map(async (period) => [period, await getInitialScoreboard(period)] as const),
+    );
+
+    return Object.fromEntries(entries) as Record<ScoreboardPeriod, ScoreboardEntryResponse[]>;
+}
+
+export async function getInitialKillDistributions(
+    periods: readonly ScoreboardPeriod[],
+): Promise<Record<ScoreboardPeriod, KillDistributionPointResponse[]>> {
+    const entries = await Promise.all(
+        periods.map(async (period) => [period, await getInitialKillDistribution(period)] as const),
+    );
+
+    return Object.fromEntries(entries) as Record<ScoreboardPeriod, KillDistributionPointResponse[]>;
+}
+
 export async function getInitialKillDistribution(
     period: ScoreboardPeriod = "DAILY"
 ): Promise<KillDistributionPointResponse[]> {
