@@ -1,5 +1,5 @@
 import type {CreateClientConfig} from './client/client.gen';
-import {env} from "@/env.ts";
+import {env} from "@/env";
 
 export const createClientConfig: CreateClientConfig = (config) => ({
     ...config,

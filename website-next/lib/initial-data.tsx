@@ -8,7 +8,9 @@ import {
 import {getAllServers} from '@/lib/client/sdk.gen';
 
 export async function getInitialServers(): Promise<ServerResponse[]> {
-    const {data} = await getAllServers({throwOnError: true});
+    const {data} = await getAllServers({
+        throwOnError: true,
+    });
     return data;
 }
 
