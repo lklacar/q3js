@@ -7,7 +7,5 @@ export default async function SiteLayout({
                                          }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const initialServers = await getInitialServers();
-
-    return <AppShell initialServers={initialServers}>{children}</AppShell>;
+    return <AppShell>{children}</AppShell>;
 }

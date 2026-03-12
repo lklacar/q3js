@@ -27,50 +27,50 @@ export type HeartbeatRequest = {
 };
 
 export type KillDistributionPointResponse = {
-    bucketStart?: string;
-    kills?: number;
+    bucketStart: string;
+    kills: number;
 };
 
 export type PlayerFavoriteMapResponse = {
-    mapName?: string;
-    kills?: number;
+    mapName: string;
+    kills: number;
 };
 
 export type PlayerFavoriteWeaponResponse = {
-    meansOfDeath?: number;
-    weaponName?: string;
-    kills?: number;
+    meansOfDeath: number;
+    weaponName: string;
+    kills: number;
 };
 
 export type PlayerStatsResponse = {
-    playerName?: string;
-    period?: ScoreboardPeriod;
-    playtimeSeconds?: bigint;
-    rank?: number;
-    kills?: number;
-    deaths?: number;
-    killDeathRatio?: number;
-    favoriteMap?: PlayerFavoriteMapResponse;
-    favoriteWeapon?: PlayerFavoriteWeaponResponse;
-    weaponBreakdown?: Array<PlayerWeaponBreakdownResponse>;
-    topVictims?: Array<PlayerVersusStatResponse>;
-    topNemeses?: Array<PlayerVersusStatResponse>;
+    playerName: string;
+    period: ScoreboardPeriod;
+    playtimeSeconds: bigint;
+    rank: number | null;
+    kills: number;
+    deaths: number;
+    killDeathRatio: number | null;
+    favoriteMap: PlayerFavoriteMapResponse | null;
+    favoriteWeapon: PlayerFavoriteWeaponResponse | null;
+    weaponBreakdown: Array<PlayerWeaponBreakdownResponse>;
+    topVictims: Array<PlayerVersusStatResponse>;
+    topNemeses: Array<PlayerVersusStatResponse>;
 };
 
 export type PlayerVersusStatResponse = {
-    playerName?: string;
-    kills?: number;
+    playerName: string;
+    kills: number;
 };
 
 export type PlayerWeaponBreakdownResponse = {
-    meansOfDeath?: number;
-    weaponName?: string;
-    kills?: number;
+    meansOfDeath: number;
+    weaponName: string;
+    kills: number;
 };
 
 export type ScoreboardEntryResponse = {
-    playerName?: string;
-    kills?: number;
+    playerName: string;
+    kills: number;
 };
 
 export const ScoreboardPeriod = {
@@ -83,18 +83,18 @@ export const ScoreboardPeriod = {
 export type ScoreboardPeriod = typeof ScoreboardPeriod[keyof typeof ScoreboardPeriod];
 
 export type ServerResponse = {
-    id?: string;
-    sv_hostname?: string;
-    mapname?: string;
-    g_gametype?: number;
-    fraglimit?: number;
-    timelimit?: number;
-    sv_maxclients?: number;
-    g_needpass?: number;
+    id: string;
+    sv_hostname: string;
+    mapname: string;
+    g_gametype: number;
+    fraglimit: number;
+    timelimit: number;
+    sv_maxclients: number;
+    g_needpass: number;
     capturelimit?: number;
     version?: string;
     location?: string;
-    players?: number;
+    players: number;
     ping?: number;
     host?: string;
     port?: number;
@@ -113,15 +113,15 @@ export type ServerResponse = {
     bot_minplayers?: number;
     gamename?: string;
     g_maxGameClients?: number;
-    users?: Array<ServerUserResponse>;
+    users: Array<ServerUserResponse>;
     proxyPort?: number;
     targetPort?: number;
 };
 
 export type ServerUserResponse = {
-    score?: number;
-    ping?: number;
-    name?: string;
+    score: number;
+    ping: number;
+    name: string;
 };
 
 export type IngestEventData = {

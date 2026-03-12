@@ -5,6 +5,9 @@ import {Suspense} from "react";
 import {siteConfig, siteOgImage} from "@/lib/seo";
 import {env} from "@/env";
 import {GoogleAnalytics} from "@next/third-parties/google";
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import {client} from "@/lib/client/client.gen.ts";
+import QueryClientProviderWrapper from "@/lib/query-client-provider-wrapper.tsx";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -66,11 +69,12 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({
-    children,
-}: Readonly<{
+                                       children,
+                                   }: Readonly<{
     children: React.ReactNode;
 }>) {
     const gaMeasurementId = env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+    const queryClient = new QueryClient()
 
     return (
         <html lang="en-US">
@@ -78,7 +82,9 @@ export default function RootLayout({
         <Suspense fallback={null}>
             <AnalyticsTracker/>
         </Suspense>
-        <div className="font-mono">{children}</div>
+        <QueryClientProviderWrapper>
+            <div className="font-mono">{children}</div>
+        </QueryClientProviderWrapper>
         </body>
         <GoogleAnalytics gaId={gaMeasurementId}/>
         </html>

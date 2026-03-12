@@ -1,5 +1,6 @@
 package com.q3js.service.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,18 +13,39 @@ import java.util.List;
 @Builder
 @Data
 public class ServerResponse {
+
+    @NotNull
     private String id;
+
+    @NotNull
     private String sv_hostname;
+
+    @NotNull
     private String mapname;
+
+    @NotNull
     private Integer g_gametype;
+
+    @NotNull
     private Integer fraglimit;
+
+    @NotNull
     private Integer timelimit;
+
+    @NotNull
     private Integer sv_maxclients;
+
+    @NotNull
     private Integer g_needpass;
+
+
     private Integer capturelimit;
     private String version;
     private String location;
+
+    @NotNull
     private Integer players;
+
     private Integer ping;
     private String host;
     private Integer port;
@@ -42,6 +64,8 @@ public class ServerResponse {
     private Integer bot_minplayers;
     private String gamename;
     private Integer g_maxGameClients;
+
+    @NotNull
     private List<ServerUserResponse> users;
     private Integer proxyPort;
     private Integer targetPort;

@@ -1,16 +1,14 @@
-import {GAME_TYPES, type Q3ResolvedServer} from "@/lib/q3.ts";
+import {GAME_TYPES} from "@/lib/q3.ts";
 import {Card, CardContent} from "@/components/ui/card.tsx";
 import {Activity, Globe, Lock, Users} from "lucide-react";
 import {Badge} from "@/components/ui/badge.tsx";
 import {getGameLimits, getPercentage, getPingColor} from "@/lib/utils.ts";
 import {JoinServerButton} from "@/components/join-server-button.tsx";
 import {PlayerList} from "@/components/player-list.tsx";
+import {ServerResponse} from "@/lib/client";
 
 export function ServerCard(props: {
-    server: Q3ResolvedServer;
-    playerName: string;
-    resolvePlayerName?: () => string;
-    onJoin?: (server: Q3ResolvedServer) => void;
+    server: ServerResponse;
 }) {
     const info = props.server;
 

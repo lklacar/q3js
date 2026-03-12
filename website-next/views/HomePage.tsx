@@ -1,10 +1,12 @@
 import {ServerPicker} from "@/components/server-picker"
 import {Hero} from "@/components/hero.tsx";
 import {ScoreboardPreview} from "@/components/scoreboard-preview.tsx";
-import {getInitialScoreboard, getInitialServers} from "@/lib/initial-data";
 import {JsonLd} from "@/components/seo/json-ld";
 import {absoluteUrl, siteConfig} from "@/lib/seo";
 import {stripQ3Colors} from "@/lib/utils.ts";
+import {Suspense} from "react";
+import ServerPickerSkeleton from "@/components/server-picker-skeleton.tsx";
+import {getInitialScoreboard, getInitialServers} from "@/lib/initial-data.tsx";
 
 
 const homeStructuredData = [
@@ -42,8 +44,8 @@ const homeStructuredData = [
 export default async function HomePage() {
     const [initialServers, allTimeScoreboard, dailyScoreboard] = await Promise.all([
         getInitialServers(),
-        getInitialScoreboard("all-time"),
-        getInitialScoreboard("daily"),
+        getInitialScoreboard("ALL_TIME"),
+        getInitialScoreboard("DAILY"),
     ]);
 
     const currentPlayerCount = initialServers.reduce((sum, server) => sum + server.players, 0);
@@ -64,8 +66,11 @@ export default async function HomePage() {
                 topDailyPlayer={topDailyPlayer}
                 firstServer={firstServer}
             />
-            <ScoreboardPreview initialPeriod="daily" initialScoreboard={dailyScoreboard}/>
-            <ServerPicker initialServers={initialServers}/>
+            <ScoreboardPreview initialPeriod="DAILY" initialScoreboard={dailyScoreboard}/>
+
+            <Suspense fallback={<ServerPickerSkeleton/>}>
+                <ServerPicker/>
+            </Suspense>
         </main>
     )
 }

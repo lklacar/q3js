@@ -1,5 +1,6 @@
 package com.q3js.service.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +11,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @Data
 public class PlayerWeaponBreakdownResponse {
+
+    @NotNull
     private int meansOfDeath;
+
+    @NotNull
     private String weaponName;
+
+    @NotNull
     private int kills;
 }

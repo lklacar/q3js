@@ -1,6 +1,5 @@
 "use client";
 
-import type {Q3ResolvedServer} from "@/lib/q3.ts";
 import {Button} from "@/components/ui/button.tsx";
 import {Dice6Icon, Zap} from "lucide-react";
 import {trackEvent} from "@/lib/analytics.ts";
@@ -18,9 +17,10 @@ import {Label} from "@/components/ui/label.tsx";
 import {useLocalStorage} from "@/hooks/use-local-storage.ts";
 import {createRandomPlayerName} from "@/lib/player-name-generator.ts";
 import Link from "next/link";
+import {ServerResponse} from "@/lib/client";
 
 export function JoinServerButton(props: {
-    server: Q3ResolvedServer;
+    server: ServerResponse;
     ctaLabel?: string;
     className?: string;
 }) {

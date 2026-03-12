@@ -29,7 +29,7 @@ export const createClient = (config: Config = {}): Client => {
     return getConfig();
   };
 
-  const interceptors = createInterceptors<Request, Response, unknown, ResolvedRequestOptions>();
+  const interceptors = createInterceptors<Response, unknown, ResolvedRequestOptions>();
 
   const beforeRequest = async (options: RequestOptions) => {
     const opts = {
@@ -65,64 +65,34 @@ export const createClient = (config: Config = {}): Client => {
     return { opts, url };
   };
 
+  // @ts-expect-error
   const request: Client['request'] = async (options) => {
     // @ts-expect-error
     const { opts, url } = await beforeRequest(options);
-    const requestInit: ReqInit = {
-      redirect: 'follow',
-      ...opts,
-      body: getValidRequestBody(opts),
-    };
-
-    let request = new Request(url, requestInit);
 
     for (const fn of interceptors.request.fns) {
       if (fn) {
-        request = await fn(request, opts);
+        await fn(opts);
       }
     }
 
     // fetch must be assigned here, otherwise it would throw the error:
     // TypeError: Failed to execute 'fetch' on 'Window': Illegal invocation
     const _fetch = opts.fetch!;
-    let response: Response;
+    const requestInit: ReqInit = {
+      ...opts,
+      body: getValidRequestBody(opts),
+    };
 
-    try {
-      response = await _fetch(request);
-    } catch (error) {
-      // Handle fetch exceptions (AbortError, network errors, etc.)
-      let finalError = error;
-
-      for (const fn of interceptors.error.fns) {
-        if (fn) {
-          finalError = (await fn(error, undefined as any, request, opts)) as unknown;
-        }
-      }
-
-      finalError = finalError || ({} as unknown);
-
-      if (opts.throwOnError) {
-        throw finalError;
-      }
-
-      // Return error response
-      return opts.responseStyle === 'data'
-        ? undefined
-        : {
-            error: finalError,
-            request,
-            response: undefined as any,
-          };
-    }
+    let response = await _fetch(url, requestInit);
 
     for (const fn of interceptors.response.fns) {
       if (fn) {
-        response = await fn(response, request, opts);
+        response = await fn(response, opts);
       }
     }
 
     const result = {
-      request,
       response,
     };
 
@@ -151,12 +121,10 @@ export const createClient = (config: Config = {}): Client => {
             emptyData = {};
             break;
         }
-        return opts.responseStyle === 'data'
-          ? emptyData
-          : {
-              data: emptyData,
-              ...result,
-            };
+        return {
+          data: emptyData,
+          ...result,
+        };
       }
 
       let data: any;
@@ -175,12 +143,10 @@ export const createClient = (config: Config = {}): Client => {
           break;
         }
         case 'stream':
-          return opts.responseStyle === 'data'
-            ? response.body
-            : {
-                data: response.body,
-                ...result,
-              };
+          return {
+            data: response.body,
+            ...result,
+          };
       }
 
       if (parseAs === 'json') {
@@ -193,12 +159,10 @@ export const createClient = (config: Config = {}): Client => {
         }
       }
 
-      return opts.responseStyle === 'data'
-        ? data
-        : {
-            data,
-            ...result,
-          };
+      return {
+        data,
+        ...result,
+      };
     }
 
     const textError = await response.text();
@@ -215,7 +179,7 @@ export const createClient = (config: Config = {}): Client => {
 
     for (const fn of interceptors.error.fns) {
       if (fn) {
-        finalError = (await fn(error, response, request, opts)) as string;
+        finalError = (await fn(error, response, opts)) as string;
       }
     }
 
@@ -225,13 +189,10 @@ export const createClient = (config: Config = {}): Client => {
       throw finalError;
     }
 
-    // TODO: we probably want to return error and improve types
-    return opts.responseStyle === 'data'
-      ? undefined
-      : {
-          error: finalError,
-          ...result,
-        };
+    return {
+      error: finalError,
+      ...result,
+    };
   };
 
   const makeMethodFn = (method: Uppercase<HttpMethod>) => (options: RequestOptions) =>
@@ -246,9 +207,15 @@ export const createClient = (config: Config = {}): Client => {
       method,
       onRequest: async (url, init) => {
         let request = new Request(url, init);
+        const requestInit = {
+          ...init,
+          method: init.method as Config['method'],
+          url,
+        };
         for (const fn of interceptors.request.fns) {
           if (fn) {
-            request = await fn(request, opts);
+            await fn(requestInit);
+            request = new Request(requestInit.url, requestInit);
           }
         }
         return request;

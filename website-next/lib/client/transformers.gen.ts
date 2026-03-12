@@ -3,9 +3,7 @@
 import type { GetPlayerStatsResponse } from './types.gen';
 
 const playerStatsResponseSchemaResponseTransformer = (data: any) => {
-    if (data.playtimeSeconds) {
-        data.playtimeSeconds = BigInt(data.playtimeSeconds.toString());
-    }
+    data.playtimeSeconds = BigInt(data.playtimeSeconds.toString());
     return data;
 };
 

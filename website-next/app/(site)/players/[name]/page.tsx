@@ -1,8 +1,8 @@
 import type {Metadata} from "next";
 import PlayerProfilePage from "@/views/PlayerProfilePage";
 import {buildPageMetadata} from "@/lib/seo";
-import {fetchPlayerStats} from "@/lib/player-stats.ts";
 import {stripQ3Colors} from "@/lib/utils.ts";
+import {fetchPlayerStats} from "@/lib/player-stats.tsx";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -43,5 +43,5 @@ export default async function PlayerProfileRoute(props: PlayerProfileRouteProps)
     const playerName = decodePlayerName(params.name);
     const stats = await fetchPlayerStats(playerName);
 
-    return <PlayerProfilePage playerName={playerName} period="all-time" stats={stats}/>;
+    return <PlayerProfilePage playerName={playerName} period="ALL_TIME" stats={stats}/>;
 }

@@ -2,9 +2,8 @@ import Link from "next/link";
 import {Button} from "@/components/ui/button.tsx";
 import {Skull, Target, Users} from "lucide-react";
 import {JoinServerButton} from "@/components/join-server-button.tsx";
-import type {Q3ResolvedServer} from "@/lib/q3.ts";
-import type {ScoreboardEntry} from "@/lib/scoreboard.ts";
 import {Q3ColoredText} from "@/components/q3-colored-text.tsx";
+import {ScoreboardEntryResponse, ServerResponse} from "@/lib/client";
 
 
 function formatCount(count: number, singular: string, plural = `${singular}s`) {
@@ -19,8 +18,8 @@ export function Hero(props: {
     currentPlayerCount: number;
     serverCount: number;
     totalKillCount: number;
-    topDailyPlayer: ScoreboardEntry | null;
-    firstServer?: Q3ResolvedServer;
+    topDailyPlayer: ScoreboardEntryResponse | null;
+    firstServer?: ServerResponse;
 }) {
     return (
         <section className="border-b border-border/60 bg-background">

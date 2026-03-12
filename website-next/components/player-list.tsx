@@ -1,10 +1,10 @@
 import Link from "next/link";
-import type {User} from "@/lib/q3.ts";
 import {Users} from "lucide-react";
 import {ScrollArea} from "@/components/ui/scroll-area.tsx";
 import {Q3ColoredText} from "@/components/q3-colored-text.tsx";
+import {ServerUserResponse} from "@/lib/client";
 
-export function PlayerList(props: { users: User[] }) {
+export function PlayerList(props: { users: ServerUserResponse[] }) {
     return <div className="mt-4 border-t border-border/50 pt-4">
         <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

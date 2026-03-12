@@ -2,23 +2,22 @@
 
 import Link from "next/link";
 import {Badge} from "@/components/ui/badge.tsx";
-import {fetchServers} from "@/lib/servers.ts";
 import {SiGithub} from "react-icons/si";
 import {trackEvent} from "@/lib/analytics.ts";
-import {usePollingQuery} from "@/hooks/use-polling-query.ts";
-import type {Q3ResolvedServer} from "@/lib/q3.ts";
+import {useQuery} from "@tanstack/react-query";
+import {getAllServersOptions} from "@/lib/client/@tanstack/react-query.gen.ts";
 
-export function Header(props: { initialServers: Q3ResolvedServer[] }) {
-    const statusQuery = usePollingQuery({
-        queryFn: fetchServers,
-        intervalMs: 30000,
-        initialData: props.initialServers,
-        isPendingInitial: false,
-    });
+export function Header() {
 
-    const serverCount = statusQuery.data?.length ?? 0;
-    const isOffline = statusQuery.isError;
-    const statusLabel = isOffline ? "Master offline" : statusQuery.isPending ? "Checking..." : `${serverCount} servers live`;
+    const serversResponse = useQuery({
+        ...getAllServersOptions()
+    })
+
+    const servers = serversResponse.data;
+
+    const serverCount = servers?.length ?? 0;
+    const isOffline = serversResponse.isError;
+    const statusLabel = isOffline ? "Master offline" : serversResponse.isPending ? "Checking..." : `${serverCount} servers live`;
 
     return <header className="border-b border-border/50 backdrop-blur-sm sticky top-0 z-50 bg-background/80">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

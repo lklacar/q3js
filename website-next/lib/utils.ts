@@ -1,6 +1,6 @@
 import {type ClassValue, clsx} from 'clsx'
 import {twMerge} from 'tailwind-merge'
-import type {Q3ResolvedServer} from "@/lib/q3.ts";
+import {ServerResponse} from "@/lib/client";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
@@ -10,8 +10,8 @@ export function getPingColor(ping: number | undefined) {
     return !ping ? "text-muted-foreground" : ping < 50 ? "text-primary" : ping < 100 ? "text-accent" : "text-muted-foreground"
 }
 
-export function getGameLimits(s: Q3ResolvedServer) {
-    return s.g_gametype === 4 && s.capturelimit > 0
+export function getGameLimits(s: ServerResponse) {
+    return s.g_gametype === 4 && (s.capturelimit ?? 0) > 0
         ? `${s.capturelimit} caps`
         : s.fraglimit > 0
             ? `${s.fraglimit} frags`

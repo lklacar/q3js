@@ -2,7 +2,7 @@
 
 import {useMemo, useState} from "react";
 import {cn} from "@/lib/utils.ts";
-import type {KillDistributionPoint} from "@/lib/scoreboard.ts";
+import {KillDistributionPointResponse} from "@/lib/client";
 
 function formatKills(kills: number) {
     return new Intl.NumberFormat().format(kills);
@@ -38,7 +38,7 @@ function formatShortDate(bucketStart: string, bucketUnit: BucketUnit) {
 
 export function KillDistributionChart(props: {
     bucketUnit: BucketUnit;
-    data: KillDistributionPoint[];
+    data: KillDistributionPointResponse[];
     isError: boolean;
     isPending: boolean;
     periodLabel: string;
@@ -51,7 +51,7 @@ export function KillDistributionChart(props: {
 
     const summary = useMemo(() => {
         const totalKills = props.data.reduce((sum, point) => sum + point.kills, 0);
-        const peakDay = props.data.reduce<KillDistributionPoint | null>((peak, point) => {
+        const peakDay = props.data.reduce<KillDistributionPointResponse | null>((peak, point) => {
             if (peak === null || point.kills > peak.kills) return point;
             return peak;
         }, null);

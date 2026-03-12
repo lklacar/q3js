@@ -2,8 +2,12 @@ import {defineConfig} from '@hey-api/openapi-ts'
 
 export default defineConfig({
     input: 'http://localhost:8080/q/openapi',
-    output: 'src/lib/client',
+    output: 'lib/client',
     plugins: [
+        {
+            name: "@hey-api/client-next",
+            runtimeConfigPath: '@/lib/hey-api.ts',
+        },
         {
             name: '@tanstack/react-query',
         },
@@ -18,9 +22,6 @@ export default defineConfig({
         {
             dates: true,
             name: '@hey-api/transformers',
-        },
-        {
-            name: '@hey-api/client-fetch',
-        },
+        }
     ],
 })

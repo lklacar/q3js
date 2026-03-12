@@ -5,21 +5,17 @@ import {Button} from "@/components/ui/button.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
 import Link from "next/link";
 import {
-    DEFAULT_SCOREBOARD_PERIOD,
-    fetchKillDistribution,
-    fetchScoreboard,
-    type KillDistributionPoint,
     SCOREBOARD_PERIOD_LABELS,
-    type ScoreboardEntry,
-    type ScoreboardPeriod,
 } from "@/lib/scoreboard.ts";
 import {stripQ3Colors} from "@/lib/utils.ts";
 import {useMemo, useState} from "react";
 import {Q3ColoredText} from "@/components/q3-colored-text.tsx";
 import {trackEvent} from "@/lib/analytics.ts";
-import {usePollingQuery} from "@/hooks/use-polling-query.ts";
 import {ScoreboardPeriodToggle} from "@/components/scoreboard-period-toggle.tsx";
 import {KillDistributionChart} from "@/components/kill-distribution-chart.tsx";
+import {useSuspenseQuery} from "@tanstack/react-query";
+import {getGlobalScoreboardOptions, getKillDistributionOptions} from "@/lib/client/@tanstack/react-query.gen.ts";
+import {KillDistributionPointResponse, ScoreboardEntryResponse, ScoreboardPeriod} from "@/lib/client";
 
 function rankBadge(rank: number) {
     if (rank === 1) return <Badge className="min-w-10 justify-center bg-primary text-primary-foreground">#1</Badge>;
@@ -33,24 +29,27 @@ function formatKills(kills: number) {
 }
 
 export function ScoreboardClient(props: {
-    initialKillDistribution: KillDistributionPoint[];
-    initialScoreboard: ScoreboardEntry[];
+    initialKillDistribution: KillDistributionPointResponse[];
+    initialScoreboard: ScoreboardEntryResponse[];
 }) {
-    const [period, setPeriod] = useState<ScoreboardPeriod>(DEFAULT_SCOREBOARD_PERIOD);
-    const scoreboardQuery = usePollingQuery<ScoreboardEntry[]>({
-        queryFn: () => fetchScoreboard(period),
-        intervalMs: 30000,
-        initialData: period === DEFAULT_SCOREBOARD_PERIOD ? props.initialScoreboard : [],
-        isPendingInitial: period !== DEFAULT_SCOREBOARD_PERIOD,
-        queryKey: `scoreboard:${period}`,
+    const [period, setPeriod] = useState<ScoreboardPeriod>("DAILY");
+
+    const scoreboardQuery = useSuspenseQuery({
+        ...getGlobalScoreboardOptions({
+            query: {
+                period
+            }
+        })
+    })
+
+    const distributionQuery = useSuspenseQuery({
+        ...getKillDistributionOptions({
+            query: {
+                period
+            }
+        })
     });
-    const distributionQuery = usePollingQuery<KillDistributionPoint[]>({
-        queryFn: () => fetchKillDistribution(period),
-        intervalMs: 30000,
-        initialData: period === DEFAULT_SCOREBOARD_PERIOD ? props.initialKillDistribution : [],
-        isPendingInitial: period !== DEFAULT_SCOREBOARD_PERIOD,
-        queryKey: `distribution:${period}`,
-    });
+
 
     const scoreboard = useMemo(() => {
         const rows = scoreboardQuery.data ?? [];
@@ -104,7 +103,7 @@ export function ScoreboardClient(props: {
                 </div>
 
                 <KillDistributionChart
-                    bucketUnit={period === "daily" ? "hour" : "day"}
+                    bucketUnit={period === "DAILY" ? "hour" : "day"}
                     data={distributionQuery.data ?? []}
                     isError={distributionQuery.isError}
                     isPending={distributionQuery.isPending}
@@ -113,7 +112,8 @@ export function ScoreboardClient(props: {
 
                 {scoreboardQuery.isError && (
                     <div className="p-6 text-center space-y-3">
-                        <p className="text-sm text-destructive">Failed to load the {periodLabel.toLowerCase()} scoreboard.</p>
+                        <p className="text-sm text-destructive">Failed to load
+                            the {periodLabel.toLowerCase()} scoreboard.</p>
                         <Button variant="outline" onClick={() => refreshScoreboard("error_retry")}>
                             Retry
                         </Button>
@@ -134,7 +134,8 @@ export function ScoreboardClient(props: {
 
                 {!scoreboardQuery.isError && !scoreboardQuery.isPending && scoreboard.length === 0 && (
                     <div className="p-10 text-center">
-                        <p className="text-sm text-muted-foreground">No {periodLabel.toLowerCase()} frag events have been recorded yet.</p>
+                        <p className="text-sm text-muted-foreground">No {periodLabel.toLowerCase()} frag events have
+                            been recorded yet.</p>
                     </div>
                 )}
 
@@ -153,7 +154,8 @@ export function ScoreboardClient(props: {
                                 const rank = index + 1;
 
                                 return (
-                                    <tr key={`${entry.playerName}-${rank}`} className="border-b border-border/40 last:border-b-0">
+                                    <tr key={`${entry.playerName}-${rank}`}
+                                        className="border-b border-border/40 last:border-b-0">
                                         <td className="px-4 py-3">{rankBadge(rank)}</td>
                                         <td className="px-4 py-3 font-semibold">
                                             <Link

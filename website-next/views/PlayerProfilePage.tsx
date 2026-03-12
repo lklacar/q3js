@@ -5,17 +5,16 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx
 import {JsonLd} from "@/components/seo/json-ld";
 import {Q3ColoredText} from "@/components/q3-colored-text.tsx";
 import {absoluteUrl, siteConfig} from "@/lib/seo";
-import type {PlayerStats} from "@/lib/player-stats.ts";
 import {stripQ3Colors} from "@/lib/utils.ts";
-import type {ScoreboardPeriod} from "@/lib/scoreboard.ts";
 import {SCOREBOARD_PERIOD_LABELS} from "@/lib/scoreboard.ts";
+import {PlayerStatsResponse, ScoreboardPeriod} from "@/lib/client";
 
 function formatRatio(value: number | null) {
     if (value === null) return "Perfect";
     return value.toFixed(2);
 }
 
-function formatPlaytime(totalSeconds: number) {
+function formatPlaytime(totalSeconds:  number) {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
 
@@ -29,7 +28,7 @@ function formatPlaytime(totalSeconds: number) {
 function PlayerListCard(props: {
     title: string;
     emptyLabel: string;
-    players: PlayerStats["topVictims"];
+    players: PlayerStatsResponse["topVictims"];
 }) {
     return (
         <Card className="border-border/60 bg-card/60">
@@ -58,7 +57,7 @@ function PlayerListCard(props: {
     );
 }
 
-function WeaponBreakdownCard(props: { weapons: PlayerStats["weaponBreakdown"]; totalKills: number }) {
+function WeaponBreakdownCard(props: { weapons: PlayerStatsResponse["weaponBreakdown"]; totalKills: number }) {
     const maxKills = props.weapons[0]?.kills ?? 0;
 
     return (
@@ -101,7 +100,7 @@ function WeaponBreakdownCard(props: { weapons: PlayerStats["weaponBreakdown"]; t
 export default function PlayerProfilePage(props: {
     playerName: string;
     period: ScoreboardPeriod;
-    stats: PlayerStats;
+    stats: PlayerStatsResponse;
 }) {
     const plainName = stripQ3Colors(props.playerName);
     const periodLabel = SCOREBOARD_PERIOD_LABELS[props.period];
@@ -138,7 +137,8 @@ export default function PlayerProfilePage(props: {
                                 <Q3ColoredText text={props.playerName}/>
                             </h1>
                             <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
-                                Frag profile for {plainName}. Drill into their output, favorite tools, and the players they farm or fear most.
+                                Frag profile for {plainName}. Drill into their output, favorite tools, and the players
+                                they farm or fear most.
                             </p>
                         </div>
                     </div>
@@ -182,7 +182,7 @@ export default function PlayerProfilePage(props: {
                             <CardTitle className="text-sm text-muted-foreground">Playtime</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold">{formatPlaytime(props.stats.playtimeSeconds)}</div>
+                            <div className="text-3xl font-bold">{formatPlaytime(Number(props.stats.playtimeSeconds))}</div>
                         </CardContent>
                     </Card>
                 </div>
@@ -195,7 +195,8 @@ export default function PlayerProfilePage(props: {
                         <CardContent className="space-y-2">
                             {props.stats.favoriteMap ? (
                                 <>
-                                    <div className="text-3xl font-bold uppercase">{props.stats.favoriteMap.mapName}</div>
+                                    <div
+                                        className="text-3xl font-bold uppercase">{props.stats.favoriteMap.mapName}</div>
                                     <p className="text-sm text-muted-foreground">
                                         {props.stats.favoriteMap.kills} kills landed here.
                                     </p>
@@ -215,7 +216,8 @@ export default function PlayerProfilePage(props: {
                                 <>
                                     <div className="text-3xl font-bold">{props.stats.favoriteWeapon.weaponName}</div>
                                     <p className="text-sm text-muted-foreground">
-                                        {props.stats.favoriteWeapon.kills} kills, MOD {props.stats.favoriteWeapon.meansOfDeath}.
+                                        {props.stats.favoriteWeapon.kills} kills,
+                                        MOD {props.stats.favoriteWeapon.meansOfDeath}.
                                     </p>
                                 </>
                             ) : (
