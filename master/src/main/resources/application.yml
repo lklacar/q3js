@@ -29,6 +29,12 @@ quarkus:
   jooq:
     dialect: POSTGRES
 
+mp:
+  openapi:
+    extensions:
+      smallrye:
+        operationIdStrategy: METHOD
+
 q3js:
   server-info:
     timeout-ms: 3000
