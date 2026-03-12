@@ -2,7 +2,6 @@
 
 import {Button} from "@/components/ui/button.tsx";
 import {Dice6Icon, Zap} from "lucide-react";
-import {trackEvent} from "@/lib/analytics.ts";
 import {
     Dialog,
     DialogContent,
@@ -96,16 +95,6 @@ export function JoinServerButton(props: {
                         prefetch={false}
                         className="w-full"
                         href={gameUrl}
-                        onClick={() => {
-                            trackEvent("join_server_click", {
-                                server_region: props.server.location ?? "Unknown",
-                                map_name: props.server.mapname.toLowerCase(),
-                                game_type: props.server.g_gametype,
-                                player_count: props.server.players,
-                                max_players: props.server.sv_maxclients,
-                                password_protected: props.server.g_needpass === 1,
-                            });
-                        }}
                         aria-label={`Join ${props.server.sv_hostname}`}
                     >
                         <Button className="w-full" size="lg">

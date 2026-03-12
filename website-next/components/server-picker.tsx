@@ -2,13 +2,12 @@
 
 import {Card, CardContent} from "@/components/ui/card";
 import {ServerCard} from "@/components/server-card.tsx";
-import {useEffect, useMemo, useRef, useState, useTransition} from "react";
+import {useMemo, useState, useTransition} from "react";
 import {Input} from "@/components/ui/input.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {stripQ3Colors} from "@/lib/utils.ts";
 import Link from "next/link";
 import {Search} from "lucide-react";
-import {trackEvent} from "@/lib/analytics.ts";
 import {ServerResponse} from "@/lib/client";
 import {useRouter} from "next/navigation";
 
@@ -19,17 +18,8 @@ function formatCount(count: number, singular: string, plural = `${singular}s`) {
 
 export function ServerPicker({servers}: { servers: ServerResponse[] }) {
     const [searchTerm, setSearchTerm] = useState("");
-    const hasTrackedSearchUsageRef = useRef(false);
     const [isRefreshing, startRefreshTransition] = useTransition();
     const router = useRouter();
-
-    useEffect(() => {
-        if (hasTrackedSearchUsageRef.current) return;
-        if (searchTerm.trim().length === 0) return;
-
-        hasTrackedSearchUsageRef.current = true;
-        trackEvent("server_search_used");
-    }, [searchTerm]);
 
     const filteredServers = useMemo(() => {
         const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -56,14 +46,10 @@ export function ServerPicker({servers}: { servers: ServerResponse[] }) {
     const activeFilterCount = [searchTerm.trim().length > 0].filter(Boolean).length;
 
     function clearFilters() {
-        trackEvent("server_filters_cleared", {
-            had_search_term: searchTerm.trim().length > 0,
-        });
         setSearchTerm("");
     }
 
-    function refreshServerList(source: "empty" | "filtered_empty" | "error") {
-        trackEvent("server_list_refreshed", {source});
+    function refreshServerList() {
         startRefreshTransition(() => {
             router.refresh();
         });
@@ -131,7 +117,7 @@ export function ServerPicker({servers}: { servers: ServerResponse[] }) {
                         <CardContent className="py-10 text-center space-y-3">
                             <p className="text-muted-foreground">No servers are live right now.</p>
                             <div className="flex items-center justify-center gap-2">
-                                <Button variant="outline" onClick={() => refreshServerList("empty")} disabled={isRefreshing}>
+                                <Button variant="outline" onClick={refreshServerList} disabled={isRefreshing}>
                                     {isRefreshing ? "Refreshing..." : "Refresh list"}
                                 </Button>
                                 <Button asChild>
@@ -152,7 +138,7 @@ export function ServerPicker({servers}: { servers: ServerResponse[] }) {
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    onClick={() => refreshServerList("filtered_empty")}
+                                    onClick={refreshServerList}
                                     disabled={isRefreshing}
                                 >
                                     {isRefreshing ? "Refreshing..." : "Refresh list"}

@@ -8,7 +8,6 @@ import {
 } from "@/lib/scoreboard.ts";
 import {useMemo, useState} from "react";
 import {Q3ColoredText} from "@/components/q3-colored-text.tsx";
-import {trackEvent} from "@/lib/analytics.ts";
 import {ScoreboardPeriodToggle} from "@/components/scoreboard-period-toggle.tsx";
 import {ScoreboardEntryResponse, ScoreboardPeriod} from "@/lib/client";
 import {sortScoreboardEntries} from "@/lib/scoreboard";
@@ -32,8 +31,6 @@ export function ScoreboardPreview(props: {
 
     function selectPeriod(nextPeriod: ScoreboardPeriod) {
         if (nextPeriod === period) return;
-
-        trackEvent("scoreboard_period_change", {source: "scoreboard_preview", period: nextPeriod});
         setPeriod(nextPeriod);
     }
 
@@ -90,13 +87,7 @@ export function ScoreboardPreview(props: {
 
                         <div className="mt-4 flex justify-start border-t border-border/50 pt-4 md:justify-end">
                             <Button variant="outline" asChild>
-                                <Link
-                                    href="/scoreboard"
-                                    onClick={() => trackEvent("cta_click", {
-                                        target: "view_scoreboard",
-                                        source: "scoreboard_preview"
-                                    })}
-                                >
+                                <Link href="/scoreboard">
                                     View full scoreboard
                                 </Link>
                             </Button>

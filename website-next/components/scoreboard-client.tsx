@@ -10,7 +10,6 @@ import {
 } from "@/lib/scoreboard.ts";
 import {useMemo, useState, useTransition} from "react";
 import {Q3ColoredText} from "@/components/q3-colored-text.tsx";
-import {trackEvent} from "@/lib/analytics.ts";
 import {ScoreboardPeriodToggle} from "@/components/scoreboard-period-toggle.tsx";
 import {KillDistributionChart} from "@/components/kill-distribution-chart.tsx";
 import {KillDistributionPointResponse, ScoreboardEntryResponse, ScoreboardPeriod} from "@/lib/client";
@@ -43,8 +42,7 @@ export function ScoreboardClient(props: {
 
     const distribution = props.killDistributions[period] ?? [];
 
-    function refreshScoreboard(source: "refresh_button" | "error_retry") {
-        trackEvent("scoreboard_refresh_click", {source, period});
+    function refreshScoreboard() {
         startRefreshTransition(() => {
             router.refresh();
         });
@@ -52,8 +50,6 @@ export function ScoreboardClient(props: {
 
     function selectPeriod(nextPeriod: ScoreboardPeriod) {
         if (nextPeriod === period) return;
-
-        trackEvent("scoreboard_period_change", {source: "scoreboard_page", period: nextPeriod});
         setPeriod(nextPeriod);
     }
 
@@ -77,7 +73,7 @@ export function ScoreboardClient(props: {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => refreshScoreboard("refresh_button")}
+                                onClick={refreshScoreboard}
                                 disabled={isRefreshing}
                             >
                                 {isRefreshing ? "Refreshing..." : "Refresh"}

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import {Badge} from "@/components/ui/badge.tsx";
 import {SiGithub} from "react-icons/si";
-import {trackEvent} from "@/lib/analytics.ts";
 import {useQuery} from "@tanstack/react-query";
 import {getAllServersOptions} from "@/lib/client/@tanstack/react-query.gen.ts";
 
@@ -51,10 +50,7 @@ export function Header() {
                     variant="outline"
                     className="h-6 border-muted-foreground/30 text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
                 >
-                    <Link
-                        href="/guide"
-                        onClick={() => trackEvent("navigation_click", {target: "guide", source: "header"})}
-                    >
+                    <Link href="/guide">
                         <span className="sm:hidden">Guide</span>
                         <span className="hidden sm:inline">Run your server</span>
                     </Link>
@@ -64,10 +60,7 @@ export function Header() {
                     variant="outline"
                     className="h-6 border-muted-foreground/30 text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
                 >
-                    <Link
-                        href="/scoreboard"
-                        onClick={() => trackEvent("navigation_click", {target: "scoreboard", source: "header"})}
-                    >
+                    <Link href="/scoreboard">
                         <span className="sm:hidden">Scores</span>
                         <span className="hidden sm:inline">Global Scoreboard</span>
                     </Link>
@@ -82,7 +75,6 @@ export function Header() {
                         target="_blank"
                         rel="noreferrer"
                         aria-label="View Q3JS on GitHub"
-                        onClick={() => trackEvent("outbound_click", {target: "github", source: "header"})}
                     >
                         <SiGithub className="w-3.5 h-3.5"/>
                         <span className="hidden md:inline">GitHub</span>
@@ -93,10 +85,7 @@ export function Header() {
                     variant="outline"
                     className="h-6 border-muted-foreground/30 text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
                 >
-                    <a
-                        href={"https://discord.gg/mKvM9su443"}
-                        onClick={() => trackEvent("outbound_click", {target: "discord", source: "header"})}
-                    >
+                    <a href={"https://discord.gg/mKvM9su443"}>
                         Join Discord
                     </a>
                 </Badge>

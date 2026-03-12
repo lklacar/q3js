@@ -1,12 +1,8 @@
 import "./globals.css";
 import type {Metadata, Viewport} from "next";
-import {AnalyticsTracker} from "@/components/analytics-tracker";
-import {Suspense} from "react";
 import {siteConfig, siteOgImage} from "@/lib/seo";
 import {env} from "@/env";
 import {GoogleAnalytics} from "@next/third-parties/google";
-import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
-import {client} from "@/lib/client/client.gen.ts";
 import QueryClientProviderWrapper from "@/lib/query-client-provider-wrapper.tsx";
 
 export const dynamic = "force-dynamic";
@@ -78,9 +74,6 @@ export default function RootLayout({
     return (
         <html lang="en-US">
         <body className="antialiased">
-        <Suspense fallback={null}>
-            <AnalyticsTracker/>
-        </Suspense>
         <QueryClientProviderWrapper>
             <div className="font-mono">{children}</div>
         </QueryClientProviderWrapper>

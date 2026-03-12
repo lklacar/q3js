@@ -1,12 +1,11 @@
 "use client";
 
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import {Card} from "@/components/ui/card";
 import {Progress} from "@/components/ui/progress";
 import {makeRafUpdater, type Prog} from "@/lib/fs.ts";
 import {useFullscreenOnF11} from "@/hooks/use-fullscreen.ts";
 import startGame from "@/game";
-import {trackEvent} from "@/lib/analytics.ts";
 import {useSearchParams} from "next/navigation";
 import {toInt} from "@/lib/utils.ts";
 
@@ -20,9 +19,7 @@ export default function GamePage() {
         current: "",
         stage: "initializing"
     });
-    const rafUpdate = useRef(makeRafUpdater(setProg)).current;
-    const launchStartedAtRef = useRef(performance.now());
-    const readyTrackedRef = useRef(false);
+    const [rafUpdate] = useState(() => makeRafUpdater(setProg));
 
     const searchParams = useSearchParams();
     const host = searchParams?.get("host") ?? "";
@@ -30,7 +27,6 @@ export default function GamePage() {
     const name = searchParams?.get("name") ?? "Player";
 
     useEffect(() => {
-        trackEvent("game_launch_started");
         if (!host || !proxyPort) {
             return;
         }
@@ -40,25 +36,7 @@ export default function GamePage() {
             proxyPort,
             rafUpdate
         })
-    }, [host, name, proxyPort]);
-
-    useEffect(() => {
-        if (prog.stage !== "ready" || readyTrackedRef.current) return;
-
-        readyTrackedRef.current = true;
-        trackEvent("game_launch_ready", {
-            load_time_seconds: Number(((performance.now() - launchStartedAtRef.current) / 1000).toFixed(1)),
-        });
-    }, [prog.stage]);
-
-    useEffect(() => {
-        return () => {
-            trackEvent("game_page_exit", {
-                duration_seconds: Math.round((performance.now() - launchStartedAtRef.current) / 1000),
-                reached_ready: readyTrackedRef.current,
-            });
-        };
-    }, []);
+    }, [host, name, proxyPort, rafUpdate]);
 
     const stageLabel = prog.stage === "initializing"
         ? "Initializing"
