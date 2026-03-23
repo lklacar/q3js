@@ -394,6 +394,32 @@ export default function GamePage() {
         : "Preparing downloads";
     const showMobileControls = showTouchUi && prog.stage === "ready" && mobileBridgeReady && !showRotateOverlay;
 
+    // fix an issue with mouse pointer not getting captured back by ioquake3 after Alt+Tab or Escape
+    useEffect(() => {
+        const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+        if (!canvas) return;
+
+        // suppress ioquake3 from releasing pointer lock
+        const originalExit = document.exitPointerLock.bind(document);
+        document.exitPointerLock = () => {
+            console.warn('exitPointerLock suppressed');
+        };
+
+        // since ioquake3 won't re-request it either, we do it ourselves
+        const handleClick = () => {
+            if (document.pointerLockElement !== canvas) {
+            canvas.requestPointerLock();
+            }
+        };
+
+        canvas.addEventListener('click', handleClick);
+
+        return () => {
+            document.exitPointerLock = originalExit;
+            canvas.removeEventListener('click', handleClick);
+        };
+    }, []);
+
     if (portraitGate) {
         return (
             <main className="fixed inset-0 flex min-h-dvh w-screen items-center justify-center overflow-hidden bg-black px-6 text-white">
