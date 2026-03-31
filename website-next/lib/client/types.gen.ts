@@ -292,21 +292,3 @@ export type RefreshServerResponses = {
 };
 
 export type RefreshServerResponse = RefreshServerResponses[keyof RefreshServerResponses];
-
-export type GetServerInfoData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/servers/{id}/info';
-};
-
-export type GetServerInfoResponses = {
-    /**
-     * OK
-     */
-    200: ServerInfoResponse;
-};
-
-export type GetServerInfoResponse = GetServerInfoResponses[keyof GetServerInfoResponses];

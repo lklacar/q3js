@@ -17,6 +17,7 @@ import java.util.List;
 import org.jooq.Check;
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.PlainSQL;
@@ -59,7 +60,7 @@ public class Events extends TableImpl<EventsRecord> {
     /**
      * The column <code>events.id</code>.
      */
-    public final TableField<EventsRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).defaultValue(DSL.field(DSL.raw("nextval('events_id_seq1'::regclass)"), SQLDataType.BIGINT)), this, "");
+    public final TableField<EventsRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
      * The column <code>events.source_ip</code>.
@@ -156,8 +157,13 @@ public class Events extends TableImpl<EventsRecord> {
     }
 
     @Override
+    public Identity<EventsRecord, Long> getIdentity() {
+        return (Identity<EventsRecord, Long>) super.getIdentity();
+    }
+
+    @Override
     public UniqueKey<EventsRecord> getPrimaryKey() {
-        return Keys.EVENTS_PKEY1;
+        return Keys.EVENTS_PKEY;
     }
 
     @Override

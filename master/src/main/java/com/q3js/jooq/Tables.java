@@ -5,6 +5,8 @@ package com.q3js.jooq;
 
 
 import com.q3js.jooq.tables.Events;
+import com.q3js.jooq.tables.SchemaMigrations;
+import com.q3js.jooq.tables.Servers;
 
 
 /**
@@ -17,4 +19,14 @@ public class Tables {
      * The table <code>events</code>.
      */
     public static final Events EVENTS = Events.EVENTS;
+
+    /**
+     * The table <code>schema_migrations</code>.
+     */
+    public static final SchemaMigrations SCHEMA_MIGRATIONS = SchemaMigrations.SCHEMA_MIGRATIONS;
+
+    /**
+     * The table <code>servers</code>.
+     */
+    public static final Servers SERVERS = Servers.SERVERS;
 }

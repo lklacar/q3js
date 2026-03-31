@@ -36,12 +36,6 @@ public class ServerController {
     }
 
 
-    @GET
-    @Path("/{id}/info")
-    public ServerInfoResponse getServerInfo(@PathParam("id") String id) {
-        return serverService.getServerInfo(id);
-    }
-
     @PUT
     @Path("/heartbeat")
     public void refreshServer(HeartbeatRequest heartbeatRequest) {

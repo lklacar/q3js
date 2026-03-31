@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { getAllPlayers, getAllServers, getPlayerScoreboard, getPlayerScoreboardDistribution, getPlayerStats, getServerInfo, ingestEvent, type Options, refreshServer } from '../sdk.gen';
-import type { GetAllPlayersData, GetAllPlayersResponse, GetAllServersData, GetAllServersResponse, GetPlayerScoreboardData, GetPlayerScoreboardDistributionData, GetPlayerScoreboardDistributionResponse, GetPlayerScoreboardResponse, GetPlayerStatsData, GetPlayerStatsResponse, GetServerInfoData, GetServerInfoResponse, IngestEventData, RefreshServerData, RefreshServerResponse } from '../types.gen';
+import { getAllPlayers, getAllServers, getPlayerScoreboard, getPlayerScoreboardDistribution, getPlayerStats, ingestEvent, type Options, refreshServer } from '../sdk.gen';
+import type { GetAllPlayersData, GetAllPlayersResponse, GetAllServersData, GetAllServersResponse, GetPlayerScoreboardData, GetPlayerScoreboardDistributionData, GetPlayerScoreboardDistributionResponse, GetPlayerScoreboardResponse, GetPlayerStatsData, GetPlayerStatsResponse, IngestEventData, RefreshServerData, RefreshServerResponse } from '../types.gen';
 
 /**
  * Ingest Event
@@ -218,21 +218,3 @@ export const refreshServerMutation = (options?: Partial<Options<RefreshServerDat
     };
     return mutationOptions;
 };
-
-export const getServerInfoQueryKey = (options: Options<GetServerInfoData>) => createQueryKey('getServerInfo', options);
-
-/**
- * Get Server Info
- */
-export const getServerInfoOptions = (options: Options<GetServerInfoData>) => queryOptions<GetServerInfoResponse, DefaultError, GetServerInfoResponse, ReturnType<typeof getServerInfoQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getServerInfo({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getServerInfoQueryKey(options)
-});

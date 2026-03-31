@@ -3,7 +3,7 @@
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
 import { getPlayerStatsResponseTransformer } from './transformers.gen';
-import type { GetAllPlayersData, GetAllPlayersResponses, GetAllServersData, GetAllServersResponses, GetPlayerScoreboardData, GetPlayerScoreboardDistributionData, GetPlayerScoreboardDistributionResponses, GetPlayerScoreboardResponses, GetPlayerStatsData, GetPlayerStatsResponses, GetServerInfoData, GetServerInfoResponses, IngestEventData, IngestEventErrors, IngestEventResponses, RefreshServerData, RefreshServerErrors, RefreshServerResponses } from './types.gen';
+import type { GetAllPlayersData, GetAllPlayersResponses, GetAllServersData, GetAllServersResponses, GetPlayerScoreboardData, GetPlayerScoreboardDistributionData, GetPlayerScoreboardDistributionResponses, GetPlayerScoreboardResponses, GetPlayerStatsData, GetPlayerStatsResponses, IngestEventData, IngestEventErrors, IngestEventResponses, RefreshServerData, RefreshServerErrors, RefreshServerResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -71,8 +71,3 @@ export const refreshServer = <ThrowOnError extends boolean = false>(options: Opt
         ...options.headers
     }
 });
-
-/**
- * Get Server Info
- */
-export const getServerInfo = <ThrowOnError extends boolean = false>(options: Options<GetServerInfoData, ThrowOnError>) => (options.client ?? client).get<GetServerInfoResponses, unknown, ThrowOnError>({ url: '/api/servers/{id}/info', ...options });
