@@ -38,9 +38,9 @@ export function PlayerList(props: { users: ServerUserResponse[] }) {
                             <span className="tabular-nums">{u.ping}</span>
                             <Link
                                 href={`/players/${encodeURIComponent(u.name)}`}
-                                className="truncate hover:text-primary transition-colors"
+                                className="min-w-0 truncate transition-opacity hover:opacity-80"
                             >
-                                <Q3ColoredText text={u.name}/>
+                                <Q3ColoredText text={u.name} className="block truncate"/>
                             </Link>
                         </div>
                     ))}

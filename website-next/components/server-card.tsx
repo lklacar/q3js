@@ -6,6 +6,7 @@ import {getGameLimits, getPercentage, getPingColor} from "@/lib/utils.ts";
 import {JoinServerButton} from "@/components/join-server-button.tsx";
 import {PlayerList} from "@/components/player-list.tsx";
 import {ServerResponse} from "@/lib/client";
+import {Q3ColoredText} from "@/components/q3-colored-text.tsx";
 
 export function ServerCard(props: {
     server: ServerResponse;
@@ -23,7 +24,7 @@ export function ServerCard(props: {
                             <div className="min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
                                     <h3 className="text-lg font-bold text-foreground break-words">
-                                        {info.sv_hostname}
+                                        <Q3ColoredText text={info.sv_hostname}/>
                                     </h3>
                                     {info.g_needpass === 1 && (
                                         <Lock className="h-4 w-4 text-muted-foreground"/>
