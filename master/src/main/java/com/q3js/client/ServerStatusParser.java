@@ -12,7 +12,6 @@ import java.util.regex.Pattern;
 
 public final class ServerStatusParser {
     private static final Pattern PLAYER_LINE_PATTERN = Pattern.compile("^\\s*(-?\\d+)\\s+(\\d+)\\s+\"(.*)\"\\s*$");
-    private static final Pattern Q3_COLOR_PATTERN = Pattern.compile("\\^\\d");
 
     private ServerStatusParser() {
     }
@@ -41,7 +40,7 @@ public final class ServerStatusParser {
 
         return ServerInfoResponse.builder()
                 .id(server.getHost() + ":" + server.getTargetPort())
-                .sv_hostname(stripQ3Colors(kv.getOrDefault("sv_hostname", kv.getOrDefault("hostname", "Unnamed Server"))))
+                .sv_hostname(defaultString(kv.getOrDefault("sv_hostname", kv.getOrDefault("hostname", "Unnamed Server")), "Unnamed Server"))
                 .mapname(kv.getOrDefault("mapname", "unknown"))
                 .g_gametype(toInt(kv.getOrDefault("g_gametype", kv.getOrDefault("gametype", "0"))))
                 .fraglimit(toInt(kv.get("fraglimit")))
@@ -101,14 +100,10 @@ public final class ServerStatusParser {
             users.add(ServerUserResponse.builder()
                     .score(Integer.parseInt(matcher.group(1)))
                     .ping(Integer.parseInt(matcher.group(2)))
-                    .name(stripQ3Colors(matcher.group(3)))
+                    .name(defaultString(matcher.group(3), ""))
                     .build());
         }
         return users;
-    }
-
-    private static String stripQ3Colors(String value) {
-        return Q3_COLOR_PATTERN.matcher(defaultString(value, "")).replaceAll("");
     }
 
     private static Integer toInt(String value) {
