@@ -53,12 +53,13 @@ public class ServerStatusClient {
         var responseFuture = new CompletableFuture<byte[]>();
         var listener = new StatusWebSocketListener(responseFuture);
 
-        var webSocket = httpClient.newWebSocketBuilder()
+        WebSocket webSocket = httpClient.newWebSocketBuilder()
                 .connectTimeout(Duration.ofMillis(timeoutMs))
                 .buildAsync(URI.create(buildWebSocketUrl(server)), listener)
                 .orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
                 .join();
 
+        boolean success = false;
         try {
             webSocket.sendBinary(ByteBuffer.wrap(GETSTATUS_PAYLOAD), true)
                     .orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
@@ -68,13 +69,23 @@ public class ServerStatusClient {
                     .orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
                     .join();
 
+            success = true;
             return new StatusQueryResult(
                     new String(rawResponse, StandardCharsets.UTF_8),
                     Math.toIntExact(System.currentTimeMillis() - startedAt)
             );
         } finally {
-            webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "done")
-                    .exceptionally(ignored -> null);
+            try {
+                if (success) {
+                    webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "done")
+                            .orTimeout(1000, TimeUnit.MILLISECONDS)
+                            .join();
+                } else {
+                    webSocket.abort();
+                }
+            } catch (Exception ignored) {
+                webSocket.abort();
+            }
         }
     }
 
