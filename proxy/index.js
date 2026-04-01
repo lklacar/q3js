@@ -148,7 +148,7 @@ wss.on('connection', ws => {
     ws.on('message', (data, isBinary) => {
         if (!isBinary) return;
 
-        udp.send(data, err => {
+        udp.send(data, TARGET_PORT, TARGET_HOST, err => {
             if (err) console.warn('UDP send error:', err.message);
         });
     });
