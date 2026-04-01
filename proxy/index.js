@@ -117,7 +117,6 @@ httpServer.listen(PROXY_PORT, () => {
 
 wss.on('connection', ws => {
     const udp = dgram.createSocket('udp4');
-    udp.connect(TARGET_PORT, TARGET_HOST);
 
     let closed = false;
     function close() {
