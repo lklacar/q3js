@@ -43,7 +43,7 @@ public class ServerStatusClient {
             var status = queryStatus(server);
             return Optional.ofNullable(ServerStatusParser.parse(status.rawStatus(), server, status.ping()));
         } catch (Exception e) {
-            LOG.debugf(e, "Failed to query server status via websocket for %s:%d", server.getHost(), server.getProxyPort());
+            LOG.warn("Failed to query server status via websocket for server " + server.getHost() + ":" + server.getProxyPort(), e);
             return Optional.empty();
         }
     }
