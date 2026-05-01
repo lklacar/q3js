@@ -43,4 +43,5 @@ mp:
 q3js:
   server-info:
     timeout-ms: 3000
-
+  events:
+    client-secret: ${Q3JS_EVENT_CLIENT_SECRET:}

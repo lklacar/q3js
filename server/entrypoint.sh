@@ -5,16 +5,23 @@ set -m
 
 args=("$@")
 has_fs_game_arg=false
+has_killpost_client_secret_arg=false
 
 for ((i = 0; i < ${#args[@]} - 1; i++)); do
   if [[ "${args[$i]}" == "+set" && "${args[$((i + 1))]}" == "fs_game" ]]; then
     has_fs_game_arg=true
-    break
+  fi
+  if [[ "${args[$i]}" == "+set" && "${args[$((i + 1))]}" == "sv_killpost_client_secret" ]]; then
+    has_killpost_client_secret_arg=true
   fi
 done
 
 if [[ "$has_fs_game_arg" == false ]]; then
   args=("+set" "fs_game" "${FS_GAME:-q3js}" "${args[@]}")
+fi
+
+if [[ "$has_killpost_client_secret_arg" == false && -n "${Q3JS_EVENT_CLIENT_SECRET:-}" ]]; then
+  args=("+set" "sv_killpost_client_secret" "$Q3JS_EVENT_CLIENT_SECRET" "${args[@]}")
 fi
 
 node ../proxy/index.js &
