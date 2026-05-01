@@ -53,13 +53,24 @@ public class ServerStatusClient {
         var responseFuture = new CompletableFuture<byte[]>();
         var listener = new StatusWebSocketListener(responseFuture);
 
-        WebSocket webSocket = httpClient.newWebSocketBuilder()
+        CompletableFuture<WebSocket> connectFuture = httpClient.newWebSocketBuilder()
                 .connectTimeout(Duration.ofMillis(timeoutMs))
-                .buildAsync(URI.create(buildWebSocketUrl(server)), listener)
-                .orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
-                .join();
+                .buildAsync(URI.create(buildWebSocketUrl(server)), listener);
 
-        boolean success = false;
+        WebSocket webSocket;
+        try {
+            webSocket = connectFuture
+                    .orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+                    .join();
+        } catch (Exception exception) {
+            connectFuture.whenComplete((lateWebSocket, ignored) -> {
+                if (lateWebSocket != null) {
+                    lateWebSocket.abort();
+                }
+            });
+            throw exception;
+        }
+
         try {
             webSocket.sendBinary(ByteBuffer.wrap(GETSTATUS_PAYLOAD), true)
                     .orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
@@ -69,23 +80,12 @@ public class ServerStatusClient {
                     .orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
                     .join();
 
-            success = true;
             return new StatusQueryResult(
                     new String(rawResponse, StandardCharsets.UTF_8),
                     Math.toIntExact(System.currentTimeMillis() - startedAt)
             );
         } finally {
-            try {
-                if (success) {
-                    webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "done")
-                            .orTimeout(1000, TimeUnit.MILLISECONDS)
-                            .join();
-                } else {
-                    webSocket.abort();
-                }
-            } catch (Exception ignored) {
-                webSocket.abort();
-            }
+            webSocket.abort();
         }
     }
 
@@ -118,9 +118,8 @@ public class ServerStatusClient {
             binaryBuffer.writeBytes(chunk);
             if (last) {
                 responseFuture.complete(binaryBuffer.toByteArray());
-            } else {
-                webSocket.request(1);
             }
+            webSocket.request(1);
             return CompletableFuture.completedFuture(null);
         }
 
@@ -129,9 +128,8 @@ public class ServerStatusClient {
             textBuffer.append(data);
             if (last) {
                 responseFuture.complete(textBuffer.toString().getBytes(StandardCharsets.UTF_8));
-            } else {
-                webSocket.request(1);
             }
+            webSocket.request(1);
             return CompletableFuture.completedFuture(null);
         }
 

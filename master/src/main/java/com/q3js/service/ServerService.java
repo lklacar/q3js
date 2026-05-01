@@ -58,7 +58,7 @@ public class ServerService {
         );
     }
 
-    @Scheduled(every = "5s")
+    @Scheduled(every = "5s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void refreshServerInfo() {
         addIfMissing(FFA_HOST, DEFAULT_PROXY_PORT, true);
         addIfMissing(PIETER_HOST, DEFAULT_PROXY_PORT, true);
