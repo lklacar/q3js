@@ -194,11 +194,11 @@ export default async function startGame({host, proxyPort, name, rconPassword, ra
         `;
     }
 
-    generatedArguments += ` +connect ${host}:${proxyPort} `;
     generatedArguments += ` +set name "${name.replace(/"/g, "'")}" `;
     if (rconPassword) {
-        generatedArguments += ` +set rconPassword "${rconPassword.replace(/[\s"\\;]/g, "")}" `;
+        generatedArguments += ` +setu rconPassword ${rconPassword.replace(/[\s"\\;]/g, "")} `;
     }
+    generatedArguments += ` +connect ${host}:${proxyPort} `;
 
     if (name === "^1L^2K") {
         generatedArguments += ` +set cg_autoswitch "0" +bind 3 "weapon 7" +bind e "+zoom" `;
