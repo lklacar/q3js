@@ -7,7 +7,6 @@ args=("$@")
 has_fs_game_arg=false
 has_killpost_client_secret_arg=false
 has_rcon_password_arg=false
-has_railgun_requires_rcon_arg=false
 
 for ((i = 0; i < ${#args[@]} - 1; i++)); do
   if [[ "${args[$i]}" == "+set" && "${args[$((i + 1))]}" == "fs_game" ]]; then
@@ -18,9 +17,6 @@ for ((i = 0; i < ${#args[@]} - 1; i++)); do
   fi
   if [[ "${args[$i]}" == "+set" && "${args[$((i + 1))]}" == "rconPassword" ]]; then
     has_rcon_password_arg=true
-  fi
-  if [[ "${args[$i]}" == "+set" && "${args[$((i + 1))]}" == "g_railgunRequiresRcon" ]]; then
-    has_railgun_requires_rcon_arg=true
   fi
 done
 
@@ -34,10 +30,6 @@ fi
 
 if [[ "$has_rcon_password_arg" == false && -n "${RCON_PASSWORD:-}" ]]; then
   args=("+set" "rconPassword" "$RCON_PASSWORD" "${args[@]}")
-fi
-
-if [[ "$has_railgun_requires_rcon_arg" == false ]]; then
-  args=("+set" "g_railgunRequiresRcon" "${RAILGUN_REQUIRES_RCON:-0}" "${args[@]}")
 fi
 
 node ../proxy/index.js &
