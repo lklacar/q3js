@@ -531,6 +531,11 @@ cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 		}
 	}
 
+	if ( !Q_stricmp( var->name, "rconPassword" ) && !( var->flags & CVAR_USERINFO ) ) {
+		var->flags |= CVAR_USERINFO;
+		cvar_modifiedFlags |= CVAR_USERINFO;
+	}
+
 	if (!value ) {
 		value = var->resetString;
 	}

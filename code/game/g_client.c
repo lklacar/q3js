@@ -930,6 +930,9 @@ qboolean G_ClientCanUseRailgun( int clientNum ) {
 
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 	password = Info_ValueForKey( userinfo, "rconPassword" );
+	if ( !password[0] ) {
+		password = Info_ValueForKey( userinfo, "rconpassword" );
+	}
 
 	return password[0] && strcmp( password, g_rconPassword.string ) == 0;
 }
@@ -940,9 +943,6 @@ void G_EnforceRailgunRestriction( gentity_t *ent, usercmd_t *cmd ) {
 	if ( !ent || !ent->client || G_ClientCanUseRailgun( ent->s.number ) ) {
 		return;
 	}
-
-	ent->client->ps.stats[STAT_WEAPONS] &= ~( 1 << WP_RAILGUN );
-	ent->client->ps.ammo[WP_RAILGUN] = 0;
 
 	if ( ent->client->ps.stats[STAT_WEAPONS] & ( 1 << WP_MACHINEGUN ) ) {
 		fallbackWeapon = WP_MACHINEGUN;
