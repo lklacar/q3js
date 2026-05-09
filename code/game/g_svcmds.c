@@ -440,6 +440,37 @@ void	Svcmd_ForceTeam_f( void ) {
 	SetTeam( &g_entities[cl - level.clients], str );
 }
 
+/*
+===================
+Svcmd_RestrictRail_f
+===================
+*/
+void Svcmd_RestrictRail_f( void ) {
+	char arg[MAX_TOKEN_CHARS];
+	qboolean restrictRail;
+
+	if ( trap_Argc() > 1 ) {
+		trap_Argv( 1, arg, sizeof( arg ) );
+		if ( !Q_stricmp( arg, "1" ) || !Q_stricmp( arg, "on" ) || !Q_stricmp( arg, "true" ) ) {
+			restrictRail = qtrue;
+		} else if ( !Q_stricmp( arg, "0" ) || !Q_stricmp( arg, "off" ) || !Q_stricmp( arg, "false" ) ) {
+			restrictRail = qfalse;
+		} else {
+			G_Printf( "Usage: restrictrail [0|1]\n" );
+			return;
+		}
+	} else {
+		restrictRail = !g_railgunRequiresRcon.integer;
+	}
+
+	trap_Cvar_Set( "g_railgunRequiresRcon", restrictRail ? "1" : "0" );
+	trap_Cvar_Update( &g_railgunRequiresRcon );
+	G_Printf( "Railgun restriction %s.\n", restrictRail ? "enabled" : "disabled" );
+	trap_SendServerCommand( -1, va(
+		"print \"Railgun restriction %s.\n\"",
+		restrictRail ? "enabled" : "disabled" ) );
+}
+
 char	*ConcatArgs( int start );
 
 /*
@@ -460,6 +491,11 @@ qboolean	ConsoleCommand( void ) {
 
 	if ( Q_stricmp (cmd, "forceteam") == 0 ) {
 		Svcmd_ForceTeam_f();
+		return qtrue;
+	}
+
+	if ( Q_stricmp (cmd, "restrictrail") == 0 ) {
+		Svcmd_RestrictRail_f();
 		return qtrue;
 	}
 
@@ -510,4 +546,3 @@ qboolean	ConsoleCommand( void ) {
 
 	return qfalse;
 }
-

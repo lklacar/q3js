@@ -1005,43 +1005,6 @@ static void Cmd_Tell_f( gentity_t *ent ) {
 	}
 }
 
-/*
-==================
-Cmd_RestrictRail_f
-==================
-*/
-static void Cmd_RestrictRail_f( gentity_t *ent ) {
-	char arg[MAX_TOKEN_CHARS];
-	qboolean restrictRail;
-
-	if ( !G_ClientHasRconPassword( ent->s.number ) ) {
-		trap_SendServerCommand( ent-g_entities, "print \"Only admins with the rcon password can restrict railgun use.\n\"" );
-		return;
-	}
-
-	if ( trap_Argc() > 1 ) {
-		trap_Argv( 1, arg, sizeof( arg ) );
-		if ( !Q_stricmp( arg, "1" ) || !Q_stricmp( arg, "on" ) || !Q_stricmp( arg, "true" ) ) {
-			restrictRail = qtrue;
-		} else if ( !Q_stricmp( arg, "0" ) || !Q_stricmp( arg, "off" ) || !Q_stricmp( arg, "false" ) ) {
-			restrictRail = qfalse;
-		} else {
-			trap_SendServerCommand( ent-g_entities, "print \"Usage: restrictrail [0|1]\n\"" );
-			return;
-		}
-	} else {
-		restrictRail = !g_railgunRequiresRcon.integer;
-	}
-
-	trap_Cvar_Set( "g_railgunRequiresRcon", restrictRail ? "1" : "0" );
-	trap_Cvar_Update( &g_railgunRequiresRcon );
-	trap_SendServerCommand( -1, va(
-		"print \"Railgun restriction %s by %s.\n\"",
-		restrictRail ? "enabled" : "disabled",
-		ent->client->pers.netname ) );
-}
-
-
 #ifdef MISSIONPACK
 static void G_VoiceTo( gentity_t *ent, gentity_t *other, int mode, const char *id, qboolean voiceonly ) {
 	int color;
@@ -1853,8 +1816,6 @@ void ClientCommand( int clientNum ) {
 		Cmd_SetViewpos_f( ent );
 	else if (Q_stricmp (cmd, "stats") == 0)
 		Cmd_Stats_f( ent );
-	else if (Q_stricmp (cmd, "restrictrail") == 0)
-		Cmd_RestrictRail_f( ent );
 	else
 		trap_SendServerCommand( clientNum, va("print \"unknown cmd %s\n\"", cmd ) );
 }
