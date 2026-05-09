@@ -113,7 +113,8 @@ Browser (React + ioquake3.wasm)
   Environment variables:
     - `Q3_HOST`, `Q3_PORT` – native server address (defaults `127.0.0.1:27960`).
     - `WS_PORT` – listen port for browsers (`27961`).
-    - `RCON_PASS` – optional; enables the “kick ping 999” watchdog (matches `rconPassword` in `entrypoint.sh`).
+    - `RCON_PASSWORD` – optional; passed through to the dedicated server as `rconPassword`.
+    - `RAILGUN_REQUIRES_RCON` – set to `1` to allow railgun pickup/fire only for clients whose `rconPassword` userinfo matches the server `RCON_PASSWORD`; if no `RCON_PASSWORD` is set, nobody can use the railgun.
     - `POLL_MS`, `RESP_TIMEOUT_MS`, `CONSEC_REQUIRED` – tune heartbeat/kick behaviour.
 - `entrypoint.sh` launches both the proxy and `ioq3ded` with sensible defaults (dedicated server, `q3dm17`). Use the
   multi-stage `server/Dockerfile` if you prefer container builds: `docker build -t q3js/server ./server`.

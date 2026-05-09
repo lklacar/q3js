@@ -26,7 +26,8 @@ RUN chmod +x build.sh && ./build.sh
 
 FROM node:20-trixie AS runner
 
-ENV RCON_PASSWORD="changeme"
+ENV RCON_PASSWORD=""
+ENV RAILGUN_REQUIRES_RCON="0"
 ENV FS_GAME=""
 
 RUN apt-get update && apt-get install -y \
