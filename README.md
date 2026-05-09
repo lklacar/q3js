@@ -115,6 +115,7 @@ Browser (React + ioquake3.wasm)
     - `WS_PORT` – listen port for browsers (`27961`).
     - `RCON_PASSWORD` – optional; passed through to the dedicated server as `rconPassword`.
     - Railgun restriction is controlled by rcon. From a client console, set `/rconPassword <password>`, then run `/rcon restrictrail` to toggle railgun use for non-admins. `/rcon restrictrail 1` and `/rcon restrictrail 0` are also supported.
+    - Nightmare bots are controlled by rcon. Run `/rcon nightmarebot <player>` to spawn a skill-5 bot that only targets that player. Optional arguments are `/rcon nightmarebot <player> [botname] [altname]`.
     - `POLL_MS`, `RESP_TIMEOUT_MS`, `CONSEC_REQUIRED` – tune heartbeat/kick behaviour.
 - `entrypoint.sh` launches both the proxy and `ioq3ded` with sensible defaults (dedicated server, `q3dm17`). Use the
   multi-stage `server/Dockerfile` if you prefer container builds: `docker build -t q3js/server ./server`.
