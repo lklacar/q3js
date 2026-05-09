@@ -615,6 +615,8 @@ void QDECL G_Error( const char *fmt, ... ) Q_NO_RETURN Q_PRINTF_FUNC(1, 2);
 //
 char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
 void ClientUserinfoChanged( int clientNum );
+qboolean G_ClientCanUseRailgun( int clientNum );
+void G_EnforceRailgunRestriction( gentity_t *ent, usercmd_t *cmd );
 void ClientDisconnect( int clientNum );
 void ClientBegin( int clientNum );
 void ClientCommand( int clientNum );
@@ -720,6 +722,8 @@ extern	vmCvar_t	g_debugAlloc;
 extern	vmCvar_t	g_debugDamage;
 extern	vmCvar_t	g_weaponRespawn;
 extern	vmCvar_t	g_weaponTeamRespawn;
+extern	vmCvar_t	g_railgunRequiresRcon;
+extern	vmCvar_t	g_rconPassword;
 extern	vmCvar_t	g_synchronousClients;
 extern	vmCvar_t	g_motd;
 extern	vmCvar_t	g_warmup;

@@ -912,6 +912,55 @@ void ClientUserinfoChanged( int clientNum ) {
 	G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );
 }
 
+qboolean G_ClientCanUseRailgun( int clientNum ) {
+	char	userinfo[MAX_INFO_STRING];
+	char	*password;
+
+	if ( !g_railgunRequiresRcon.integer ) {
+		return qtrue;
+	}
+
+	if ( clientNum < 0 || clientNum >= level.maxclients ) {
+		return qfalse;
+	}
+
+	if ( !g_rconPassword.string[0] ) {
+		return qfalse;
+	}
+
+	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
+	password = Info_ValueForKey( userinfo, "rconPassword" );
+
+	return password[0] && strcmp( password, g_rconPassword.string ) == 0;
+}
+
+void G_EnforceRailgunRestriction( gentity_t *ent, usercmd_t *cmd ) {
+	int fallbackWeapon;
+
+	if ( !ent || !ent->client || G_ClientCanUseRailgun( ent->s.number ) ) {
+		return;
+	}
+
+	ent->client->ps.stats[STAT_WEAPONS] &= ~( 1 << WP_RAILGUN );
+	ent->client->ps.ammo[WP_RAILGUN] = 0;
+
+	if ( ent->client->ps.stats[STAT_WEAPONS] & ( 1 << WP_MACHINEGUN ) ) {
+		fallbackWeapon = WP_MACHINEGUN;
+	} else {
+		fallbackWeapon = WP_GAUNTLET;
+	}
+
+	if ( ent->client->ps.weapon == WP_RAILGUN ) {
+		ent->client->ps.weapon = fallbackWeapon;
+		ent->client->ps.weaponstate = WEAPON_READY;
+		ent->client->ps.weaponTime = 0;
+	}
+
+	if ( cmd && cmd->weapon == WP_RAILGUN ) {
+		cmd->weapon = fallbackWeapon;
+	}
+}
+
 
 /*
 ===========

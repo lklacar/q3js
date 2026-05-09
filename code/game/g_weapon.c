@@ -800,6 +800,14 @@ FireWeapon
 ===============
 */
 void FireWeapon( gentity_t *ent ) {
+	if ( ent->s.weapon == WP_RAILGUN && !G_ClientCanUseRailgun( ent->s.number ) ) {
+		if ( ent->client->ps.ammo[WP_RAILGUN] >= 0 ) {
+			ent->client->ps.ammo[WP_RAILGUN]++;
+		}
+		G_EnforceRailgunRestriction( ent, NULL );
+		return;
+	}
+
 	if (ent->client->ps.powerups[PW_QUAD] ) {
 		s_quadFactor = g_quadfactor.value;
 	} else {

@@ -437,6 +437,11 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 		return;
 	}
 
+	if ( ent->item->giType == IT_WEAPON && ent->item->giTag == WP_RAILGUN &&
+		!G_ClientCanUseRailgun( other->s.number ) ) {
+		return;
+	}
+
 	G_LogPrintf( "Item: %i %s\n", other->s.number, ent->item->classname );
 
 	predict = other->client->pers.predictItemPickup;
@@ -1015,4 +1020,3 @@ void G_RunItem( gentity_t *ent ) {
 
 	G_BounceItem( ent, &tr );
 }
-

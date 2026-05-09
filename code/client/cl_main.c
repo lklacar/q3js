@@ -3569,7 +3569,7 @@ void CL_Init( void ) {
 	cl_showSend = Cvar_Get ("cl_showSend", "0", CVAR_TEMP );
 	cl_showTimeDelta = Cvar_Get ("cl_showTimeDelta", "0", CVAR_TEMP );
 	cl_freezeDemo = Cvar_Get ("cl_freezeDemo", "0", CVAR_TEMP );
-	rcon_client_password = Cvar_Get ("rconPassword", "", CVAR_TEMP );
+	rcon_client_password = Cvar_Get ("rconPassword", "", CVAR_TEMP | CVAR_USERINFO );
 	cl_activeAction = Cvar_Get( "activeAction", "", CVAR_TEMP );
 
 	cl_timedemo = Cvar_Get ("timedemo", "0", 0);

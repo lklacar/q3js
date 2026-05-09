@@ -858,6 +858,8 @@ void ClientThink_real( gentity_t *ent ) {
 		Weapon_HookFree(client->hook);
 	}
 
+	G_EnforceRailgunRestriction( ent, ucmd );
+
 	// set up for pmove
 	oldEventSequence = client->ps.eventSequence;
 
@@ -1187,5 +1189,4 @@ void ClientEndFrame( gentity_t *ent ) {
 //	i = trap_AAS_PointReachabilityAreaIndex( ent->client->ps.origin );
 //	ent->client->areabits[i >> 3] |= 1 << (i & 7);
 }
-
 
