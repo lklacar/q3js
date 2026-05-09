@@ -480,12 +480,14 @@ void Svcmd_NightmareBot_f( void ) {
 	gclient_t	*cl;
 	int			targetClient;
 	char		target[MAX_TOKEN_CHARS];
+	char		arg[MAX_TOKEN_CHARS];
 	char		botName[MAX_TOKEN_CHARS];
 	char		altName[MAX_TOKEN_CHARS];
+	float		skill;
 	const char	*team;
 
 	if ( trap_Argc() < 2 ) {
-		G_Printf( "Usage: nightmarebot <player> [botname] [altname]\n" );
+		G_Printf( "Usage: nightmarebot <player> [skill 1-5] [botname] [altname]\n" );
 		return;
 	}
 
@@ -501,12 +503,22 @@ void Svcmd_NightmareBot_f( void ) {
 		return;
 	}
 
-	trap_Argv( 2, botName, sizeof( botName ) );
+	skill = 5.0f;
+	trap_Argv( 2, arg, sizeof( arg ) );
+	if ( arg[0] >= '0' && arg[0] <= '9' ) {
+		skill = Com_Clamp( 1, 5, atof( arg ) );
+		trap_Argv( 3, botName, sizeof( botName ) );
+		trap_Argv( 4, altName, sizeof( altName ) );
+	}
+	else {
+		Q_strncpyz( botName, arg, sizeof( botName ) );
+		trap_Argv( 3, altName, sizeof( altName ) );
+	}
+
 	if ( !botName[0] ) {
 		Q_strncpyz( botName, "random", sizeof( botName ) );
 	}
 
-	trap_Argv( 3, altName, sizeof( altName ) );
 	if ( !altName[0] ) {
 		Q_strncpyz( altName, "Nightmare", sizeof( altName ) );
 	}
@@ -518,11 +530,12 @@ void Svcmd_NightmareBot_f( void ) {
 		team = "free";
 	}
 
-	if ( !G_AddNightmareBot( botName, team, altName, targetClient ) ) {
+	if ( !G_AddNightmareBot( botName, skill, team, altName, targetClient ) ) {
 		return;
 	}
 
-	G_Printf( "Spawned nightmare bot '%s' targeting %s.\n", altName, cl->pers.netname );
+	G_Printf( "Spawned nightmare bot '%s' targeting %s at skill %.1f.\n",
+		altName, cl->pers.netname, skill );
 }
 
 char	*ConcatArgs( int start );

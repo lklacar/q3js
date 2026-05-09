@@ -759,13 +759,13 @@ static qboolean G_AddBot( const char *name, float skill, const char *team, int d
 G_AddNightmareBot
 ===============
 */
-qboolean G_AddNightmareBot( const char *name, const char *team, char *altname, int targetClient ) {
+qboolean G_AddNightmareBot( const char *name, float skill, const char *team, char *altname, int targetClient ) {
 	if ( !trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		G_Printf( "Cannot spawn nightmare bot: bot_enable is 0.\n" );
 		return qfalse;
 	}
 
-	return G_AddBot( name && name[0] ? name : "random", 5.0f, team, 0, altname, targetClient );
+	return G_AddBot( name && name[0] ? name : "random", Com_Clamp( 1, 5, skill ), team, 0, altname, targetClient );
 }
 
 
