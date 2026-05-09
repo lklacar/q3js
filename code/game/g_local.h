@@ -615,6 +615,7 @@ void QDECL G_Error( const char *fmt, ... ) Q_NO_RETURN Q_PRINTF_FUNC(1, 2);
 //
 char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
 void ClientUserinfoChanged( int clientNum );
+qboolean G_ClientHasRconPassword( int clientNum );
 qboolean G_ClientCanUseRailgun( int clientNum );
 void G_EnforceRailgunRestriction( gentity_t *ent, usercmd_t *cmd );
 void ClientDisconnect( int clientNum );

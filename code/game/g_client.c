@@ -912,13 +912,9 @@ void ClientUserinfoChanged( int clientNum ) {
 	G_LogPrintf( "ClientUserinfoChanged: %i %s\n", clientNum, s );
 }
 
-qboolean G_ClientCanUseRailgun( int clientNum ) {
+qboolean G_ClientHasRconPassword( int clientNum ) {
 	char	userinfo[MAX_INFO_STRING];
 	char	*password;
-
-	if ( !g_railgunRequiresRcon.integer ) {
-		return qtrue;
-	}
 
 	if ( clientNum < 0 || clientNum >= level.maxclients ) {
 		return qfalse;
@@ -935,6 +931,14 @@ qboolean G_ClientCanUseRailgun( int clientNum ) {
 	}
 
 	return password[0] && strcmp( password, g_rconPassword.string ) == 0;
+}
+
+qboolean G_ClientCanUseRailgun( int clientNum ) {
+	if ( !g_railgunRequiresRcon.integer ) {
+		return qtrue;
+	}
+
+	return G_ClientHasRconPassword( clientNum );
 }
 
 void G_EnforceRailgunRestriction( gentity_t *ent, usercmd_t *cmd ) {

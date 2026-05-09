@@ -146,7 +146,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_quadfactor, "g_quadfactor", "3", 0, 0, qtrue  },
 	{ &g_weaponRespawn, "g_weaponrespawn", "5", 0, 0, qtrue  },
 	{ &g_weaponTeamRespawn, "g_weaponTeamRespawn", "30", 0, 0, qtrue },
-	{ &g_railgunRequiresRcon, "g_railgunRequiresRcon", "0", CVAR_ARCHIVE, 0, qtrue },
+	{ &g_railgunRequiresRcon, "g_railgunRequiresRcon", "0", 0, 0, qtrue },
 	{ &g_rconPassword, "rconPassword", "", 0, 0, qfalse },
 	{ &g_forcerespawn, "g_forcerespawn", "20", 0, 0, qtrue },
 	{ &g_inactivity, "g_inactivity", "0", 0, 0, qtrue },
