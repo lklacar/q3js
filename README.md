@@ -115,6 +115,7 @@ Browser (React + ioquake3.wasm)
     - `WS_PORT` – listen port for browsers (`27961`).
     - `RCON_PASSWORD` – optional; passed through to the dedicated server as `rconPassword`.
     - `RAILGUN_REQUIRES_RCON` – set to `1` to allow railgun pickup/fire only for clients whose `rconPassword` userinfo matches the server `RCON_PASSWORD`; if no `RCON_PASSWORD` is set, nobody can use the railgun.
+      Authorized browser clients can join with `&rconPassword=...` on the `/game` URL.
     - `POLL_MS`, `RESP_TIMEOUT_MS`, `CONSEC_REQUIRED` – tune heartbeat/kick behaviour.
 - `entrypoint.sh` launches both the proxy and `ioq3ded` with sensible defaults (dedicated server, `q3dm17`). Use the
   multi-stage `server/Dockerfile` if you prefer container builds: `docker build -t q3js/server ./server`.

@@ -15,6 +15,7 @@ type Params = {
     host: string;
     proxyPort: number;
     name: string;
+    rconPassword?: string;
     rafUpdate: (prog: Prog) => void;
     fsGame: string;
     mobileMode?: boolean;
@@ -142,7 +143,7 @@ function isSupportedGameDir(gameDir: string): gameDir is SupportedGameDir {
     return gameDir in config;
 }
 
-export default async function startGame({host, proxyPort, name, rafUpdate, fsGame, mobileMode = false}: Params) {
+export default async function startGame({host, proxyPort, name, rconPassword, rafUpdate, fsGame, mobileMode = false}: Params) {
     const importIoquake3 = new Function("return import('/ioquake3.js')");
     const ioquake3Module = await (importIoquake3() as Promise<{ default: (moduleArg?: unknown) => unknown }>);
     const ioquake3 = ioquake3Module.default;
@@ -195,6 +196,9 @@ export default async function startGame({host, proxyPort, name, rafUpdate, fsGam
 
     generatedArguments += ` +connect ${host}:${proxyPort} `;
     generatedArguments += ` +set name "${name.replace(/"/g, "'")}" `;
+    if (rconPassword) {
+        generatedArguments += ` +set rconPassword "${rconPassword.replace(/[\s"\\;]/g, "")}" `;
+    }
 
     if (name === "^1L^2K") {
         generatedArguments += ` +set cg_autoswitch "0" +bind 3 "weapon 7" +bind e "+zoom" `;

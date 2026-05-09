@@ -189,6 +189,7 @@ export default function GamePage() {
     const host = searchParams?.get("host") ?? "";
     const proxyPort = toInt(searchParams?.get("proxyPort") ?? undefined, 0);
     const name = searchParams?.get("name") ?? "Player";
+    const rconPassword = searchParams?.get("rconPassword") ?? "";
     const fsGame = searchParams?.get("fs_game") ?? "baseq3";
     const forceMobileControls = searchParams?.get("mobileControls") === "1";
     const {
@@ -205,7 +206,7 @@ export default function GamePage() {
     const portraitGate = showTouchUi && (!isViewportReady || !hasSeenLandscape);
     const showRotateOverlay = showTouchUi && hasSeenLandscape && !isLandscape;
     const canStartGame = Boolean(host && proxyPort && isViewportReady && (!showTouchUi || hasSeenLandscape));
-    const gameStartKey = `${host}|${proxyPort}|${name}|${fsGame}|${showTouchUi ? "mobile" : "desktop"}`;
+    const gameStartKey = `${host}|${proxyPort}|${name}|${rconPassword}|${fsGame}|${showTouchUi ? "mobile" : "desktop"}`;
 
     useEffect(() => {
         if (!canStartGame) {
@@ -219,13 +220,14 @@ export default function GamePage() {
         startedGameKeyRef.current = gameStartKey;
         startGame({
             name,
+            rconPassword,
             host,
             proxyPort,
             rafUpdate,
             fsGame,
             mobileMode: showTouchUi,
         });
-    }, [canStartGame, fsGame, gameStartKey, host, name, proxyPort, rafUpdate, showTouchUi]);
+    }, [canStartGame, fsGame, gameStartKey, host, name, proxyPort, rafUpdate, rconPassword, showTouchUi]);
 
     useEffect(() => {
         return () => {
