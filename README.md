@@ -114,7 +114,7 @@ Browser (React + ioquake3.wasm)
     - `Q3_HOST`, `Q3_PORT` – native server address (defaults `127.0.0.1:27960`).
     - `WS_PORT` – listen port for browsers (`27961`).
     - `RCON_PASSWORD` – optional; passed through to the dedicated server as `rconPassword`.
-    - Railgun restriction is controlled in-game by admins. Set `/rconPassword <password>` in the game console, then run `/restrictrail` to toggle railgun use for non-admins. `/restrictrail 1` and `/restrictrail 0` are also supported.
+    - Railgun restriction is controlled by rcon. From a client console, set `/rconPassword <password>`, then run `/rcon restrictrail` to toggle railgun use for non-admins. `/rcon restrictrail 1` and `/rcon restrictrail 0` are also supported.
     - `POLL_MS`, `RESP_TIMEOUT_MS`, `CONSEC_REQUIRED` – tune heartbeat/kick behaviour.
 - `entrypoint.sh` launches both the proxy and `ioq3ded` with sensible defaults (dedicated server, `q3dm17`). Use the
   multi-stage `server/Dockerfile` if you prefer container builds: `docker build -t q3js/server ./server`.
