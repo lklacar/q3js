@@ -153,7 +153,7 @@ function useLandscapeFullscreen(targetRef: RefObject<HTMLElement | null>) {
             }
         }
 
-        const screenOrientation = (screen.orientation ?? null) as ScreenOrientationWithLock | null;
+        const screenOrientation = (typeof screen !== "undefined" ? screen.orientation : null) as ScreenOrientationWithLock | null;
         if (screenOrientation?.lock) {
             await screenOrientation.lock("landscape").catch(() => {
             });
@@ -398,11 +398,19 @@ export default function GamePage() {
 
     // fix an issue with mouse pointer not getting captured back by ioquake3 after Alt+Tab or Escape
     useEffect(() => {
+        if (showTouchUi) {
+            return;
+        }
+
         const canvas = document.getElementById('canvas') as HTMLCanvasElement;
         if (!canvas) return;
 
+        if (typeof document.exitPointerLock !== "function" || typeof canvas.requestPointerLock !== "function") {
+            return;
+        }
+
         // suppress ioquake3 from releasing pointer lock
-        const originalExit = document.exitPointerLock.bind(document);
+        const originalExit = document.exitPointerLock;
         document.exitPointerLock = () => {
             console.warn('exitPointerLock suppressed');
         };
@@ -410,7 +418,11 @@ export default function GamePage() {
         // since ioquake3 won't re-request it either, we do it ourselves
         const handleClick = () => {
             if (document.pointerLockElement !== canvas) {
-            canvas.requestPointerLock();
+                const pointerLockResult = canvas.requestPointerLock();
+                if (pointerLockResult instanceof Promise) {
+                    pointerLockResult.catch(() => {
+                    });
+                }
             }
         };
 
@@ -420,7 +432,7 @@ export default function GamePage() {
             document.exitPointerLock = originalExit;
             canvas.removeEventListener('click', handleClick);
         };
-    }, []);
+    }, [showTouchUi]);
 
     if (portraitGate) {
         return (
