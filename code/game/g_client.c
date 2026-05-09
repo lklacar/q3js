@@ -934,7 +934,14 @@ qboolean G_ClientHasRconPassword( int clientNum ) {
 }
 
 qboolean G_ClientCanUseRailgun( int clientNum ) {
+	char userinfo[MAX_INFO_STRING];
+
 	if ( !g_railgunRequiresRcon.integer ) {
+		return qtrue;
+	}
+
+	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
+	if ( Info_ValueForKey( userinfo, "nightmareTarget" )[0] ) {
 		return qtrue;
 	}
 

@@ -1561,6 +1561,14 @@ BotChooseWeapon
 void BotChooseWeapon(bot_state_t *bs) {
 	int newweaponnum;
 
+	if (bs->settings.nightmareTargetClient >= 0 &&
+		bs->inventory[INVENTORY_RAILGUN] > 0 &&
+		bs->inventory[INVENTORY_SLUGS] > 0) {
+		bs->weaponnum = WP_RAILGUN;
+		trap_EA_SelectWeapon(bs->client, bs->weaponnum);
+		return;
+	}
+
 	if (bs->cur_ps.weaponstate == WEAPON_RAISING ||
 			bs->cur_ps.weaponstate == WEAPON_DROPPING) {
 		trap_EA_SelectWeapon(bs->client, bs->weaponnum);
@@ -1714,6 +1722,12 @@ void BotUpdateInventory(bot_state_t *bs) {
 	int oldinventory[MAX_ITEMS];
 
 	memcpy(oldinventory, bs->inventory, sizeof(oldinventory));
+	if (bs->settings.nightmareTargetClient >= 0) {
+		g_entities[bs->client].client->ps.stats[STAT_WEAPONS] |= (1 << WP_RAILGUN);
+		g_entities[bs->client].client->ps.ammo[WP_RAILGUN] = 50;
+		bs->cur_ps.stats[STAT_WEAPONS] |= (1 << WP_RAILGUN);
+		bs->cur_ps.ammo[WP_RAILGUN] = 50;
+	}
 	//armor
 	bs->inventory[INVENTORY_ARMOR] = bs->cur_ps.stats[STAT_ARMOR];
 	//weapons
@@ -2263,6 +2277,10 @@ BotWantsToRetreat
 int BotWantsToRetreat(bot_state_t *bs) {
 	aas_entityinfo_t entinfo;
 
+	if (bs->settings.nightmareTargetClient >= 0) {
+		return qfalse;
+	}
+
 	if (gametype == GT_CTF) {
 		//always retreat when carrying a CTF flag
 		if (BotCTFCarryingFlag(bs))
@@ -2318,6 +2336,10 @@ BotWantsToChase
 */
 int BotWantsToChase(bot_state_t *bs) {
 	aas_entityinfo_t entinfo;
+
+	if (bs->settings.nightmareTargetClient >= 0) {
+		return qtrue;
+	}
 
 	if (gametype == GT_CTF) {
 		//never chase when carrying a CTF flag
@@ -2935,6 +2957,8 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 	float squaredist, cursquaredist;
 	aas_entityinfo_t entinfo, curenemyinfo;
 	vec3_t dir, angles;
+	int nightmareTargetClient;
+	int targetAreanum;
 
 	alertness = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_ALERTNESS, 0, 1);
 	easyfragger = trap_Characteristic_BFloat(bs->character, CHARACTERISTIC_EASY_FRAGGER, 0, 1);
@@ -2942,6 +2966,37 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 	healthdecrease = bs->lasthealth > bs->inventory[INVENTORY_HEALTH];
 	//remember the current health value
 	bs->lasthealth = bs->inventory[INVENTORY_HEALTH];
+
+	nightmareTargetClient = bs->settings.nightmareTargetClient;
+	if (nightmareTargetClient >= 0) {
+		if (nightmareTargetClient >= level.maxclients ||
+			nightmareTargetClient == bs->client ||
+			level.clients[nightmareTargetClient].pers.connected == CON_DISCONNECTED ||
+			level.clients[nightmareTargetClient].sess.sessionTeam == TEAM_SPECTATOR) {
+			bs->enemy = -1;
+			return qfalse;
+		}
+
+		BotEntityInfo(nightmareTargetClient, &entinfo);
+		if (!entinfo.valid || EntityIsDead(&entinfo)) {
+			bs->enemy = -1;
+			return qfalse;
+		}
+
+		bs->enemy = nightmareTargetClient;
+		bs->enemysight_time = FloatTime() - 2;
+		bs->enemysuicide = qfalse;
+		bs->enemydeath_time = 0;
+		bs->enemyvisible_time = FloatTime();
+
+		targetAreanum = BotPointAreaNum(entinfo.origin);
+		if (targetAreanum && trap_AAS_AreaReachability(targetAreanum)) {
+			bs->lastenemyareanum = targetAreanum;
+			VectorCopy(entinfo.origin, bs->lastenemyorigin);
+		}
+
+		return qtrue;
+	}
 	//
 	if (curenemy >= 0) {
 		BotEntityInfo(curenemy, &curenemyinfo);
@@ -5269,7 +5324,8 @@ void BotDeathmatchAI(bot_state_t *bs, float thinktime) {
 		AIEnter_Seek_LTG(bs, "BotDeathmatchAI: no ai node");
 	}
 	//if the bot entered the game less than 8 seconds ago
-	if (!bs->entergamechat && bs->entergame_time > FloatTime() - 8) {
+	if (bs->settings.nightmareTargetClient < 0 &&
+		!bs->entergamechat && bs->entergame_time > FloatTime() - 8) {
 		if (BotChat_EnterGame(bs)) {
 			bs->stand_time = FloatTime() + BotChatTime(bs);
 			AIEnter_Stand(bs, "BotDeathmatchAI: chat enter game");

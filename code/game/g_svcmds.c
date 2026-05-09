@@ -471,6 +471,60 @@ void Svcmd_RestrictRail_f( void ) {
 		restrictRail ? "enabled" : "disabled" ) );
 }
 
+/*
+===================
+Svcmd_NightmareBot_f
+===================
+*/
+void Svcmd_NightmareBot_f( void ) {
+	gclient_t	*cl;
+	int			targetClient;
+	char		target[MAX_TOKEN_CHARS];
+	char		botName[MAX_TOKEN_CHARS];
+	char		altName[MAX_TOKEN_CHARS];
+	const char	*team;
+
+	if ( trap_Argc() < 2 ) {
+		G_Printf( "Usage: nightmarebot <player> [botname] [altname]\n" );
+		return;
+	}
+
+	trap_Argv( 1, target, sizeof( target ) );
+	cl = ClientForString( target );
+	if ( !cl ) {
+		return;
+	}
+	targetClient = cl - level.clients;
+
+	if ( cl->sess.sessionTeam == TEAM_SPECTATOR ) {
+		G_Printf( "Nightmare bot target must be an active player.\n" );
+		return;
+	}
+
+	trap_Argv( 2, botName, sizeof( botName ) );
+	if ( !botName[0] ) {
+		Q_strncpyz( botName, "random", sizeof( botName ) );
+	}
+
+	trap_Argv( 3, altName, sizeof( altName ) );
+	if ( !altName[0] ) {
+		Q_strncpyz( altName, "Nightmare", sizeof( altName ) );
+	}
+
+	if ( g_gametype.integer >= GT_TEAM ) {
+		team = cl->sess.sessionTeam == TEAM_RED ? "blue" : "red";
+	}
+	else {
+		team = "free";
+	}
+
+	if ( !G_AddNightmareBot( botName, team, altName, targetClient ) ) {
+		return;
+	}
+
+	G_Printf( "Spawned nightmare bot '%s' targeting %s.\n", altName, cl->pers.netname );
+}
+
 char	*ConcatArgs( int start );
 
 /*
@@ -496,6 +550,11 @@ qboolean	ConsoleCommand( void ) {
 
 	if ( Q_stricmp (cmd, "restrictrail") == 0 ) {
 		Svcmd_RestrictRail_f();
+		return qtrue;
+	}
+
+	if ( Q_stricmp (cmd, "nightmarebot") == 0 ) {
+		Svcmd_NightmareBot_f();
 		return qtrue;
 	}
 

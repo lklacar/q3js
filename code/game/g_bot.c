@@ -560,11 +560,18 @@ G_BotConnect
 qboolean G_BotConnect( int clientNum, qboolean restart ) {
 	bot_settings_t	settings;
 	char			userinfo[MAX_INFO_STRING];
+	const char		*nightmareTarget;
 
+	memset( &settings, 0, sizeof( settings ) );
+	settings.nightmareTargetClient = -1;
 	trap_GetUserinfo( clientNum, userinfo, sizeof(userinfo) );
 
 	Q_strncpyz( settings.characterfile, Info_ValueForKey( userinfo, "characterfile" ), sizeof(settings.characterfile) );
 	settings.skill = atof( Info_ValueForKey( userinfo, "skill" ) );
+	nightmareTarget = Info_ValueForKey( userinfo, "nightmareTarget" );
+	if ( nightmareTarget[0] ) {
+		settings.nightmareTargetClient = atoi( nightmareTarget );
+	}
 
 	if (!BotAISetupClient( clientNum, &settings, restart )) {
 		trap_DropClient( clientNum, "BotAISetupClient failed" );
@@ -580,7 +587,7 @@ qboolean G_BotConnect( int clientNum, qboolean restart ) {
 G_AddBot
 ===============
 */
-static void G_AddBot( const char *name, float skill, const char *team, int delay, char *altname) {
+static qboolean G_AddBot( const char *name, float skill, const char *team, int delay, char *altname, int nightmareTarget) {
 	int				clientNum;
 	int				teamNum;
 	int				botinfoNum;
@@ -597,7 +604,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 	if ( clientNum == -1 ) {
 		G_Printf( S_COLOR_RED "Unable to add bot. All player slots are in use.\n" );
 		G_Printf( S_COLOR_RED "Start server with more 'open' slots (or check setting of sv_maxclients cvar).\n" );
-		return;
+		return qfalse;
 	}
 
 	// set default team
@@ -635,7 +642,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 		if ( botinfoNum < 0 ) {
 			G_Printf( S_COLOR_RED "Error: Cannot add random bot, no bot info available.\n" );
 			trap_BotFreeClient( clientNum );
-			return;
+			return qfalse;
 		}
 
 		botinfo = G_GetBotInfoByNumber( botinfoNum );
@@ -647,7 +654,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 	if ( !botinfo ) {
 		G_Printf( S_COLOR_RED "Error: Bot '%s' not defined\n", name );
 		trap_BotFreeClient( clientNum );
-		return;
+		return qfalse;
 	}
 
 	// create the bot's userinfo
@@ -666,6 +673,9 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 	Info_SetValueForKey( userinfo, "snaps", "20" );
 	Info_SetValueForKey( userinfo, "skill", va("%.2f", skill) );
 	Info_SetValueForKey( userinfo, "teampref", team );
+	if ( nightmareTarget >= 0 && nightmareTarget < level.maxclients ) {
+		Info_SetValueForKey( userinfo, "nightmareTarget", va("%i", nightmareTarget) );
+	}
 
 	if ( skill >= 1 && skill < 2 ) {
 		Info_SetValueForKey( userinfo, "handicap", "50" );
@@ -720,7 +730,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 	if (!*s ) {
 		trap_Print( S_COLOR_RED "Error: bot has no aifile specified\n" );
 		trap_BotFreeClient( clientNum );
-		return;
+		return qfalse;
 	}
 	Info_SetValueForKey( userinfo, "characterfile", s );
 
@@ -732,15 +742,30 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 
 	// have it connect to the game as a normal client
 	if ( ClientConnect( clientNum, qtrue, qtrue ) ) {
-		return;
+		return qfalse;
 	}
 
 	if( delay == 0 ) {
 		ClientBegin( clientNum );
-		return;
+		return qtrue;
 	}
 
 	AddBotToSpawnQueue( clientNum, delay );
+	return qtrue;
+}
+
+/*
+===============
+G_AddNightmareBot
+===============
+*/
+qboolean G_AddNightmareBot( const char *name, const char *team, char *altname, int targetClient ) {
+	if ( !trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
+		G_Printf( "Cannot spawn nightmare bot: bot_enable is 0.\n" );
+		return qfalse;
+	}
+
+	return G_AddBot( name && name[0] ? name : "random", 5.0f, team, 0, altname, targetClient );
 }
 
 
@@ -793,7 +818,7 @@ void Svcmd_AddBot_f( void ) {
 	// alternative name
 	trap_Argv( 5, altname, sizeof( altname ) );
 
-	G_AddBot( name, skill, team, delay, altname );
+	G_AddBot( name, skill, team, delay, altname, -1 );
 
 	// if this was issued during gameplay and we are playing locally,
 	// go ahead and load the bot's media immediately

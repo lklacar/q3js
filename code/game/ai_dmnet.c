@@ -1821,7 +1821,7 @@ int AINode_Seek_LTG(bot_state_t *bs)
 		return qfalse;
 	}
 	//
-	if (BotChat_Random(bs)) {
+	if (bs->settings.nightmareTargetClient < 0 && BotChat_Random(bs)) {
 		bs->stand_time = FloatTime() + BotChatTime(bs);
 		AIEnter_Stand(bs, "seek ltg: random chat");
 		return qfalse;
@@ -2027,6 +2027,11 @@ int AINode_Battle_Fight(bot_state_t *bs) {
 	if (bs->enemydeath_time) {
 		if (bs->enemydeath_time < FloatTime() - 1.0) {
 			bs->enemydeath_time = 0;
+			if (bs->settings.nightmareTargetClient >= 0) {
+				bs->ltg_time = 0;
+				AIEnter_Seek_LTG(bs, "battle fight: nightmare target dead");
+				return qfalse;
+			}
 			if (bs->enemysuicide) {
 				BotChat_EnemySuicide(bs);
 			}
@@ -2166,6 +2171,9 @@ int AINode_Battle_Chase(bot_state_t *bs)
 	vec3_t target, dir;
 	bot_moveresult_t moveresult;
 	float range;
+	qboolean nightmare;
+
+	nightmare = bs->settings.nightmareTargetClient >= 0;
 
 	if (BotIsObserver(bs)) {
 		AIEnter_Observer(bs, "battle chase: observer");
@@ -2192,9 +2200,15 @@ int AINode_Battle_Chase(bot_state_t *bs)
 		return qfalse;
 	}
 	//if there is another enemy
-	if (BotFindEnemy(bs, -1)) {
+	if (!nightmare && BotFindEnemy(bs, -1)) {
 		AIEnter_Battle_Fight(bs, "battle chase: better enemy");
 		return qfalse;
+	}
+	if (nightmare) {
+		if (!BotFindEnemy(bs, bs->enemy)) {
+			AIEnter_Seek_LTG(bs, "battle chase: nightmare target unavailable");
+			return qfalse;
+		}
 	}
 	//there is no last enemy area
 	if (!bs->lastenemyareanum) {
@@ -2219,14 +2233,14 @@ int AINode_Battle_Chase(bot_state_t *bs)
 	VectorSet(goal.mins, -8, -8, -8);
 	VectorSet(goal.maxs, 8, 8, 8);
 	//if the last seen enemy spot is reached the enemy could not be found
-	if (trap_BotTouchingGoal(bs->origin, &goal)) bs->chase_time = 0;
+	if (!nightmare && trap_BotTouchingGoal(bs->origin, &goal)) bs->chase_time = 0;
 	//if there's no chase time left
-	if (!bs->chase_time || bs->chase_time < FloatTime() - 10) {
+	if (!nightmare && (!bs->chase_time || bs->chase_time < FloatTime() - 10)) {
 		AIEnter_Seek_LTG(bs, "battle chase: time out");
 		return qfalse;
 	}
 	//check for nearby goals periodicly
-	if (bs->check_time < FloatTime()) {
+	if (!nightmare && bs->check_time < FloatTime()) {
 		bs->check_time = FloatTime() + 1;
 		range = 150;
 		//
@@ -2275,7 +2289,7 @@ int AINode_Battle_Chase(bot_state_t *bs)
 	//if the weapon is used for the bot movement
 	if (moveresult.flags & MOVERESULT_MOVEMENTWEAPON) bs->weaponnum = moveresult.weapon;
 	//if the bot is in the area the enemy was last seen in
-	if (bs->areanum == bs->lastenemyareanum) bs->chase_time = 0;
+	if (!nightmare && bs->areanum == bs->lastenemyareanum) bs->chase_time = 0;
 	//if the bot wants to retreat (the bot could have been damage during the chase)
 	if (BotWantsToRetreat(bs)) {
 		AIEnter_Battle_Retreat(bs, "battle chase: wants to retreat");
@@ -2619,4 +2633,3 @@ int AINode_Battle_NBG(bot_state_t *bs) {
 	//
 	return qtrue;
 }
-

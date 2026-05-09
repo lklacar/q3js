@@ -668,6 +668,7 @@ char *G_GetBotInfoByName( const char *name );
 void G_CheckBotSpawn( void );
 void G_RemoveQueuedBotBegin( int clientNum );
 qboolean G_BotConnect( int clientNum, qboolean restart );
+qboolean G_AddNightmareBot( const char *name, const char *team, char *altname, int targetClient );
 void Svcmd_AddBot_f( void );
 void Svcmd_BotList_f( void );
 void BotInterbreedEndMatch( void );
@@ -680,6 +681,7 @@ typedef struct bot_settings_s
 {
 	char characterfile[MAX_FILEPATH];
 	float skill;
+	int nightmareTargetClient;
 } bot_settings_t;
 
 int BotAISetup( int restart );
