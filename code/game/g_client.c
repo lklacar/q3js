@@ -892,7 +892,7 @@ void ClientUserinfoChanged( int clientNum ) {
 	
 	// send over a subset of the userinfo keys so other clients can
 	// print scoreboards, display models, and play custom sounds
-	if (ent->r.svFlags & SVF_BOT)
+	if ( ( ent->r.svFlags & SVF_BOT ) && !Info_ValueForKey( userinfo, "nightmareTarget" )[0] )
 	{
 		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s\\tt\\%d\\tl\\%d",
 			client->pers.netname, client->sess.sessionTeam, model, headModel, c1, c2,
