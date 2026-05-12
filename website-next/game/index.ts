@@ -174,6 +174,24 @@ function sanitizeCountryCode(value: string | null | undefined) {
     return /^[A-Z]{2}$/.test(countryCode) ? countryCode : "";
 }
 
+function addCountryToName(name: string, countryCode: string, countryName: string) {
+    const cleanName = sanitizeInfoValue(name, 35) || "Player";
+
+    if (!countryCode) {
+        return cleanName;
+    }
+
+    const fullSuffix = countryName ? ` [${countryCode} ${countryName}]` : ` [${countryCode}]`;
+    const shortSuffix = ` [${countryCode}]`;
+    const suffix = cleanName.length + fullSuffix.length <= 35 ? fullSuffix : shortSuffix;
+
+    if (cleanName.includes(suffix.trim())) {
+        return cleanName;
+    }
+
+    return `${cleanName.slice(0, Math.max(1, 35 - suffix.length)).trimEnd()}${suffix}`;
+}
+
 export default async function startGame({host, proxyPort, name, rconPassword, rafUpdate, fsGame, mobileMode = false, country}: Params) {
     const importIoquake3 = new Function("return import('/ioquake3.js')");
     const ioquake3Module = await (importIoquake3() as Promise<{ default: (moduleArg?: unknown) => unknown }>);
@@ -198,6 +216,7 @@ export default async function startGame({host, proxyPort, name, rconPassword, ra
     const fs_game = fsGame;
     const countryCode = sanitizeCountryCode(country?.countryCode);
     const countryName = sanitizeInfoValue(country?.countryName, 63);
+    const playerName = addCountryToName(name, countryCode, countryName);
 
     const generatedArguments = [
         "+set", "sv_pure", "0",
@@ -227,7 +246,7 @@ export default async function startGame({host, proxyPort, name, rconPassword, ra
         );
     }
 
-    generatedArguments.push("+set", "name", sanitizeInfoValue(name, 35) || "Player");
+    generatedArguments.push("+set", "name", playerName);
     if (rconPassword) {
         generatedArguments.push("+setu", "rconPassword", rconPassword.replace(/[\s"\\;]/g, ""));
     }
