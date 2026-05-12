@@ -15,7 +15,7 @@ export const PERSIST_DATA_DIR = `${PERSIST_ROOT}/data`;
 export const PERSIST_STATE_DIR = `${PERSIST_ROOT}/state`;
 
 // Persistent data versioning
-const DATA_VERSION = "v1.3";
+const DATA_VERSION = "v1.4";
 const VERSION_FILE = `${PERSIST_ROOT}/.ioq3-asset-version`;
 
 type FSLike = {
