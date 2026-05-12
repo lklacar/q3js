@@ -52,6 +52,13 @@ const config = {
             {src: "baseq3/vm/ui.qvm", dst: "/baseq3/vm"},
         ],
     },
+    q3js: {
+        files: [
+            {src: "q3js/vm/cgame.qvm", dst: "/q3js/vm"},
+            {src: "q3js/vm/qagame.qvm", dst: "/q3js/vm"},
+            {src: "q3js/vm/ui.qvm", dst: "/q3js/vm"},
+        ],
+    },
     cpma: {
         files: [
             {src: "cpma/missing.pk3", dst: "/cpma"},
