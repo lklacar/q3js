@@ -18,6 +18,7 @@
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
         <lombok.version>1.18.42</lombok.version>
         <jooq.version>3.20.10</jooq.version>
+        <geoip2.version>5.0.2</geoip2.version>
         <quarkiverse.jooq.version>2.1.0</quarkiverse.jooq.version>
         <flyway-maven-plugin.version>11.20.0</flyway-maven-plugin.version>
         <flyway.url>jdbc:postgresql://localhost:5432/postgres</flyway.url>
@@ -91,6 +92,11 @@
             <groupId>org.jooq</groupId>
             <artifactId>jooq-postgres-extensions</artifactId>
             <version>${jooq.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.maxmind.geoip2</groupId>
+            <artifactId>geoip2</artifactId>
+            <version>${geoip2.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
