@@ -5,10 +5,11 @@ import {Card} from "@/components/ui/card";
 import {Progress} from "@/components/ui/progress";
 import {makeRafUpdater, type Prog} from "@/lib/fs.ts";
 import {useFullscreenOnF11} from "@/hooks/use-fullscreen.ts";
-import startGame from "@/game";
+import startGame, {type CountryInfo} from "@/game";
 import {useSearchParams} from "next/navigation";
 import {toInt} from "@/lib/utils.ts";
 import {MobileControls} from "@/components/mobile-controls";
+import {env} from "@/env";
 import {
     clearIOQ3Runtime,
     hasIOQ3MobileBridge,
@@ -34,6 +35,7 @@ const MOBILE_RESIZE_DEBOUNCE_MS = 250;
 const MOBILE_RENDER_SCALE = 2;
 const MOBILE_SIZE_MONITOR_MS = 150;
 const MOBILE_SIZE_STABLE_TICKS = 2;
+const COUNTRY_LOOKUP_TIMEOUT_MS = 2500;
 
 type FullscreenCapableElement = HTMLElement & {
     webkitRequestFullscreen?: () => Promise<void> | void;
@@ -62,6 +64,10 @@ function getCanvasDisplaySize(target: HTMLElement) {
         width: Math.max(1, Math.round(rect.width || element.clientWidth || target.clientWidth || window.innerWidth)),
         height: Math.max(1, Math.round(rect.height || element.clientHeight || target.clientHeight || window.innerHeight)),
     };
+}
+
+function getCountryEndpointUrl() {
+    return `${env.NEXT_PUBLIC_MASTER_SERVER_URL.replace(/\/$/, "")}/api/country`;
 }
 
 function useLandscapeFullscreen(targetRef: RefObject<HTMLElement | null>) {
@@ -202,11 +208,65 @@ export default function GamePage() {
         requestFullscreenLandscape
     } = useLandscapeFullscreen(gameShellRef);
     const [mobileBridgeReady, setMobileBridgeReady] = useState(false);
+    const [countryInfo, setCountryInfo] = useState<CountryInfo | null>(null);
+    const [countryLookupComplete, setCountryLookupComplete] = useState(false);
     const showTouchUi = isTouchDevice || forceMobileControls;
     const portraitGate = showTouchUi && (!isViewportReady || !hasSeenLandscape);
     const showRotateOverlay = showTouchUi && hasSeenLandscape && !isLandscape;
-    const canStartGame = Boolean(host && proxyPort && isViewportReady && (!showTouchUi || hasSeenLandscape));
-    const gameStartKey = `${host}|${proxyPort}|${name}|${rconPassword}|${fsGame}|${showTouchUi ? "mobile" : "desktop"}`;
+    const canStartGame = Boolean(host && proxyPort && countryLookupComplete && isViewportReady && (!showTouchUi || hasSeenLandscape));
+    const gameStartKey = `${host}|${proxyPort}|${name}|${rconPassword}|${fsGame}|${showTouchUi ? "mobile" : "desktop"}|${countryInfo?.countryCode ?? ""}|${countryInfo?.countryName ?? ""}`;
+
+    useEffect(() => {
+        const abortController = new AbortController();
+        let cancelled = false;
+        const timeoutId = window.setTimeout(() => {
+            abortController.abort();
+        }, COUNTRY_LOOKUP_TIMEOUT_MS);
+
+        setCountryLookupComplete(false);
+        setCountryInfo(null);
+
+        fetch(getCountryEndpointUrl(), {
+            headers: {
+                Accept: "application/json",
+            },
+            signal: abortController.signal,
+        })
+            .then(async (response) => {
+                if (!response.ok) {
+                    throw new Error(`Country lookup failed with ${response.status}`);
+                }
+
+                return await response.json() as CountryInfo;
+            })
+            .then((country) => {
+                if (cancelled) {
+                    return;
+                }
+
+                setCountryInfo({
+                    countryCode: country.countryCode ?? null,
+                    countryName: country.countryName ?? null,
+                });
+            })
+            .catch(() => {
+                if (!cancelled && !abortController.signal.aborted) {
+                    setCountryInfo(null);
+                }
+            })
+            .finally(() => {
+                window.clearTimeout(timeoutId);
+                if (!cancelled) {
+                    setCountryLookupComplete(true);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+            window.clearTimeout(timeoutId);
+            abortController.abort();
+        };
+    }, []);
 
     useEffect(() => {
         if (!canStartGame) {
@@ -226,8 +286,9 @@ export default function GamePage() {
             rafUpdate,
             fsGame,
             mobileMode: showTouchUi,
+            country: countryInfo,
         });
-    }, [canStartGame, fsGame, gameStartKey, host, name, proxyPort, rafUpdate, rconPassword, showTouchUi]);
+    }, [canStartGame, countryInfo, fsGame, gameStartKey, host, name, proxyPort, rafUpdate, rconPassword, showTouchUi]);
 
     useEffect(() => {
         return () => {

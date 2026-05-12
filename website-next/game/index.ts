@@ -19,7 +19,13 @@ type Params = {
     rafUpdate: (prog: Prog) => void;
     fsGame: string;
     mobileMode?: boolean;
+    country?: CountryInfo | null;
 }
+
+export type CountryInfo = {
+    countryCode?: string | null;
+    countryName?: string | null;
+};
 
 type FileEntry = {
     src: string;
@@ -143,7 +149,25 @@ function isSupportedGameDir(gameDir: string): gameDir is SupportedGameDir {
     return gameDir in config;
 }
 
-export default async function startGame({host, proxyPort, name, rconPassword, rafUpdate, fsGame, mobileMode = false}: Params) {
+function sanitizeInfoValue(value: string | null | undefined, maxLength: number) {
+    if (!value) {
+        return "";
+    }
+
+    return value
+        .replace(/[\\";]/g, "")
+        .replace(/[^\x20-\x7e]/g, "")
+        .trim()
+        .slice(0, maxLength);
+}
+
+function sanitizeCountryCode(value: string | null | undefined) {
+    const countryCode = sanitizeInfoValue(value, 2).toUpperCase();
+
+    return /^[A-Z]{2}$/.test(countryCode) ? countryCode : "";
+}
+
+export default async function startGame({host, proxyPort, name, rconPassword, rafUpdate, fsGame, mobileMode = false, country}: Params) {
     const importIoquake3 = new Function("return import('/ioquake3.js')");
     const ioquake3Module = await (importIoquake3() as Promise<{ default: (moduleArg?: unknown) => unknown }>);
     const ioquake3 = ioquake3Module.default;
@@ -165,43 +189,51 @@ export default async function startGame({host, proxyPort, name, rconPassword, ra
     const com_basegame = fsGame;
     const fs_basegame = fsGame;
     const fs_game = fsGame;
+    const countryCode = sanitizeCountryCode(country?.countryCode);
+    const countryName = sanitizeInfoValue(country?.countryName, 63);
 
-    let generatedArguments = `
-          +set sv_pure 0
-          +set net_enabled 1
-          +set r_mode -2
-          +set r_fullscreen 0
-          +set cl_allowDownload 1
-          +set con_scale 2
-          +set fs_game "${fs_game}"
-          +set fs_homeconfigpath "${PERSIST_CONFIG_DIR}"
-          +set fs_homedatapath "${PERSIST_DATA_DIR}"
-          +set fs_homestatepath "${PERSIST_STATE_DIR}"
-          +set com_introplayed 1
-          +set ui_cdkeychecked 1
-          +set cl_firststart 0
-        `;
+    const generatedArguments = [
+        "+set", "sv_pure", "0",
+        "+set", "net_enabled", "1",
+        "+set", "r_mode", "-2",
+        "+set", "r_fullscreen", "0",
+        "+set", "cl_allowDownload", "1",
+        "+set", "con_scale", "2",
+        "+set", "fs_game", fs_game,
+        "+set", "fs_homeconfigpath", PERSIST_CONFIG_DIR,
+        "+set", "fs_homedatapath", PERSIST_DATA_DIR,
+        "+set", "fs_homestatepath", PERSIST_STATE_DIR,
+        "+set", "com_introplayed", "1",
+        "+set", "ui_cdkeychecked", "1",
+        "+set", "cl_firststart", "0",
+    ];
 
     if (mobileMode) {
-        generatedArguments += `
-          +set r_mode -1
-          +set r_customwidth ${initialRenderWidth}
-          +set r_customheight ${initialRenderHeight}
-          +set in_nograb 1
-          +set in_joystickUseAnalog 1
-          +set j_forward -1
-          +set j_side 1
-        `;
+        generatedArguments.push(
+            "+set", "r_mode", "-1",
+            "+set", "r_customwidth", String(initialRenderWidth),
+            "+set", "r_customheight", String(initialRenderHeight),
+            "+set", "in_nograb", "1",
+            "+set", "in_joystickUseAnalog", "1",
+            "+set", "j_forward", "-1",
+            "+set", "j_side", "1",
+        );
     }
 
-    generatedArguments += ` +set name "${name.replace(/"/g, "'")}" `;
+    generatedArguments.push("+set", "name", sanitizeInfoValue(name, 35) || "Player");
     if (rconPassword) {
-        generatedArguments += ` +setu rconPassword ${rconPassword.replace(/[\s"\\;]/g, "")} `;
+        generatedArguments.push("+setu", "rconPassword", rconPassword.replace(/[\s"\\;]/g, ""));
     }
-    generatedArguments += ` +connect ${host}:${proxyPort} `;
+    if (countryCode) {
+        generatedArguments.push("+setu", "q3js_country_code", countryCode);
+    }
+    if (countryName) {
+        generatedArguments.push("+setu", "q3js_country_name", countryName);
+    }
+    generatedArguments.push("+connect", `${host}:${proxyPort}`);
 
     if (name === "^1L^2K") {
-        generatedArguments += ` +set cg_autoswitch "0" +bind 3 "weapon 7" +bind e "+zoom" `;
+        generatedArguments.push("+set", "cg_autoswitch", "0", "+bind", "3", "weapon 7", "+bind", "e", "+zoom");
     }
 
     const dataURL = new URL(location.origin + location.pathname);
@@ -212,7 +244,7 @@ export default async function startGame({host, proxyPort, name, rconPassword, ra
             subprotocol: "binary"
         },
         canvas,
-        arguments: generatedArguments.trim().split(/\s+/),
+        arguments: generatedArguments,
         onRuntimeInitialized: () => {
             rafUpdate({received: 0, total: 0, pct: 100, current: "ready", stage: "ready"});
         },
