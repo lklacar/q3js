@@ -4,6 +4,8 @@ import io.vertx.core.http.HttpServerRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.HttpHeaders;
 
+import java.net.InetAddress;
+
 @ApplicationScoped
 public class IpAddressResolver {
     public String resolve(HttpHeaders headers, HttpServerRequest request) {
@@ -18,7 +20,7 @@ public class IpAddressResolver {
     public String resolve(String xForwardedFor, String xRealIp, String forwarded, HttpServerRequest request) {
         String resolved = firstPresent(
                 firstForwardedFor(xForwardedFor),
-                normalize(xRealIp),
+                publicAddress(xRealIp),
                 forwardedFor(forwarded)
         );
 
@@ -43,7 +45,7 @@ public class IpAddressResolver {
         }
 
         for (String value : header.split(",")) {
-            String normalized = normalize(value);
+            String normalized = publicAddress(value);
             if (normalized != null) {
                 return normalized;
             }
@@ -61,7 +63,10 @@ public class IpAddressResolver {
             for (String part : forwardedElement.split(";")) {
                 String trimmed = part.trim();
                 if (trimmed.regionMatches(true, 0, "for=", 0, 4)) {
-                    return normalize(trimmed.substring(4));
+                    String normalized = publicAddress(trimmed.substring(4));
+                    if (normalized != null) {
+                        return normalized;
+                    }
                 }
             }
         }
@@ -90,6 +95,28 @@ public class IpAddressResolver {
         int colon = normalized.lastIndexOf(':');
         if (colon > 0 && normalized.indexOf(':') == colon && normalized.indexOf('.') >= 0) {
             return normalized.substring(0, colon);
+        }
+
+        return normalized;
+    }
+
+    private String publicAddress(String value) {
+        String normalized = normalize(value);
+        if (normalized == null) {
+            return null;
+        }
+
+        try {
+            InetAddress address = InetAddress.getByName(normalized);
+            if (address.isAnyLocalAddress()
+                    || address.isLoopbackAddress()
+                    || address.isLinkLocalAddress()
+                    || address.isSiteLocalAddress()
+                    || address.isMulticastAddress()) {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
         }
 
         return normalized;
