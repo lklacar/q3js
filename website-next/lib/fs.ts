@@ -15,7 +15,7 @@ export const PERSIST_DATA_DIR = `${PERSIST_ROOT}/data`;
 export const PERSIST_STATE_DIR = `${PERSIST_ROOT}/state`;
 
 // Persistent data versioning
-const DATA_VERSION = "v1.4";
+const DATA_VERSION = "v1.5";
 const VERSION_FILE = `${PERSIST_ROOT}/.ioq3-asset-version`;
 
 type FSLike = {
@@ -76,6 +76,36 @@ function clearDirectory(FS: FSLike, dirPath: string) {
     }
 }
 
+function unlinkMatchingFiles(FS: FSLike, dirPath: string, predicate: (entry: string) => boolean) {
+    let entries: string[];
+
+    try {
+        entries = FS.readdir(dirPath);
+    } catch {
+        return;
+    }
+
+    for (const entry of entries) {
+        if (entry === "." || entry === ".." || !predicate(entry)) continue;
+
+        const entryPath = `${dirPath}/${entry}`;
+        try {
+            const stat = FS.stat(entryPath);
+            if (!isDirectoryMode(stat.mode)) {
+                FS.unlink(entryPath);
+            }
+        } catch {
+            // ignore stale entries
+        }
+    }
+}
+
+export function clearQ3JSDownloadedVmPaks(module: IOQ3Module) {
+    unlinkMatchingFiles(module.FS, `${PERSIST_DATA_DIR}/q3js`, (entry) =>
+        /^zz-q3js-vm-v\d+(?:\.[0-9a-fA-F]+)?\.pk3(?:\.tmp)?$/.test(entry)
+    );
+}
+
 function readDataVersion(FS: FSLike): string | null {
     try {
         return FS.readFile(VERSION_FILE, {encoding: "utf8"}).trim();
@@ -110,7 +140,6 @@ export async function ensureMounts(
     }
     FS.mkdirTree("/baseq3/vm");
     FS.mkdirTree(PERSIST_ROOT);
-
     const IDBFS = resolveIDBFS(module);
     if (!IDBFS) {
         console.warn("[ioq3] IDBFS not linked. Running without persistence.");
@@ -144,6 +173,8 @@ export async function ensureMounts(
         }
     } else if (current !== DATA_VERSION) {
         try {
+            // Only invalidate managed asset mounts. /persist contains user
+            // config, state, and autodownloads and must survive asset bumps.
             for (const dir of assetMountDirs) {
                 clearDirectory(FS, `/${dir}`);
             }

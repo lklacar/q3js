@@ -6,6 +6,7 @@ import {
     PERSIST_CONFIG_DIR,
     PERSIST_DATA_DIR,
     PERSIST_STATE_DIR,
+    clearQ3JSDownloadedVmPaks,
     type Prog,
     syncfs
 } from "@/lib/fs.ts";
@@ -302,6 +303,7 @@ export default async function startGame({host, proxyPort, name, rconPassword, ra
                     });
                     const mountDirs = Array.from(new Set([com_basegame, fs_basegame, fs_game, "baseq3"]));
                     const {persist} = await ensureMounts(module, {assetGameDirs: mountDirs});
+                    clearQ3JSDownloadedVmPaks(module);
                     const configuredGameDirs = mountDirs.filter(isSupportedGameDir);
                     const allFileEntries = configuredGameDirs.flatMap<FileEntry>((g) => config[g].files);
                     const uniqueFileEntries = Array.from(
