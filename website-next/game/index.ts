@@ -47,6 +47,7 @@ const config = {
             {src: "baseq3/pak6.pk3", dst: "/baseq3"},
             {src: "baseq3/pak7.pk3", dst: "/baseq3"},
             {src: "baseq3/pak8.pk3", dst: "/baseq3"},
+            {src: "baseq3/zz-q3js-vm.pk3", dst: "/baseq3"},
             {src: "baseq3/vm/cgame.qvm", dst: "/baseq3/vm"},
             {src: "baseq3/vm/qagame.qvm", dst: "/baseq3/vm"},
             {src: "baseq3/vm/ui.qvm", dst: "/baseq3/vm"},
@@ -54,6 +55,7 @@ const config = {
     },
     q3js: {
         files: [
+            {src: "q3js/zz-q3js-vm.pk3", dst: "/q3js"},
             {src: "q3js/vm/cgame.qvm", dst: "/q3js/vm"},
             {src: "q3js/vm/qagame.qvm", dst: "/q3js/vm"},
             {src: "q3js/vm/ui.qvm", dst: "/q3js/vm"},

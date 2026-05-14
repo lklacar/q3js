@@ -32,9 +32,12 @@ else
 fi
 
 if [[ -d baseq3/vm ]]; then
+  (cd baseq3 && zip -q -FS zz-q3js-vm.pk3 vm/*.qvm)
   if mkdir -p "$WEB_QVM_DIR" "$WEB_Q3JS_QVM_DIR" 2>/dev/null; then
     cp -a baseq3/vm/*.qvm "$WEB_QVM_DIR"/ || echo "WARNING: failed to sync baseq3 loose QVMs to $WEB_QVM_DIR" >&2
+    cp -a baseq3/zz-q3js-vm.pk3 "$(dirname "$WEB_QVM_DIR")"/ || echo "WARNING: failed to sync baseq3 VM pk3 to $(dirname "$WEB_QVM_DIR")" >&2
     cp -a baseq3/vm/*.qvm "$WEB_Q3JS_QVM_DIR"/ || echo "WARNING: failed to sync q3js loose QVMs to $WEB_Q3JS_QVM_DIR" >&2
+    cp -a baseq3/zz-q3js-vm.pk3 "$(dirname "$WEB_Q3JS_QVM_DIR")"/ || echo "WARNING: failed to sync q3js VM pk3 to $(dirname "$WEB_Q3JS_QVM_DIR")" >&2
   else
     echo "WARNING: failed to create web QVM directories; skipping web asset sync" >&2
   fi
