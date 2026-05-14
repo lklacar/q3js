@@ -9,10 +9,12 @@
             {"src": "baseq3/pak5.pk3", "dst": "/baseq3"},
             {"src": "baseq3/pak6.pk3", "dst": "/baseq3"},
             {"src": "baseq3/pak7.pk3", "dst": "/baseq3"},
-            {"src": "baseq3/pak8.pk3", "dst": "/baseq3"},
-            {"src": "baseq3/vm/cgame.qvm", "dst": "/baseq3/vm"},
-            {"src": "baseq3/vm/qagame.qvm", "dst": "/baseq3/vm"},
-            {"src": "baseq3/vm/ui.qvm", "dst": "/baseq3/vm"}
+            {"src": "baseq3/pak8.pk3", "dst": "/baseq3"}
+        ]
+    },
+    "q3js": {
+        "files": [
+            {"src": "q3js/zz-q3js-vm-v1.pk3", "dst": "/q3js"}
         ]
     },
     "missionpack": {

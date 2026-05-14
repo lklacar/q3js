@@ -47,6 +47,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define SB_RIGHT_BOTICON_X	(SCOREBOARD_X+64)
 #define SB_RIGHT_HEAD_X		(SCOREBOARD_X+96)
 // Normal
+#define SB_COUNTRY_X		(SCOREBOARD_X+16)
 #define SB_BOTICON_X		(SCOREBOARD_X+32)
 #define SB_HEAD_X			(SCOREBOARD_X+64)
 
@@ -93,6 +94,10 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 
 	iconx = SB_BOTICON_X + (SB_RATING_WIDTH / 2);
 	headx = SB_HEAD_X + (SB_RATING_WIDTH / 2);
+
+	if ( ci->country[0] ) {
+		CG_DrawBigString( SB_COUNTRY_X, y, ci->country, fade );
+	}
 
 	// draw the handicap or bot skill marker (unless player has flag)
 	if ( ci->powerups & ( 1 << PW_NEUTRALFLAG ) ) {
@@ -531,4 +536,3 @@ void CG_DrawTourneyScoreboard( void ) {
 
 
 }
-

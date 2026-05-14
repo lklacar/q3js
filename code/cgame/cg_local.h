@@ -309,6 +309,7 @@ typedef struct {
 	qboolean		infoValid;
 
 	char			name[MAX_QPATH];
+	char			country[8];
 	team_t			team;
 
 	int				botSkill;		// 0 = not bot, 1-5 = bot
@@ -1686,5 +1687,4 @@ void	CG_ParticleMisc (qhandle_t pshader, vec3_t origin, int size, int duration, 
 void	CG_ParticleExplosion (char *animStr, vec3_t origin, vec3_t vel, int duration, int sizeStart, int sizeEnd);
 extern qboolean		initparticles;
 int CG_NewParticleArea ( int num );
-
 

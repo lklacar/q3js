@@ -896,6 +896,9 @@ void CG_NewClientInfo( int clientNum ) {
 	v = Info_ValueForKey(configstring, "n");
 	Q_strncpyz( newInfo.name, v, sizeof( newInfo.name ) );
 
+	v = Info_ValueForKey( configstring, "country" );
+	Q_strncpyz( newInfo.country, v, sizeof( newInfo.country ) );
+
 	// colors
 	v = Info_ValueForKey( configstring, "c1" );
 	CG_ColorFromString( v, newInfo.color1 );
@@ -2632,4 +2635,3 @@ void CG_ResetPlayerEntity( centity_t *cent ) {
 		CG_Printf("%i ResetPlayerEntity yaw=%f\n", cent->currentState.number, cent->pe.torso.yawAngle );
 	}
 }
-

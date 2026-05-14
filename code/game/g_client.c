@@ -734,6 +734,46 @@ static void ClientCleanName(const char *in, char *out, int outSize)
 		Q_strncpyz(out, "UnnamedPlayer", outSize );
 }
 
+/*
+===========
+ClientCleanCountry
+
+Country is mirrored to CS_PLAYERS for scoreboard display, so keep it short
+and info-string safe.
+============
+*/
+static void ClientCleanCountry( const char *in, char *out, int outSize )
+{
+	int		inpos;
+	int		outpos;
+	char	ch;
+
+	if ( outSize < 1 ) {
+		return;
+	}
+
+	out[0] = '\0';
+
+	if ( !in ) {
+		return;
+	}
+
+	outpos = 0;
+	for ( inpos = 0; in[inpos] && outpos < outSize - 1; inpos++ ) {
+		ch = in[inpos];
+
+		if ( ch >= 'a' && ch <= 'z' ) {
+			ch -= 'a' - 'A';
+		}
+
+		if ( ( ch >= 'A' && ch <= 'Z' ) || ( ch >= '0' && ch <= '9' ) || ch == '_' || ch == '-' ) {
+			out[outpos++] = ch;
+		}
+	}
+
+	out[outpos] = '\0';
+}
+
 
 /*
 ===========
@@ -758,6 +798,7 @@ void ClientUserinfoChanged( int clientNum ) {
 	char	c2[MAX_INFO_STRING];
 	char	redTeam[MAX_INFO_STRING];
 	char	blueTeam[MAX_INFO_STRING];
+	char	country[8];
 	char	userinfo[MAX_INFO_STRING];
 
 	ent = g_entities + clientNum;
@@ -889,21 +930,22 @@ void ClientUserinfoChanged( int clientNum ) {
 
 	Q_strncpyz(redTeam, Info_ValueForKey( userinfo, "g_redteam" ), sizeof( redTeam ));
 	Q_strncpyz(blueTeam, Info_ValueForKey( userinfo, "g_blueteam" ), sizeof( blueTeam ));
+	ClientCleanCountry( Info_ValueForKey( userinfo, "country" ), country, sizeof( country ) );
 	
 	// send over a subset of the userinfo keys so other clients can
 	// print scoreboards, display models, and play custom sounds
 	if ( ( ent->r.svFlags & SVF_BOT ) && !Info_ValueForKey( userinfo, "nightmareTarget" )[0] )
 	{
-		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s\\tt\\%d\\tl\\%d",
+		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\c1\\%s\\c2\\%s\\country\\%s\\hc\\%i\\w\\%i\\l\\%i\\skill\\%s\\tt\\%d\\tl\\%d",
 			client->pers.netname, client->sess.sessionTeam, model, headModel, c1, c2,
-			client->pers.maxHealth, client->sess.wins, client->sess.losses,
+			country, client->pers.maxHealth, client->sess.wins, client->sess.losses,
 			Info_ValueForKey( userinfo, "skill" ), teamTask, teamLeader );
 	}
 	else
 	{
-		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\g_redteam\\%s\\g_blueteam\\%s\\c1\\%s\\c2\\%s\\hc\\%i\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d",
+		s = va("n\\%s\\t\\%i\\model\\%s\\hmodel\\%s\\g_redteam\\%s\\g_blueteam\\%s\\c1\\%s\\c2\\%s\\country\\%s\\hc\\%i\\w\\%i\\l\\%i\\tt\\%d\\tl\\%d",
 			client->pers.netname, client->sess.sessionTeam, model, headModel, redTeam, blueTeam, c1, c2, 
-			client->pers.maxHealth, client->sess.wins, client->sess.losses, teamTask, teamLeader);
+			country, client->pers.maxHealth, client->sess.wins, client->sess.losses, teamTask, teamLeader);
 	}
 
 	trap_SetConfigstring( CS_PLAYERS+clientNum, s );
