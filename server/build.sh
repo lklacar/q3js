@@ -4,8 +4,6 @@ set -Eeuo pipefail
 CURRENT_DIR="$(pwd)"
 BASEQ3_SRC="${BASEQ3_SRC:-$CURRENT_DIR/../baseq3}"
 BUILD_DIR="${BUILD_DIR:-$CURRENT_DIR/build}"
-WEB_QVM_DIR="${WEB_QVM_DIR:-$CURRENT_DIR/../website-next/public/baseq3/vm}"
-WEB_Q3JS_QVM_DIR="${WEB_Q3JS_QVM_DIR:-$CURRENT_DIR/../website-next/public/q3js/vm}"
 
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
@@ -30,14 +28,3 @@ else
   echo "WARNING: baseq3 source not found at $BASEQ3_SRC; expecting it to be mounted at runtime" >&2
   mkdir -p baseq3
 fi
-
-if [[ -d baseq3/vm ]]; then
-  mkdir -p "$WEB_QVM_DIR"
-  cp -a baseq3/vm/*.qvm "$WEB_QVM_DIR"/
-  mkdir -p "$WEB_Q3JS_QVM_DIR"
-  cp -a baseq3/vm/*.qvm "$WEB_Q3JS_QVM_DIR"/
-fi
-
-rm -rf q3js
-mkdir -p q3js
-cp -a baseq3/. q3js/
