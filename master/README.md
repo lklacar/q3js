@@ -14,12 +14,6 @@ You can run your application in dev mode that enables live coding using:
 
 > **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
 
-## GeoIP country lookup
-
-`GET /api/country` returns the requester's IP address with country fields resolved from the bundled DB-IP Country Lite
-MMDB database. You can override the database with `Q3JS_COUNTRY_DB_PATH`, or change the bundled resource name with
-`Q3JS_COUNTRY_DB_RESOURCE`. DB-IP Lite is licensed under CC BY 4.0 and requires attribution: <https://db-ip.com>.
-
 ## Packaging and running the application
 
 The application can be packaged using:
