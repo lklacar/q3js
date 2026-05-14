@@ -4,7 +4,16 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:8080' | (string & {});
 };
 
+export type CountryResponse = {
+    ip?: string;
+    countryCode?: string;
+    countryName?: string;
+    attribution?: string;
+    attributionUrl?: string;
+};
+
 export type CreateEventRequest = {
+    clientSecret?: string;
     event?: string;
     player?: EventPlayer;
     killer?: EventPlayer;
@@ -152,8 +161,27 @@ export type ServerUserResponse = {
     name: string;
 };
 
+export type GetRequesterCountryData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/country';
+};
+
+export type GetRequesterCountryResponses = {
+    /**
+     * OK
+     */
+    200: CountryResponse;
+};
+
+export type GetRequesterCountryResponse = GetRequesterCountryResponses[keyof GetRequesterCountryResponses];
+
 export type IngestEventData = {
     body: CreateEventRequest;
+    headers?: {
+        'X-Q3JS-Client-Secret'?: string;
+    };
     path?: never;
     query?: never;
     url: '/api/events';

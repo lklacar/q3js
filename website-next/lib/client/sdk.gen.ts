@@ -3,7 +3,7 @@
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
 import { getPlayerStatsResponseTransformer } from './transformers.gen';
-import type { GetAllPlayersData, GetAllPlayersResponses, GetAllServersData, GetAllServersResponses, GetPlayerScoreboardData, GetPlayerScoreboardDistributionData, GetPlayerScoreboardDistributionResponses, GetPlayerScoreboardResponses, GetPlayerStatsData, GetPlayerStatsResponses, IngestEventData, IngestEventErrors, IngestEventResponses, RefreshServerData, RefreshServerErrors, RefreshServerResponses } from './types.gen';
+import type { GetAllPlayersData, GetAllPlayersResponses, GetAllServersData, GetAllServersResponses, GetPlayerScoreboardData, GetPlayerScoreboardDistributionData, GetPlayerScoreboardDistributionResponses, GetPlayerScoreboardResponses, GetPlayerStatsData, GetPlayerStatsResponses, GetRequesterCountryData, GetRequesterCountryResponses, IngestEventData, IngestEventErrors, IngestEventResponses, RefreshServerData, RefreshServerErrors, RefreshServerResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -18,6 +18,11 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: Record<string, unknown>;
 };
+
+/**
+ * Get Requester Country
+ */
+export const getRequesterCountry = <ThrowOnError extends boolean = false>(options?: Options<GetRequesterCountryData, ThrowOnError>) => (options?.client ?? client).get<GetRequesterCountryResponses, unknown, ThrowOnError>({ url: '/api/country', ...options });
 
 /**
  * Ingest Event

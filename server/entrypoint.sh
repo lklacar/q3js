@@ -7,6 +7,8 @@ args=("$@")
 has_fs_game_arg=false
 has_killpost_client_secret_arg=false
 has_rcon_password_arg=false
+has_sv_pure_arg=false
+has_gamename_arg=false
 
 for ((i = 0; i < ${#args[@]} - 1; i++)); do
   if [[ "${args[$i]}" == "+set" && "${args[$((i + 1))]}" == "fs_game" ]]; then
@@ -18,7 +20,21 @@ for ((i = 0; i < ${#args[@]} - 1; i++)); do
   if [[ "${args[$i]}" == "+set" && "${args[$((i + 1))]}" == "rconPassword" ]]; then
     has_rcon_password_arg=true
   fi
+  if [[ "${args[$i]}" == "+set" && "${args[$((i + 1))]}" == "sv_pure" ]]; then
+    has_sv_pure_arg=true
+  fi
+  if [[ ( "${args[$i]}" == "+set" || "${args[$i]}" == "+sets" ) && "${args[$((i + 1))]}" == "gamename" ]]; then
+    has_gamename_arg=true
+  fi
 done
+
+if [[ "$has_sv_pure_arg" == false ]]; then
+  args=("+set" "sv_pure" "0" "${args[@]}")
+fi
+
+if [[ "$has_gamename_arg" == false ]]; then
+  args=("+sets" "gamename" "q3js" "${args[@]}")
+fi
 
 if [[ "$has_fs_game_arg" == false ]]; then
   args=("+set" "fs_game" "${FS_GAME:-q3js}" "${args[@]}")

@@ -3,25 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { getAllPlayers, getAllServers, getPlayerScoreboard, getPlayerScoreboardDistribution, getPlayerStats, ingestEvent, type Options, refreshServer } from '../sdk.gen';
-import type { GetAllPlayersData, GetAllPlayersResponse, GetAllServersData, GetAllServersResponse, GetPlayerScoreboardData, GetPlayerScoreboardDistributionData, GetPlayerScoreboardDistributionResponse, GetPlayerScoreboardResponse, GetPlayerStatsData, GetPlayerStatsResponse, IngestEventData, RefreshServerData, RefreshServerResponse } from '../types.gen';
-
-/**
- * Ingest Event
- */
-export const ingestEventMutation = (options?: Partial<Options<IngestEventData>>): UseMutationOptions<unknown, DefaultError, Options<IngestEventData>> => {
-    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<IngestEventData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await ingestEvent({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
+import { getAllPlayers, getAllServers, getPlayerScoreboard, getPlayerScoreboardDistribution, getPlayerStats, getRequesterCountry, ingestEvent, type Options, refreshServer } from '../sdk.gen';
+import type { GetAllPlayersData, GetAllPlayersResponse, GetAllServersData, GetAllServersResponse, GetPlayerScoreboardData, GetPlayerScoreboardDistributionData, GetPlayerScoreboardDistributionResponse, GetPlayerScoreboardResponse, GetPlayerStatsData, GetPlayerStatsResponse, GetRequesterCountryData, GetRequesterCountryResponse, IngestEventData, RefreshServerData, RefreshServerResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -54,6 +37,41 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
         params.query = options.query;
     }
     return [params];
+};
+
+export const getRequesterCountryQueryKey = (options?: Options<GetRequesterCountryData>) => createQueryKey('getRequesterCountry', options);
+
+/**
+ * Get Requester Country
+ */
+export const getRequesterCountryOptions = (options?: Options<GetRequesterCountryData>) => queryOptions<GetRequesterCountryResponse, DefaultError, GetRequesterCountryResponse, ReturnType<typeof getRequesterCountryQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getRequesterCountry({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getRequesterCountryQueryKey(options)
+});
+
+/**
+ * Ingest Event
+ */
+export const ingestEventMutation = (options?: Partial<Options<IngestEventData>>): UseMutationOptions<unknown, DefaultError, Options<IngestEventData>> => {
+    const mutationOptions: UseMutationOptions<unknown, DefaultError, Options<IngestEventData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await ingestEvent({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
 };
 
 export const getAllPlayersQueryKey = (options?: Options<GetAllPlayersData>) => createQueryKey('getAllPlayers', options);

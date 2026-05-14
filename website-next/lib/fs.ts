@@ -15,7 +15,7 @@ export const PERSIST_DATA_DIR = `${PERSIST_ROOT}/data`;
 export const PERSIST_STATE_DIR = `${PERSIST_ROOT}/state`;
 
 // Persistent data versioning
-const DATA_VERSION = "v1.2";
+const DATA_VERSION = "v1.4";
 const VERSION_FILE = `${PERSIST_ROOT}/.ioq3-asset-version`;
 
 type FSLike = {
@@ -177,14 +177,14 @@ export async function fetchIntoUint8(url: URL, onChunk: (n: number) => void) {
     // HEAD for length
     let expected: number | undefined;
     try {
-        const h = await fetch(url, {method: "HEAD"});
+        const h = await fetch(url, {method: "HEAD", cache: "no-store"});
         const cl = h.headers.get("content-length");
         if (cl) expected = parseInt(cl, 10);
     } catch {
         // ignore
     }
 
-    const resp = await fetch(url);
+    const resp = await fetch(url, {cache: "no-store"});
     if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${url}`);
 
     if (expected && resp.body) {
@@ -212,7 +212,7 @@ export async function estimateTotalBytes(fileUrls: URL[]) {
     await Promise.all(
         fileUrls.map(async (u) => {
             try {
-                const r = await fetch(u, {method: "HEAD"});
+                const r = await fetch(u, {method: "HEAD", cache: "no-store"});
                 const cl = r.headers.get("content-length");
                 if (cl) total += parseInt(cl, 10);
             } catch {

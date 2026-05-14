@@ -49,9 +49,11 @@ export function JoinServerButton(props: {
         );
     }
 
+    const fsGame = props.server.info.gamename === "cpma" ? "cpma" : "q3js";
+
     const gameUrl = `${gamePageBaseUrl}/game?host=${props.server.host}&proxyPort=${props.server.proxyPort}&name=${encodeURIComponent(
         name
-    )}&fs_game=${props.server.info.gamename}`;
+    )}&fs_game=${fsGame}`;
 
     return (
         <Dialog>

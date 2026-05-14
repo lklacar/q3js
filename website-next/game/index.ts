@@ -10,6 +10,7 @@ import {
     syncfs
 } from "@/lib/fs.ts";
 import {registerIOQ3Runtime, type IOQ3RuntimeModule} from "@/lib/ioquake3-runtime";
+import {getRequesterCountry} from "@/lib/client";
 
 type Params = {
     host: string;
@@ -24,6 +25,13 @@ type Params = {
 type FileEntry = {
     src: string;
     dst: string;
+};
+
+type CheckedFileEntry = {
+    file: FileEntry;
+    url: URL;
+    expectedBytes?: number;
+    pending: boolean;
 };
 
 const MOBILE_RENDER_SCALE = 2;
@@ -41,9 +49,11 @@ const config = {
             {src: "baseq3/pak6.pk3", dst: "/baseq3"},
             {src: "baseq3/pak7.pk3", dst: "/baseq3"},
             {src: "baseq3/pak8.pk3", dst: "/baseq3"},
-            {src: "baseq3/vm/cgame.qvm", dst: "/baseq3/vm"},
-            {src: "baseq3/vm/qagame.qvm", dst: "/baseq3/vm"},
-            {src: "baseq3/vm/ui.qvm", dst: "/baseq3/vm"},
+        ],
+    },
+    q3js: {
+        files: [
+            {src: "q3js/zz-q3js-vm-v1.pk3", dst: "/q3js"},
         ],
     },
     cpma: {
@@ -143,7 +153,63 @@ function isSupportedGameDir(gameDir: string): gameDir is SupportedGameDir {
     return gameDir in config;
 }
 
+async function getContentLength(url: URL): Promise<number | undefined> {
+    try {
+        const response = await fetch(url, {method: "HEAD", cache: "no-store"});
+        const contentLength = response.headers.get("content-length");
+
+        if (!response.ok || !contentLength) {
+            return undefined;
+        }
+
+        const size = Number.parseInt(contentLength, 10);
+        return Number.isFinite(size) && size >= 0 ? size : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+async function checkFileEntry(module: RuntimeModule, file: FileEntry, dataURL: URL): Promise<CheckedFileEntry> {
+    const assetName = file.src.split("/").pop() as string;
+    const dstPath = `${file.dst}/${assetName}`;
+    const url = new URL(file.src, dataURL);
+    const expectedBytes = await getContentLength(url);
+
+    try {
+        const st = module.FS.stat(dstPath);
+        const existingBytes = st?.size ?? 0;
+        return {
+            file,
+            url,
+            expectedBytes,
+            pending: existingBytes <= 0 || (expectedBytes !== undefined && existingBytes !== expectedBytes),
+        };
+    } catch {
+        return {file, url, expectedBytes, pending: true};
+    }
+}
+
+function normalizeCountry(country: string): string | undefined {
+    const sanitized = country.trim().replace(/[^A-Za-z0-9_-]/g, "").slice(0, 16);
+
+    if (sanitized.length === 0) {
+        return undefined;
+    }
+
+    return sanitized.length === 2 ? sanitized.toUpperCase() : sanitized;
+}
+
+async function fetchCountry(): Promise<string | undefined> {
+    try {
+        const {data} = await getRequesterCountry({throwOnError: true});
+        return data.countryCode ? normalizeCountry(data.countryCode) : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
 export default async function startGame({host, proxyPort, name, rconPassword, rafUpdate, fsGame, mobileMode = false}: Params) {
+    const countryPromise = fetchCountry();
     const importIoquake3 = new Function("return import('/ioquake3.js')");
     const ioquake3Module = await (importIoquake3() as Promise<{ default: (moduleArg?: unknown) => unknown }>);
     const ioquake3 = ioquake3Module.default;
@@ -198,6 +264,10 @@ export default async function startGame({host, proxyPort, name, rconPassword, ra
     if (rconPassword) {
         generatedArguments += ` +setu rconPassword ${rconPassword.replace(/[\s"\\;]/g, "")} `;
     }
+    const country = await countryPromise;
+    if (country) {
+        generatedArguments += ` +setu country ${country} `;
+    }
     generatedArguments += ` +connect ${host}:${proxyPort} `;
 
     if (name === "^1L^2K") {
@@ -244,25 +314,18 @@ export default async function startGame({host, proxyPort, name, rconPassword, ra
                         ).values()
                     );
 
-                    const pendingEntries = uniqueFileEntries.filter((f: FileEntry) => {
-                        const assetName = f.src.split("/").pop() as string;
-                        const dstPath = `${f.dst}/${assetName}`;
-                        try {
-                            const st = module.FS.stat(dstPath);
-                            return !st || (st.size ?? 0) <= 0;
-                        } catch {
-                            return true;
-                        }
-                    });
-
-                    const pendingUrls = pendingEntries.map((f: FileEntry) => new URL(f.src, dataURL));
-                    const totalBytes = await estimateTotalBytes(pendingUrls);
+                    const checkedEntries = await Promise.all(
+                        uniqueFileEntries.map((f: FileEntry) => checkFileEntry(module, f, dataURL))
+                    );
+                    const pendingEntries = checkedEntries.filter((entry) => entry.pending);
+                    const pendingUrls = pendingEntries.map((entry) => entry.url);
+                    const knownTotalBytes = pendingEntries.reduce((sum, entry) => sum + (entry.expectedBytes ?? 0), 0);
+                    const totalBytes = knownTotalBytes || await estimateTotalBytes(pendingUrls);
                     let receivedBytes = 0;
                     const downloadStart = Date.now();
 
                     for (let i = 0; i < pendingEntries.length; i++) {
-                        const f = pendingEntries[i];
-                        const url = pendingUrls[i];
+                        const {file: f, url} = pendingEntries[i];
                         const name = f.src.split("/").pop() as string;
                         const dstPath = `${f.dst}/${name}`;
 
