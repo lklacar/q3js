@@ -33,6 +33,9 @@ quarkus:
 
   jooq:
     dialect: POSTGRES
+  native:
+    resources:
+      includes: dbip-country-lite.mmdb
 
 mp:
   openapi:
@@ -45,3 +48,6 @@ q3js:
     timeout-ms: 3000
   events:
     client-secret: ${Q3JS_EVENT_CLIENT_SECRET:}
+  geoip:
+    country-db-path: ${Q3JS_COUNTRY_DB_PATH:/data/dbip-country-lite.mmdb}
+    country-db-resource: ${Q3JS_COUNTRY_DB_RESOURCE:dbip-country-lite.mmdb}
