@@ -1,9 +1,11 @@
 package com.q3js.controller;
 
 import com.q3js.service.AdminService;
+import com.q3js.service.dto.AdminBanRequest;
 import com.q3js.service.dto.AdminLoginResponse;
 import com.q3js.service.dto.AdminPlayersRequest;
 import com.q3js.service.dto.AdminPlayersResponse;
+import com.q3js.service.dto.BannedIpResponse;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -32,5 +34,14 @@ public class AdminController {
     @Path("/players")
     public AdminPlayersResponse getPlayers(@HeaderParam("Authorization") String authorizationHeader) {
         return adminService.getPlayers(authorizationHeader);
+    }
+
+    @POST
+    @Path("/bans")
+    public BannedIpResponse ban(
+            @HeaderParam("Authorization") String authorizationHeader,
+            AdminBanRequest request
+    ) {
+        return adminService.ban(authorizationHeader, request);
     }
 }

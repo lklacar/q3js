@@ -7,7 +7,7 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Badge} from "@/components/ui/badge";
 import {Q3ColoredText} from "@/components/q3-colored-text";
-import {KeyRoundIcon, LogOutIcon, RefreshCwIcon, ShieldCheckIcon} from "lucide-react";
+import {BanIcon, KeyRoundIcon, LogOutIcon, RefreshCwIcon, ShieldCheckIcon} from "lucide-react";
 
 const REFRESH_INTERVAL_MS = 5000;
 const ADMIN_TOKEN_STORAGE_KEY = "q3js.admin.jwt";
@@ -26,6 +26,7 @@ type AdminPlayer = {
     rate?: number;
     path?: string;
     lastSeen?: string;
+    banned?: boolean;
 };
 
 type AdminPlayersResponse = {
@@ -76,6 +77,7 @@ export function AdminPlayerPanel() {
     const [response, setResponse] = useState<AdminPlayersResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [banningIp, setBanningIp] = useState<string | null>(null);
 
     const players = useMemo(
         () => [...(response?.players ?? [])].sort((a, b) => {
@@ -167,6 +169,46 @@ export function AdminPlayerPanel() {
             setError(exception instanceof Error ? exception.message : "Login failed.");
         } finally {
             setIsLoading(false);
+        }
+    }
+
+    async function banPlayer(player: AdminPlayer) {
+        if (!token || !player.ipAddress) {
+            return;
+        }
+
+        setBanningIp(player.ipAddress);
+        setError(null);
+
+        try {
+            const res = await fetch(adminEndpoint("/bans"), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    ipAddress: player.ipAddress,
+                    playerName: player.playerName,
+                }),
+            });
+
+            if (res.status === 401) {
+                logout();
+                setError("Admin session expired.");
+                return;
+            }
+
+            if (!res.ok) {
+                setError(`Ban failed with HTTP ${res.status}.`);
+                return;
+            }
+
+            await loadPlayers();
+        } catch (exception) {
+            setError(exception instanceof Error ? exception.message : "Ban failed.");
+        } finally {
+            setBanningIp(null);
         }
     }
 
@@ -280,14 +322,16 @@ export function AdminPlayerPanel() {
                                 <tr>
                                     <th className="px-4 py-3 font-medium">Player</th>
                                     <th className="px-4 py-3 font-medium">IP</th>
+                                    <th className="px-4 py-3 font-medium">Status</th>
                                     <th className="px-4 py-3 font-medium">Page</th>
                                     <th className="px-4 py-3 text-right font-medium">Last Seen</th>
+                                    <th className="px-4 py-3 text-right font-medium">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {players.length === 0 && (
                                     <tr>
-                                        <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                                        <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                                             No players online.
                                         </td>
                                     </tr>
@@ -301,9 +345,37 @@ export function AdminPlayerPanel() {
                                             <Q3ColoredText text={player.playerName ?? ""} className="block truncate"/>
                                         </td>
                                         <td className="px-4 py-3 font-mono">{player.ipAddress}</td>
+                                        <td className="px-4 py-3">
+                                            {player.banned ? (
+                                                <Badge variant="outline" className="border-destructive/40 text-destructive">
+                                                    Banned
+                                                </Badge>
+                                            ) : (
+                                                <Badge variant="outline" className="border-primary/40 text-primary">
+                                                    Active
+                                                </Badge>
+                                            )}
+                                        </td>
                                         <td className="px-4 py-3 font-mono text-muted-foreground">{player.path}</td>
                                         <td className="px-4 py-3 text-right font-mono text-muted-foreground">
                                             {player.lastSeen ? new Date(player.lastSeen).toLocaleTimeString() : "-"}
+                                        </td>
+                                        <td className="px-4 py-3 text-right">
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={Boolean(player.banned) || banningIp === player.ipAddress}
+                                                onClick={() => banPlayer(player)}
+                                                className="border-destructive/40 text-destructive hover:border-destructive"
+                                            >
+                                                {banningIp === player.ipAddress ? (
+                                                    <RefreshCwIcon className="size-4 animate-spin"/>
+                                                ) : (
+                                                    <BanIcon className="size-4"/>
+                                                )}
+                                                Ban
+                                            </Button>
                                         </td>
                                     </tr>
                                 ))}

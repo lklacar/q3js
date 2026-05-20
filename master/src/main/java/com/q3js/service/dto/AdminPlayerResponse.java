@@ -23,4 +23,5 @@ public class AdminPlayerResponse {
     private Integer rate;
     private String path;
     private String lastSeen;
+    private Boolean banned;
 }

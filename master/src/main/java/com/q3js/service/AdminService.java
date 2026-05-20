@@ -2,7 +2,9 @@ package com.q3js.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.q3js.service.dto.AdminBanRequest;
 import com.q3js.service.dto.AdminLoginResponse;
+import com.q3js.service.dto.BannedIpResponse;
 import com.q3js.service.dto.AdminPlayersResponse;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -30,6 +32,7 @@ public class AdminService {
     };
 
     private final PageVisitService pageVisitService;
+    private final BanService banService;
     private final ObjectMapper objectMapper;
 
     @ConfigProperty(name = "q3js.admin.password")
@@ -66,11 +69,18 @@ public class AdminService {
         requireValidToken(authorizationHeader);
 
         var players = pageVisitService.getLatestPlayers();
+        var bannedIps = banService.getBannedIpSet();
+        players.forEach(player -> player.setBanned(bannedIps.contains(player.getIpAddress())));
         return AdminPlayersResponse.builder()
                 .serversChecked(0)
                 .players(players)
                 .serverErrors(List.of())
                 .build();
+    }
+
+    public BannedIpResponse ban(String authorizationHeader, AdminBanRequest request) {
+        requireValidToken(authorizationHeader);
+        return banService.ban(request);
     }
 
     boolean isAuthorized(String password) {
