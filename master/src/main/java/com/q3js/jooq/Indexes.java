@@ -5,6 +5,7 @@ package com.q3js.jooq;
 
 
 import com.q3js.jooq.tables.Events;
+import com.q3js.jooq.tables.PlayerPageVisits;
 import com.q3js.jooq.tables.Servers;
 
 import org.jooq.Index;
@@ -26,5 +27,7 @@ public class Indexes {
     public static final Index IDX_EVENTS_EVENT_TYPE_KILLER_NAME = Internal.createIndex(DSL.name("idx_events_event_type_killer_name"), Events.EVENTS, new OrderField[] { Events.EVENTS.EVENT_TYPE, Events.EVENTS.KILLER_NAME }, false);
     public static final Index IDX_EVENTS_EVENT_TYPE_RECEIVED_AT = Internal.createIndex(DSL.name("idx_events_event_type_received_at"), Events.EVENTS, new OrderField[] { Events.EVENTS.EVENT_TYPE, Events.EVENTS.RECEIVED_AT.desc() }, false);
     public static final Index IDX_EVENTS_RECEIVED_AT = Internal.createIndex(DSL.name("idx_events_received_at"), Events.EVENTS, new OrderField[] { Events.EVENTS.RECEIVED_AT.desc() }, false);
+    public static final Index IDX_PLAYER_PAGE_VISITS_PLAYER_IP_RECEIVED_AT = Internal.createIndex(DSL.name("idx_player_page_visits_player_ip_received_at"), PlayerPageVisits.PLAYER_PAGE_VISITS, new OrderField[] { PlayerPageVisits.PLAYER_PAGE_VISITS.PLAYER_NAME, PlayerPageVisits.PLAYER_PAGE_VISITS.SOURCE_IP, PlayerPageVisits.PLAYER_PAGE_VISITS.RECEIVED_AT.desc() }, false);
+    public static final Index IDX_PLAYER_PAGE_VISITS_RECEIVED_AT = Internal.createIndex(DSL.name("idx_player_page_visits_received_at"), PlayerPageVisits.PLAYER_PAGE_VISITS, new OrderField[] { PlayerPageVisits.PLAYER_PAGE_VISITS.RECEIVED_AT.desc() }, false);
     public static final Index IDX_SERVERS_LAST_HEARTBEAT = Internal.createIndex(DSL.name("idx_servers_last_heartbeat"), Servers.SERVERS, new OrderField[] { Servers.SERVERS.LAST_HEARTBEAT.desc() }, false);
 }

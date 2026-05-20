@@ -5,10 +5,10 @@ package com.q3js.jooq;
 
 
 import com.q3js.jooq.tables.Events;
-import com.q3js.jooq.tables.SchemaMigrations;
+import com.q3js.jooq.tables.PlayerPageVisits;
 import com.q3js.jooq.tables.Servers;
 import com.q3js.jooq.tables.records.EventsRecord;
-import com.q3js.jooq.tables.records.SchemaMigrationsRecord;
+import com.q3js.jooq.tables.records.PlayerPageVisitsRecord;
 import com.q3js.jooq.tables.records.ServersRecord;
 
 import org.jooq.TableField;
@@ -28,7 +28,7 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<EventsRecord> EVENTS_PKEY = Internal.createUniqueKey(Events.EVENTS, DSL.name("events_pkey"), new TableField[] { Events.EVENTS.ID }, true);
-    public static final UniqueKey<SchemaMigrationsRecord> SCHEMA_MIGRATIONS_PKEY = Internal.createUniqueKey(SchemaMigrations.SCHEMA_MIGRATIONS, DSL.name("schema_migrations_pkey"), new TableField[] { SchemaMigrations.SCHEMA_MIGRATIONS.FILENAME }, true);
+    public static final UniqueKey<EventsRecord> EVENTS_PKEY1 = Internal.createUniqueKey(Events.EVENTS, DSL.name("events_pkey1"), new TableField[] { Events.EVENTS.ID }, true);
+    public static final UniqueKey<PlayerPageVisitsRecord> PLAYER_PAGE_VISITS_PKEY = Internal.createUniqueKey(PlayerPageVisits.PLAYER_PAGE_VISITS, DSL.name("player_page_visits_pkey"), new TableField[] { PlayerPageVisits.PLAYER_PAGE_VISITS.ID }, true);
     public static final UniqueKey<ServersRecord> SERVERS_PKEY = Internal.createUniqueKey(Servers.SERVERS, DSL.name("servers_pkey"), new TableField[] { Servers.SERVERS.HOST, Servers.SERVERS.PROXY_PORT }, true);
 }

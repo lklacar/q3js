@@ -5,7 +5,7 @@ package com.q3js.jooq;
 
 
 import com.q3js.jooq.tables.Events;
-import com.q3js.jooq.tables.SchemaMigrations;
+import com.q3js.jooq.tables.PlayerPageVisits;
 import com.q3js.jooq.tables.Servers;
 
 
@@ -21,9 +21,9 @@ public class Tables {
     public static final Events EVENTS = Events.EVENTS;
 
     /**
-     * The table <code>schema_migrations</code>.
+     * The table <code>player_page_visits</code>.
      */
-    public static final SchemaMigrations SCHEMA_MIGRATIONS = SchemaMigrations.SCHEMA_MIGRATIONS;
+    public static final PlayerPageVisits PLAYER_PAGE_VISITS = PlayerPageVisits.PLAYER_PAGE_VISITS;
 
     /**
      * The table <code>servers</code>.

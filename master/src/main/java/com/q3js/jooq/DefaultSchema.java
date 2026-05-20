@@ -5,13 +5,14 @@ package com.q3js.jooq;
 
 
 import com.q3js.jooq.tables.Events;
-import com.q3js.jooq.tables.SchemaMigrations;
+import com.q3js.jooq.tables.PlayerPageVisits;
 import com.q3js.jooq.tables.Servers;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.jooq.Catalog;
+import org.jooq.Sequence;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SchemaImpl;
@@ -36,9 +37,9 @@ public class DefaultSchema extends SchemaImpl {
     public final Events EVENTS = Events.EVENTS;
 
     /**
-     * The table <code>schema_migrations</code>.
+     * The table <code>player_page_visits</code>.
      */
-    public final SchemaMigrations SCHEMA_MIGRATIONS = SchemaMigrations.SCHEMA_MIGRATIONS;
+    public final PlayerPageVisits PLAYER_PAGE_VISITS = PlayerPageVisits.PLAYER_PAGE_VISITS;
 
     /**
      * The table <code>servers</code>.
@@ -59,10 +60,17 @@ public class DefaultSchema extends SchemaImpl {
     }
 
     @Override
+    public final List<Sequence<?>> getSequences() {
+        return Arrays.asList(
+            Sequences.EVENTS_ID_SEQ1
+        );
+    }
+
+    @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
             Events.EVENTS,
-            SchemaMigrations.SCHEMA_MIGRATIONS,
+            PlayerPageVisits.PLAYER_PAGE_VISITS,
             Servers.SERVERS
         );
     }

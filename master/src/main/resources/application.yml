@@ -44,6 +44,10 @@ mp:
         operationIdStrategy: METHOD
 
 q3js:
+  admin:
+    password: ${Q3JS_ADMIN_PASSWORD:}
+    jwt-secret: ${Q3JS_ADMIN_JWT_SECRET:}
+    jwt-ttl-seconds: ${Q3JS_ADMIN_JWT_TTL_SECONDS:43200}
   server-info:
     timeout-ms: 3000
   events:

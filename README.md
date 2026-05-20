@@ -122,6 +122,8 @@ Browser (React + ioquake3.wasm)
 ### Master/API service (`master/`)
 
 - Built with Quarkus 3.29 (Jakarta EE 10 APIs), exposes `GET /api/servers` returning `ServerResponse` DTOs.
+- Admin auth uses `Q3JS_ADMIN_PASSWORD` for login and `Q3JS_ADMIN_JWT_SECRET` to sign admin JWTs. Generate a stable JWT
+  secret with `openssl rand -base64 32` and set it as `Q3JS_ADMIN_JWT_SECRET`.
 - Tests: `./mvnw test`. Native builds: `./mvnw package -Dnative`.
 
 ## Running everything with Docker
