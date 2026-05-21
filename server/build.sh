@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-CURRENT_DIR="$(pwd)"
-BASEQ3_SRC="${BASEQ3_SRC:-$CURRENT_DIR/../baseq3}"
+CURRENT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "$CURRENT_DIR/.." && pwd)"
+BASEQ3_SRC="${BASEQ3_SRC:-$PROJECT_DIR/baseq3}"
 BUILD_DIR="${BUILD_DIR:-$CURRENT_DIR/build}"
 Q3JS_VM_PK3="${Q3JS_VM_PK3:-zz-q3js-vm-v1.pk3}"
+WEBSITE_Q3JS_PUBLIC_DIR="${WEBSITE_Q3JS_PUBLIC_DIR:-$PROJECT_DIR/website-next/public/q3js}"
 
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 pushd "$BUILD_DIR" >/dev/null
 
-cmake ../../ioq3 \
+cmake "$PROJECT_DIR/ioq3" \
   -DBUILD_CLIENT=OFF \
   -DBUILD_SERVER=ON \
   -DBUILD_GAME_QVMS=ON \
@@ -58,6 +60,11 @@ done
   cd q3js
   zip -q -9 -X "$Q3JS_VM_PK3" vm/cgame.qvm vm/qagame.qvm vm/ui.qvm
 )
+
+if [[ -n "$WEBSITE_Q3JS_PUBLIC_DIR" ]]; then
+  mkdir -p "$WEBSITE_Q3JS_PUBLIC_DIR"
+  cp -a "q3js/$Q3JS_VM_PK3" "$WEBSITE_Q3JS_PUBLIC_DIR/$Q3JS_VM_PK3"
+fi
 
 # Keep QVMs in the pk3 only.
 for module in cgame qagame ui; do
