@@ -52,6 +52,18 @@ public class BanService {
                 .build();
     }
 
+    @Transactional
+    public void unban(String ipAddress) {
+        String normalizedIp = normalizeIp(ipAddress);
+        if (normalizedIp == null) {
+            throw new BadRequestException("IP address is required.");
+        }
+
+        dsl.deleteFrom(BANNED_IPS)
+                .where(IP_ADDRESS.eq(normalizedIp))
+                .execute();
+    }
+
     public List<BannedIpResponse> getBannedIps() {
         return dsl.select(IP_ADDRESS, PLAYER_NAME, BANNED_AT)
                 .from(BANNED_IPS)

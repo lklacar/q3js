@@ -83,6 +83,11 @@ public class AdminService {
         return banService.ban(request);
     }
 
+    public void unban(String authorizationHeader, String ipAddress) {
+        requireValidToken(authorizationHeader);
+        banService.unban(ipAddress);
+    }
+
     boolean isAuthorized(String password) {
         if (password == null) {
             return false;

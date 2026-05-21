@@ -7,7 +7,7 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Badge} from "@/components/ui/badge";
 import {Q3ColoredText} from "@/components/q3-colored-text";
-import {BanIcon, KeyRoundIcon, LogOutIcon, RefreshCwIcon, ShieldCheckIcon} from "lucide-react";
+import {BanIcon, KeyRoundIcon, LogOutIcon, RefreshCwIcon, ShieldCheckIcon, Undo2Icon} from "lucide-react";
 
 const REFRESH_INTERVAL_MS = 5000;
 const ADMIN_TOKEN_STORAGE_KEY = "q3js.admin.jwt";
@@ -78,6 +78,7 @@ export function AdminPlayerPanel() {
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [banningIp, setBanningIp] = useState<string | null>(null);
+    const [unbanningIp, setUnbanningIp] = useState<string | null>(null);
 
     const players = useMemo(
         () => [...(response?.players ?? [])].sort((a, b) => {
@@ -209,6 +210,41 @@ export function AdminPlayerPanel() {
             setError(exception instanceof Error ? exception.message : "Ban failed.");
         } finally {
             setBanningIp(null);
+        }
+    }
+
+    async function unbanPlayer(player: AdminPlayer) {
+        if (!token || !player.ipAddress) {
+            return;
+        }
+
+        setUnbanningIp(player.ipAddress);
+        setError(null);
+
+        try {
+            const res = await fetch(`${adminEndpoint("/bans")}/${encodeURIComponent(player.ipAddress)}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (res.status === 401) {
+                logout();
+                setError("Admin session expired.");
+                return;
+            }
+
+            if (!res.ok) {
+                setError(`Unban failed with HTTP ${res.status}.`);
+                return;
+            }
+
+            await loadPlayers();
+        } catch (exception) {
+            setError(exception instanceof Error ? exception.message : "Unban failed.");
+        } finally {
+            setUnbanningIp(null);
         }
     }
 
@@ -361,21 +397,39 @@ export function AdminPlayerPanel() {
                                             {player.lastSeen ? new Date(player.lastSeen).toLocaleTimeString() : "-"}
                                         </td>
                                         <td className="px-4 py-3 text-right">
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="outline"
-                                                disabled={Boolean(player.banned) || banningIp === player.ipAddress}
-                                                onClick={() => banPlayer(player)}
-                                                className="border-destructive/40 text-destructive hover:border-destructive"
-                                            >
-                                                {banningIp === player.ipAddress ? (
-                                                    <RefreshCwIcon className="size-4 animate-spin"/>
-                                                ) : (
-                                                    <BanIcon className="size-4"/>
-                                                )}
-                                                Ban
-                                            </Button>
+                                            {player.banned ? (
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="outline"
+                                                    disabled={unbanningIp === player.ipAddress}
+                                                    onClick={() => unbanPlayer(player)}
+                                                    className="border-primary/40 text-primary hover:border-primary"
+                                                >
+                                                    {unbanningIp === player.ipAddress ? (
+                                                        <RefreshCwIcon className="size-4 animate-spin"/>
+                                                    ) : (
+                                                        <Undo2Icon className="size-4"/>
+                                                    )}
+                                                    Unban
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="outline"
+                                                    disabled={banningIp === player.ipAddress}
+                                                    onClick={() => banPlayer(player)}
+                                                    className="border-destructive/40 text-destructive hover:border-destructive"
+                                                >
+                                                    {banningIp === player.ipAddress ? (
+                                                        <RefreshCwIcon className="size-4 animate-spin"/>
+                                                    ) : (
+                                                        <BanIcon className="size-4"/>
+                                                    )}
+                                                    Ban
+                                                </Button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
