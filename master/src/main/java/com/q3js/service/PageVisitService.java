@@ -2,9 +2,11 @@ package com.q3js.service;
 
 import com.q3js.service.dto.AdminPlayerResponse;
 import com.q3js.service.dto.PageVisitRequest;
+import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.jboss.logging.Logger;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Table;
@@ -18,7 +20,9 @@ import static com.q3js.jooq.Tables.PLAYER_PAGE_VISITS;
 @ApplicationScoped
 @RequiredArgsConstructor
 public class PageVisitService {
+    private static final Logger LOG = Logger.getLogger(PageVisitService.class);
     private static final int ACTIVE_WINDOW_SECONDS = 20;
+    private static final int RETENTION_HOURS = 1;
 
     private final DSLContext dsl;
 
@@ -81,6 +85,19 @@ public class PageVisitService {
                         .path(record.get(rankedPath))
                         .lastSeen(record.get(rankedReceivedAt) != null ? record.get(rankedReceivedAt).toString() : null)
                         .build());
+    }
+
+    @Transactional
+    @Scheduled(every = "15m", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    public void cleanupOldVisits() {
+        OffsetDateTime cutoff = OffsetDateTime.now().minusHours(RETENTION_HOURS);
+        int deleted = dsl.deleteFrom(PLAYER_PAGE_VISITS)
+                .where(PLAYER_PAGE_VISITS.RECEIVED_AT.lt(cutoff))
+                .execute();
+
+        if (deleted > 0) {
+            LOG.infof("Cleaned up %d player page visits older than %s", deleted, cutoff);
+        }
     }
 
     private String normalizePlayerName(String playerName) {
