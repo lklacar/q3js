@@ -2,7 +2,7 @@ quarkus:
   http:
     cors:
       enabled: true
-      origins: "http://localhost:3000,https://q3js.com,https://next.q3js.com,https://old.q3js.com,https://www.q3js.com"
+      origins: "http://localhost:3000,http://nohttps.q3js.com,https://q3js.com,https://next.q3js.com,https://old.q3js.com,https://www.q3js.com"
       methods: "GET,PUT,POST,DELETE,OPTIONS"
       headers: "origin,accept,authorization,content-type,x-requested-with"
       access-control-allow-credentials: true

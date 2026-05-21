@@ -6,6 +6,7 @@ import {GoogleAnalytics} from "@next/third-parties/google";
 import QueryClientProviderWrapper from "@/lib/query-client-provider-wrapper.tsx";
 import {TimeZoneSync} from "@/components/time-zone-sync";
 import {ServiceWorkerRegistration} from "@/components/service-worker-registration.tsx";
+import {PageVisitReporter} from "@/components/page-visit-reporter";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -84,6 +85,7 @@ export default function RootLayout({
         <QueryClientProviderWrapper>
             <ServiceWorkerRegistration/>
             <TimeZoneSync/>
+            <PageVisitReporter/>
             <div className="font-mono">{children}</div>
         </QueryClientProviderWrapper>
         </body>
