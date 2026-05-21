@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.q3js.service.dto.AdminBanRequest;
 import com.q3js.service.dto.AdminLoginResponse;
+import com.q3js.service.dto.CountryResponse;
 import com.q3js.service.dto.BannedIpResponse;
 import com.q3js.service.dto.AdminPlayersResponse;
 import jakarta.annotation.PostConstruct;
@@ -17,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.crypto.Mac;
@@ -33,6 +35,7 @@ public class AdminService {
 
     private final PageVisitService pageVisitService;
     private final BanService banService;
+    private final GeoIpService geoIpService;
     private final ObjectMapper objectMapper;
 
     @ConfigProperty(name = "q3js.admin.password")
@@ -70,7 +73,13 @@ public class AdminService {
 
         var players = pageVisitService.getLatestPlayers();
         var bannedIps = banService.getBannedIpSet();
-        players.forEach(player -> player.setBanned(bannedIps.contains(player.getIpAddress())));
+        Map<String, CountryResponse> countryByIp = new HashMap<>();
+        players.forEach(player -> {
+            player.setBanned(bannedIps.contains(player.getIpAddress()));
+            CountryResponse country = countryByIp.computeIfAbsent(player.getIpAddress(), geoIpService::lookupCountry);
+            player.setCountryCode(country.getCountryCode());
+            player.setCountryName(country.getCountryName());
+        });
         return AdminPlayersResponse.builder()
                 .serversChecked(0)
                 .players(players)

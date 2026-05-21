@@ -20,6 +20,8 @@ public class AdminPlayerResponse {
     private String state;
     private String address;
     private String ipAddress;
+    private String countryCode;
+    private String countryName;
     private Integer rate;
     private String path;
     private String lastSeen;

@@ -23,6 +23,8 @@ type AdminPlayer = {
     state?: string;
     address?: string;
     ipAddress?: string;
+    countryCode?: string;
+    countryName?: string;
     rate?: number;
     path?: string;
     lastSeen?: string;
@@ -69,6 +71,14 @@ function clearStoredToken() {
 
 function playersEndpoint() {
     return `${env.NEXT_PUBLIC_MASTER_SERVER_URL.replace(/\/$/, "")}/api/admin/players`;
+}
+
+function countryLabel(player: AdminPlayer) {
+    if (player.countryCode && player.countryName) {
+        return `${player.countryCode} - ${player.countryName}`;
+    }
+
+    return player.countryCode || player.countryName || "-";
 }
 
 export function AdminPlayerPanel() {
@@ -353,11 +363,12 @@ export function AdminPlayerPanel() {
                     </div>
 
                     <div className="overflow-x-auto border border-border/60">
-                        <table className="w-full min-w-[42rem] border-collapse text-sm">
+                        <table className="w-full min-w-[48rem] border-collapse text-sm">
                             <thead className="bg-muted/60 text-left text-xs uppercase text-muted-foreground">
                                 <tr>
                                     <th className="px-4 py-3 font-medium">Player</th>
                                     <th className="px-4 py-3 font-medium">IP</th>
+                                    <th className="px-4 py-3 font-medium">Country</th>
                                     <th className="px-4 py-3 font-medium">Status</th>
                                     <th className="px-4 py-3 font-medium">Page</th>
                                     <th className="px-4 py-3 text-right font-medium">Last Seen</th>
@@ -367,7 +378,7 @@ export function AdminPlayerPanel() {
                             <tbody>
                                 {players.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                                        <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                                             No players online.
                                         </td>
                                     </tr>
@@ -381,6 +392,11 @@ export function AdminPlayerPanel() {
                                             <Q3ColoredText text={player.playerName ?? ""} className="block truncate"/>
                                         </td>
                                         <td className="px-4 py-3 font-mono">{player.ipAddress}</td>
+                                        <td className="px-4 py-3">
+                                            <span className="block max-w-[10rem] truncate" title={countryLabel(player)}>
+                                                {countryLabel(player)}
+                                            </span>
+                                        </td>
                                         <td className="px-4 py-3">
                                             {player.banned ? (
                                                 <Badge variant="outline" className="border-destructive/40 text-destructive">
