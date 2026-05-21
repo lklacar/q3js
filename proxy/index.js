@@ -6,6 +6,9 @@ const { env } = require('./env');
 const MASTER_SERVER_BASE = env.MASTER_SERVER_BASE;
 const HEARTBEAT_INTERVAL_MS = env.HEARTBEAT_INTERVAL_MS;
 const BAN_REFRESH_INTERVAL_MS = env.BAN_REFRESH_INTERVAL_MS;
+const COUNTRY_CACHE_TTL_MS = env.COUNTRY_CACHE_TTL_MS;
+const COUNTRY_LOOKUP_TIMEOUT_MS = env.COUNTRY_LOOKUP_TIMEOUT_MS;
+const GEO_BLOCK_FAIL_CLOSED = env.GEO_BLOCK_FAIL_CLOSED;
 const TARGET_HOST = env.TARGET_HOST;
 const TARGET_PORT = env.TARGET_PORT;
 const PROXY_PORT = env.PROXY_PORT;
@@ -16,13 +19,25 @@ const publishPort = env.PUBLISH_PORT || PROXY_PORT;
 
 const HEARTBEAT_URL = `${MASTER_SERVER_BASE}/api/servers/heartbeat`;
 const BANS_URL = `${MASTER_SERVER_BASE}/api/bans`;
+const COUNTRY_LOOKUP_URL = `${MASTER_SERVER_BASE}/api/country/lookup`;
 const MAX_WS_BUFFERED_BYTES = 1_000_000;
+const blockedCountryCodes = parseCountryCodes(env.BLOCKED_COUNTRY_CODES);
 
 let heartbeatBodyJson = null;
 let heartbeatInFlight = false;
 let banRefreshInFlight = false;
 let bannedIps = new Set();
+const countryCache = new Map();
 const activeClients = new Map();
+
+function parseCountryCodes(value) {
+    return new Set(
+        String(value || '')
+            .split(',')
+            .map(code => code.trim().toUpperCase())
+            .filter(Boolean)
+    );
+}
 
 function rebuildHeartbeatBody() {
     if (!publishHost) {
@@ -114,6 +129,67 @@ function clientIp(req) {
     );
 }
 
+function isCountryCacheFresh(entry) {
+    return entry && Date.now() - entry.checkedAt < COUNTRY_CACHE_TTL_MS;
+}
+
+async function lookupCountry(ip) {
+    const cached = countryCache.get(ip);
+    if (isCountryCacheFresh(cached)) {
+        return cached.countryCode;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), COUNTRY_LOOKUP_TIMEOUT_MS);
+
+    try {
+        const url = new URL(COUNTRY_LOOKUP_URL);
+        url.searchParams.set('ip', ip);
+        const res = await fetch(url, {signal: controller.signal});
+
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
+
+        const body = await res.json();
+        const countryCode = typeof body?.countryCode === 'string'
+            ? body.countryCode.trim().toUpperCase()
+            : null;
+        countryCache.set(ip, {countryCode, checkedAt: Date.now()});
+        return countryCode;
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
+async function clientBlockReason(ip) {
+    if (!ip) {
+        return null;
+    }
+
+    if (bannedIps.has(ip)) {
+        return 'Banned';
+    }
+
+    if (blockedCountryCodes.size === 0) {
+        return null;
+    }
+
+    try {
+        const countryCode = await lookupCountry(ip);
+        if (countryCode && blockedCountryCodes.has(countryCode)) {
+            return `Region blocked (${countryCode})`;
+        }
+    } catch (e) {
+        console.warn(`Country lookup failed for ${ip}:`, e.message);
+        if (GEO_BLOCK_FAIL_CLOSED) {
+            return 'Region check unavailable';
+        }
+    }
+
+    return null;
+}
+
 async function refreshBannedIps() {
     if (banRefreshInFlight) {
         return;
@@ -191,13 +267,20 @@ const wss = new WebSocket.Server({
     perMessageDeflate: false,
     verifyClient(info, done) {
         const ip = clientIp(info.req);
-        if (ip && bannedIps.has(ip)) {
-            console.warn(`Rejected banned client ${ip}`);
-            done(false, 403, 'Banned');
-            return;
-        }
+        clientBlockReason(ip)
+            .then(reason => {
+                if (reason) {
+                    console.warn(`Rejected client ${ip}: ${reason}`);
+                    done(false, 403, reason);
+                    return;
+                }
 
-        done(true);
+                done(true);
+            })
+            .catch(e => {
+                console.warn(`Client access check failed for ${ip || 'unknown IP'}:`, e.message);
+                done(true);
+            });
     },
 });
 

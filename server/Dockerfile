@@ -29,6 +29,11 @@ FROM node:20-trixie AS runner
 
 ENV RCON_PASSWORD=""
 ENV FS_GAME="q3js"
+ENV MASTER_SERVER_BASE="https://master.q3js.com"
+ENV BLOCKED_COUNTRY_CODES="MD"
+ENV COUNTRY_CACHE_TTL_MS="3600000"
+ENV COUNTRY_LOOKUP_TIMEOUT_MS="2000"
+ENV GEO_BLOCK_FAIL_CLOSED="false"
 
 RUN apt-get update && apt-get install -y \
     libcurl4 \

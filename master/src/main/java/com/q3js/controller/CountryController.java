@@ -9,6 +9,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
@@ -32,5 +33,11 @@ public class CountryController {
     @GET
     public CountryResponse getRequesterCountry() {
         return geoIpService.lookupCountry(ipAddressResolver.resolve(headers, request));
+    }
+
+    @GET
+    @Path("/lookup")
+    public CountryResponse getCountryForIp(@QueryParam("ip") String ipAddress) {
+        return geoIpService.lookupCountry(ipAddress);
     }
 }
