@@ -782,6 +782,23 @@ Clients that are in the game can still send
 connectionless packets.
 =================
 */
+static void SV_ConnectionlessDisconnect( netadr_t from ) {
+	int			i;
+	client_t	*cl;
+
+	for (i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++) {
+		if (cl->state == CS_FREE || cl->state == CS_ZOMBIE) {
+			continue;
+		}
+		if (!NET_CompareAdr(from, cl->netchan.remoteAddress)) {
+			continue;
+		}
+
+		SV_DropClient(cl, "disconnected");
+		return;
+	}
+}
+
 static void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	char	*s;
 	char	*c;
@@ -814,9 +831,7 @@ static void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	} else if (!Q_stricmp(c, "rcon")) {
 		SVC_RemoteCommand( from, msg );
 	} else if (!Q_stricmp(c, "disconnect")) {
-		// if a client starts up a local server, we may see some spurious
-		// server disconnect messages when their new server sees our final
-		// sequenced messages to the old client
+		SV_ConnectionlessDisconnect( from );
 	} else {
 		Com_DPrintf ("bad connectionless packet from %s:\n%s\n",
 			NET_AdrToString (from), s);
