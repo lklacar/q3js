@@ -21,6 +21,10 @@ const HEARTBEAT_URL = `${MASTER_SERVER_BASE}/api/servers/heartbeat`;
 const BANS_URL = `${MASTER_SERVER_BASE}/api/bans`;
 const COUNTRY_LOOKUP_URL = `${MASTER_SERVER_BASE}/api/country/lookup`;
 const MAX_WS_BUFFERED_BYTES = 1_000_000;
+const Q3_CONNECTIONLESS_DISCONNECT = Buffer.from([
+    0xff, 0xff, 0xff, 0xff,
+    ...Buffer.from('disconnect\n', 'ascii'),
+]);
 const blockedCountryCodes = parseCountryCodes(env.BLOCKED_COUNTRY_CODES);
 
 let heartbeatBodyJson = null;
@@ -306,13 +310,40 @@ wss.on('connection', (ws, req) => {
     const udp = dgram.createSocket('udp4');
 
     let closed = false;
-    function close() {
-        if (closed) return;
-        closed = true;
-        activeClients.delete(ws);
+    let sentToUdp = false;
+
+    function closeUdp() {
         try {
             udp.close();
         } catch {}
+    }
+
+    function close(notifyTarget = false) {
+        if (closed) return;
+        closed = true;
+        activeClients.delete(ws);
+
+        if (!notifyTarget || !sentToUdp) {
+            closeUdp();
+            return;
+        }
+
+        const closeTimer = setTimeout(closeUdp, 100);
+        closeTimer.unref?.();
+
+        try {
+            udp.send(Q3_CONNECTIONLESS_DISCONNECT, TARGET_PORT, TARGET_HOST, err => {
+                clearTimeout(closeTimer);
+                if (err) {
+                    console.warn('UDP disconnect send error:', err.message);
+                }
+                closeUdp();
+            });
+        } catch (e) {
+            clearTimeout(closeTimer);
+            console.warn('UDP disconnect send error:', e.message);
+            closeUdp();
+        }
     }
 
     udp.on('message', msg => {
@@ -335,13 +366,14 @@ wss.on('connection', (ws, req) => {
     ws.on('message', (data, isBinary) => {
         if (!isBinary) return;
 
+        sentToUdp = true;
         udp.send(data, TARGET_PORT, TARGET_HOST, err => {
             if (err) console.warn('UDP send error:', err.message);
         });
     });
 
-    ws.on('close', close);
-    ws.on('error', close);
+    ws.on('close', () => close(true));
+    ws.on('error', () => close(true));
 });
 
 (async () => {
