@@ -1,9 +1,10 @@
 import Link from "next/link";
 import {Button} from "@/components/ui/button.tsx";
-import {Github, Skull, Target, Twitter, Users, XIcon} from "lucide-react";
+import {Github, Skull, Target, Users, XIcon} from "lucide-react";
 import {JoinServerButton} from "@/components/join-server-button.tsx";
 import {Q3ColoredText} from "@/components/q3-colored-text.tsx";
 import {ScoreboardEntryResponse, ServerResponse} from "@/lib/client";
+import {JediAcademyLinkButton} from "@/components/jedi-academy-link-button";
 
 
 function formatCount(count: number, singular: string, plural = `${singular}s`) {
@@ -69,6 +70,8 @@ export function Hero(props: {
                             </Link>
                         </Button>
                     </div>
+
+                    <JediAcademyLinkButton className="mx-auto mt-3 w-full max-w-md" label="Play Jedi Academy"/>
 
                     <div className="mt-8 grid gap-3 text-left md:grid-cols-3">
                         <div className="border border-border/70 bg-card/40 px-4 py-4">

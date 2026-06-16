@@ -19,6 +19,7 @@ import {createRandomPlayerName} from "@/lib/player-name-generator.ts";
 import {MenuIcon} from "lucide-react";
 import {cn} from "@/lib/utils.ts";
 import {PwaInstallControl} from "@/components/pwa-install-control.tsx";
+import {buildJediAcademyUrl} from "@/lib/jedi-academy";
 
 const HEADER_STATUS_STYLES = {
     offline: {
@@ -141,6 +142,11 @@ export function Header() {
     }[status];
     const statusStyles = HEADER_STATUS_STYLES[status];
     const navItems: HeaderNavItem[] = [
+        {
+            href: buildJediAcademyUrl(normalizedName),
+            label: "Jedi Academy",
+            external: true,
+        },
         {
             href: "/scoreboard/distribution",
             label: "Activity",
