@@ -10,6 +10,7 @@ import Link from "next/link";
 import {Search} from "lucide-react";
 import {ServerResponse} from "@/lib/client";
 import {useRouter} from "next/navigation";
+import {JediAcademyPromoPanel} from "@/components/jedi-academy-promo-panel";
 
 
 function formatCount(count: number, singular: string, plural = `${singular}s`) {
@@ -104,6 +105,7 @@ export function ServerPicker({servers}: { servers: ServerResponse[] }) {
                 </Card>
 
                 <div className="grid gap-4">
+                    <JediAcademyPromoPanel/>
                     {filteredServers.map((server) => (
                         <ServerCard
                             key={`${server.host}:${server.proxyPort}`}
