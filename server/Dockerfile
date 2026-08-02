@@ -34,6 +34,7 @@ ENV BLOCKED_COUNTRY_CODES="MD"
 ENV COUNTRY_CACHE_TTL_MS="3600000"
 ENV COUNTRY_LOOKUP_TIMEOUT_MS="2000"
 ENV GEO_BLOCK_FAIL_CLOSED="false"
+ENV Q3JS_VM_PK3_PATH="/server/q3js/zz-q3js-vm-v1.pk3"
 
 RUN apt-get update && apt-get install -y \
     libcurl4 \

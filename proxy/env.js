@@ -14,6 +14,7 @@ const env = createEnv({
         TARGET_PORT: z.coerce.number().int().min(1).max(65535).default(27960),
         PROXY_PORT: z.coerce.number().int().min(1).max(65535).default(27961),
         SECURE: z.coerce.boolean().default(false),
+        Q3JS_VM_PK3_PATH: z.string().min(1).default('/server/q3js/zz-q3js-vm-v1.pk3'),
 
         PUBLISH_HOST: z.string().optional(),
         PUBLISH_PORT: z.coerce.number().int().min(1).max(65535).optional(),

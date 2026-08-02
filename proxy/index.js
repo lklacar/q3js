@@ -1,5 +1,7 @@
 const dgram = require('dgram');
+const fs = require('fs');
 const http = require('http');
+const path = require('path');
 const WebSocket = require('ws');
 const { env } = require('./env');
 
@@ -13,6 +15,8 @@ const TARGET_HOST = env.TARGET_HOST;
 const TARGET_PORT = env.TARGET_PORT;
 const PROXY_PORT = env.PROXY_PORT;
 const SECURE = env.SECURE;
+const Q3JS_VM_PK3_PATH = path.resolve(env.Q3JS_VM_PK3_PATH);
+const Q3JS_VM_PK3_ROUTE = '/q3js/zz-q3js-vm-v1.pk3';
 
 let publishHost = env.PUBLISH_HOST;
 const publishPort = env.PUBLISH_PORT || PROXY_PORT;
@@ -238,7 +242,7 @@ async function banRefreshLoop() {
 
 function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
@@ -246,6 +250,37 @@ function sendJson(res, statusCode, payload) {
     setCorsHeaders(res);
     res.writeHead(statusCode, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(payload));
+}
+
+function serveQ3JSVmPak(req, res) {
+    fs.stat(Q3JS_VM_PK3_PATH, (statError, stat) => {
+        if (statError || !stat.isFile()) {
+            if (statError && statError.code !== 'ENOENT') {
+                console.warn(`Unable to inspect Q3JS VM pk3 at ${Q3JS_VM_PK3_PATH}:`, statError.message);
+            }
+            sendJson(res, 404, {error: 'Q3JS VM pk3 not found'});
+            return;
+        }
+
+        setCorsHeaders(res);
+        res.writeHead(200, {
+            'Content-Type': 'application/zip',
+            'Content-Length': stat.size,
+            'Cache-Control': 'no-store',
+        });
+
+        if (req.method === 'HEAD') {
+            res.end();
+            return;
+        }
+
+        const stream = fs.createReadStream(Q3JS_VM_PK3_PATH);
+        stream.on('error', error => {
+            console.warn('Q3JS VM pk3 read failed:', error.message);
+            res.destroy(error);
+        });
+        stream.pipe(res);
+    });
 }
 
 const httpServer = http.createServer((req, res) => {
@@ -256,10 +291,15 @@ const httpServer = http.createServer((req, res) => {
         return;
     }
 
-    const path = req.url || '/';
+    const requestPath = new URL(req.url || '/', 'http://localhost').pathname;
 
-    if (req.method === 'GET' && path === '/healthz') {
+    if (req.method === 'GET' && requestPath === '/healthz') {
         sendJson(res, 200, { ok: true });
+        return;
+    }
+
+    if ((req.method === 'GET' || req.method === 'HEAD') && requestPath === Q3JS_VM_PK3_ROUTE) {
+        serveQ3JSVmPak(req, res);
         return;
     }
 

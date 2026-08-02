@@ -110,9 +110,13 @@ Browser (React + ioquake3.wasm)
 - `server/build.sh` configures `ioq3ded` (headless server, QVMs enabled) via CMake/GCC, copies `baseq3/` into the build
   output, and leaves binaries in `server/build/Release/`.
 - `ws-udp-proxy/index.js` converts browser WebSocket traffic to raw UDP packets understood by the Quake server.
+  It also serves the server's matching Q3JS VM pak at `/q3js/zz-q3js-vm-v1.pk3`, so clients receive the VM built
+  alongside that server. If a server does not include the pak, the endpoint returns `404` and the browser falls back
+  to the website deployment's copy.
   Environment variables:
     - `Q3_HOST`, `Q3_PORT` – native server address (defaults `127.0.0.1:27960`).
     - `WS_PORT` – listen port for browsers (`27961`).
+    - `Q3JS_VM_PK3_PATH` – path to the bundled Q3JS VM pak (defaults to `/server/q3js/zz-q3js-vm-v1.pk3`).
     - `RCON_PASSWORD` – optional; passed through to the dedicated server as `rconPassword`.
     - Railgun restriction is controlled by rcon. From a client console, set `/rconPassword <password>`, then run `/rcon restrictrail` to toggle railgun use for non-admins. `/rcon restrictrail 1` and `/rcon restrictrail 0` are also supported.
     - `POLL_MS`, `RESP_TIMEOUT_MS`, `CONSEC_REQUIRED` – tune heartbeat/kick behaviour.

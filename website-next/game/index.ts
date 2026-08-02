@@ -26,6 +26,8 @@ type Params = {
 type FileEntry = {
     src: string;
     dst: string;
+    source?: "server";
+    alwaysFetch?: boolean;
 };
 
 type CheckedFileEntry = {
@@ -54,7 +56,12 @@ const config = {
     },
     q3js: {
         files: [
-            {src: "q3js/zz-q3js-vm-v1.pk3", dst: "/q3js"},
+            {
+                src: "q3js/zz-q3js-vm-v1.pk3",
+                dst: "/q3js",
+                source: "server",
+                alwaysFetch: true,
+            },
         ],
     },
     cpma: {
@@ -170,11 +177,31 @@ async function getContentLength(url: URL): Promise<number | undefined> {
     }
 }
 
-async function checkFileEntry(module: RuntimeModule, file: FileEntry, dataURL: URL): Promise<CheckedFileEntry> {
+async function checkFileEntry(
+    module: RuntimeModule,
+    file: FileEntry,
+    siteAssetURL: URL,
+    serverAssetURL: URL
+): Promise<CheckedFileEntry> {
     const assetName = file.src.split("/").pop() as string;
     const dstPath = `${file.dst}/${assetName}`;
-    const url = new URL(file.src, dataURL);
-    const expectedBytes = await getContentLength(url);
+    let url = new URL(file.src, file.source === "server" ? serverAssetURL : siteAssetURL);
+    let expectedBytes = await getContentLength(url);
+
+    // Keep older servers joinable while deployments roll forward. New server
+    // images always win when they expose their build-matched VM pak.
+    if (file.source === "server" && expectedBytes === undefined) {
+        const fallbackURL = new URL(file.src, siteAssetURL);
+        const fallbackBytes = await getContentLength(fallbackURL);
+        if (fallbackBytes !== undefined) {
+            url = fallbackURL;
+            expectedBytes = fallbackBytes;
+        }
+    }
+
+    if (file.alwaysFetch) {
+        return {file, url, expectedBytes, pending: true};
+    }
 
     try {
         const st = module.FS.stat(dstPath);
@@ -275,7 +302,8 @@ export default async function startGame({host, proxyPort, name, rconPassword, ra
         generatedArguments += ` +set cg_autoswitch "0" +bind 3 "weapon 7" +bind e "+zoom" `;
     }
 
-    const dataURL = new URL(location.origin + location.pathname);
+    const siteAssetURL = new URL(location.origin + location.pathname);
+    const serverAssetURL = new URL(`${location.protocol}//${host}:${proxyPort}/`);
 
     const runtimePromise = ioquake3({
         websocket: {
@@ -317,7 +345,9 @@ export default async function startGame({host, proxyPort, name, rconPassword, ra
                     );
 
                     const checkedEntries = await Promise.all(
-                        uniqueFileEntries.map((f: FileEntry) => checkFileEntry(module, f, dataURL))
+                        uniqueFileEntries.map((f: FileEntry) =>
+                            checkFileEntry(module, f, siteAssetURL, serverAssetURL)
+                        )
                     );
                     const pendingEntries = checkedEntries.filter((entry) => entry.pending);
                     const pendingUrls = pendingEntries.map((entry) => entry.url);
