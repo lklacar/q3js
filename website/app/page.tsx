@@ -2,6 +2,8 @@ import { Footer } from "@/components/footer";
 import { ScoreboardPreview } from "@/components/scoreboard-preview";
 import { ServerBrowser } from "@/components/server-browser";
 import { SiteHeader } from "@/components/site-header";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -17,6 +19,9 @@ export default function Home() {
             Choose a live server and join the match. Q3JS uses the official demo data
             and an ioquake3 WebAssembly build.
           </p>
+          <Button asChild size="lg" className="mt-4">
+            <Link href="/play">Play on the local server</Link>
+          </Button>
         </div>
 
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">

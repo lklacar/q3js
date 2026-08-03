@@ -1,6 +1,13 @@
+packages:
+  - website
+  - game/client
+  - game/server
+
 allowBuilds:
+  esbuild: true
   sharp: true
   unrs-resolver: true
+
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { DiscordLogo, GithubLogo } from "@phosphor-icons/react/dist/ssr";
 
 const navItems = [
-  { label: "Scoreboard", href: "#scoreboard" },
+  { label: "Play", href: "/play" },
+  { label: "Scoreboard", href: "/#scoreboard" },
 ];
 
 export function SiteHeader() {

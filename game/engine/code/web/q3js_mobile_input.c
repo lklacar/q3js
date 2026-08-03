@@ -72,3 +72,8 @@ EMSCRIPTEN_KEEPALIVE void Q3JS_MobileJoystickAxis( int axis, int value )
 
 	Com_QueueEvent( 0, SE_JOYSTICK_AXIS, axis, value, 0, NULL );
 }
+
+EMSCRIPTEN_KEEPALIVE void Q3JS_RequestQuit( void )
+{
+	Cbuf_ExecuteText( EXEC_APPEND, "quit\n" );
+}

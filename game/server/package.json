@@ -1,0 +1,20 @@
+{
+  "name": "@q3js/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm run typecheck && node scripts/build-app.mjs",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "pnpm run build && node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/ws": "^8.18.1",
+    "esbuild": "^0.25.12",
+    "typescript": "^5.9.3"
+  }
+}

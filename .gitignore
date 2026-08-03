@@ -1,1 +1,12 @@
 .DS_Store
+
+# Game client build output
+/game/build/
+/game/dist/
+/game/client/dist/
+/game/server/dist/
+/game/server/state/
+/game/server/data/baseq3/*.pk3
+
+# JavaScript workspace dependencies
+node_modules/
