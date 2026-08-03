@@ -3,8 +3,57 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { heartbeat, type Options, servers, status } from '../sdk.gen';
-import type { HeartbeatData, HeartbeatResponse, ServersData, ServersResponse, StatusData, StatusResponse2 } from '../types.gen';
+import { heartbeat, ingest, type Options, servers, status } from '../sdk.gen';
+import type { HeartbeatData, HeartbeatResponse, IngestData, IngestResponse, ServersData, ServersResponse, StatusData, StatusResponse2 } from '../types.gen';
+
+export type MutationKey<TOptions extends Partial<Options>> = [
+    Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
+        _id: string;
+        tags?: ReadonlyArray<string>;
+    }
+];
+
+const createMutationKey = <TOptions extends Partial<Options>>(id: string, options?: TOptions, tags?: ReadonlyArray<string>): [
+    MutationKey<TOptions>[0]
+] => {
+    const params: MutationKey<TOptions>[0] = { _id: id, baseUrl: options?.baseUrl || (options?.client ?? client).getConfig().baseUrl };
+    if (tags) {
+        params.tags = tags;
+    }
+    if (options?.body) {
+        params.body = options.body;
+    }
+    if (options?.headers) {
+        params.headers = options.headers;
+    }
+    if (options?.path) {
+        params.path = options.path;
+    }
+    if (options?.query) {
+        params.query = options.query;
+    }
+    return [params];
+};
+
+export const ingestMutationKey = (options?: Partial<Options<IngestData>>) => createMutationKey('ingest', options);
+
+/**
+ * Ingest a game event
+ */
+export const ingestMutation = (options?: Partial<Options<IngestData>>): UseMutationOptions<IngestResponse, DefaultError, Options<IngestData>> => {
+    const mutationOptions: UseMutationOptions<IngestResponse, DefaultError, Options<IngestData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await ingest({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        },
+        mutationKey: ingestMutationKey(options)
+    };
+    return mutationOptions;
+};
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -56,35 +105,6 @@ export const serversOptions = (options?: Options<ServersData>) => queryOptions<S
     },
     queryKey: serversQueryKey(options)
 });
-
-export type MutationKey<TOptions extends Partial<Options>> = [
-    Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
-        _id: string;
-        tags?: ReadonlyArray<string>;
-    }
-];
-
-const createMutationKey = <TOptions extends Partial<Options>>(id: string, options?: TOptions, tags?: ReadonlyArray<string>): [
-    MutationKey<TOptions>[0]
-] => {
-    const params: MutationKey<TOptions>[0] = { _id: id, baseUrl: options?.baseUrl || (options?.client ?? client).getConfig().baseUrl };
-    if (tags) {
-        params.tags = tags;
-    }
-    if (options?.body) {
-        params.body = options.body;
-    }
-    if (options?.headers) {
-        params.headers = options.headers;
-    }
-    if (options?.path) {
-        params.path = options.path;
-    }
-    if (options?.query) {
-        params.query = options.query;
-    }
-    return [params];
-};
 
 export const heartbeatMutationKey = (options?: Partial<Options<HeartbeatData>>) => createMutationKey('heartbeat', options);
 

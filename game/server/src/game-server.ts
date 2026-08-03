@@ -1,9 +1,9 @@
 import { createSocket } from "node:dgram";
 import { type ChildProcess, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFile, mkdir, readFile, readdir, rm } from "node:fs/promises";
+import { copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { ServerConfig } from "./config.js";
+import { eventConfigContents, type ServerConfig } from "./config.js";
 
 interface ReleaseManifest {
   gamePackage: {
@@ -52,6 +52,7 @@ export class GameServer {
   readonly #config: ServerConfig;
   #process?: ChildProcess;
   #exitPromise?: Promise<number>;
+  #eventConfigPath: string | undefined;
 
   constructor(config: ServerConfig) {
     this.#config = config;
@@ -85,10 +86,15 @@ export class GameServer {
         }
       });
     });
-    await new Promise<void>((resolve, reject) => {
-      child.once("spawn", resolve);
-      child.once("error", reject);
-    });
+    try {
+      await new Promise<void>((resolve, reject) => {
+        child.once("spawn", resolve);
+        child.once("error", reject);
+      });
+    } catch (error) {
+      await this.#removeEventConfig();
+      throw error;
+    }
   }
 
   async waitUntilReady(): Promise<void> {
@@ -98,6 +104,7 @@ export class GameServer {
         throw new Error("ioq3ded exited before becoming ready.");
       }
       if (await queryStatus(this.#config.gameHost, this.#config.gamePort, 500)) {
+        await this.#removeEventConfig();
         return;
       }
       await delay(250);
@@ -115,6 +122,7 @@ export class GameServer {
   async stop(): Promise<void> {
     const child = this.#process;
     if (!child || child.exitCode !== null || child.signalCode !== null) {
+      await this.#removeEventConfig();
       return;
     }
 
@@ -127,6 +135,7 @@ export class GameServer {
       child.kill("SIGKILL");
       await this.waitForExit();
     }
+    await this.#removeEventConfig();
   }
 
   #arguments(): string[] {
@@ -141,6 +150,7 @@ export class GameServer {
       "+set", "sv_allowDownload", "1",
       "+set", "sv_dlURL", "",
       "+sets", "gamename", "q3js",
+      "+exec", "q3js-events.cfg",
       "+exec", "q3js-defaults.cfg",
       "+exec", "autoexec.cfg",
     ];
@@ -179,5 +189,21 @@ export class GameServer {
       path.join(this.#config.releaseDirectory, "config", "q3js-defaults.cfg"),
       path.join(targetGameDirectory, "q3js-defaults.cfg"),
     );
+
+    this.#eventConfigPath = path.join(targetGameDirectory, "q3js-events.cfg");
+    await writeFile(
+      this.#eventConfigPath,
+      eventConfigContents(this.#config),
+      { encoding: "utf8", mode: 0o600 },
+    );
+  }
+
+  async #removeEventConfig(): Promise<void> {
+    if (!this.#eventConfigPath) {
+      return;
+    }
+    const eventConfigPath = this.#eventConfigPath;
+    this.#eventConfigPath = undefined;
+    await rm(eventConfigPath, { force: true });
   }
 }

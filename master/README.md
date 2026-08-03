@@ -10,6 +10,8 @@ The public API is compatible with the previous Q3JS server registry:
 - `PUT /api/servers/heartbeat` registers or refreshes a server.
 - `GET /api/servers` returns live servers with their latest status and players.
 - `GET /api/status` reports application status.
+- `POST /api/events` accepts authenticated join, leave, and kill events from
+  packaged game servers.
 - `GET /q/health` reports Quarkus health checks.
 - `GET /q/openapi` returns the generated OpenAPI document.
 - `GET /q/swagger-ui` opens the interactive Swagger UI.
@@ -35,6 +37,18 @@ make master-run
 
 Run a packaged Q3JS server separately with `make server-run`. Its local defaults
 publish `localhost:27961` to this master at `http://localhost:8080`.
+
+Event ingestion requires the `X-Q3JS-Client-Secret` header. The master in dev
+or test mode and a packaged server targeting localhost share a development-only
+fallback. A deployed master requires an explicit secret; generate one and
+provide the same value to both processes:
+
+```shell
+export Q3JS_EVENT_CLIENT_SECRET="$(openssl rand -hex 32)"
+```
+
+The game server posts to `/api/events` on `Q3JS_MASTER_URL` by default. Override
+that endpoint independently with `Q3JS_EVENT_URL`.
 
 Servers are refreshed every five seconds. A failed status query retains the last
 successful response, while a missing heartbeat removes the server after five

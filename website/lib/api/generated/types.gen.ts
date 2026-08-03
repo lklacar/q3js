@@ -4,6 +4,22 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:8080' | 'http://0.0.0.0:8080' | (string & {});
 };
 
+export type EventPlayer = {
+    clientNum: number;
+    name: string;
+};
+
+export type EventRequest = {
+    event: string;
+    player?: EventPlayer;
+    killer?: EventPlayer;
+    victim?: EventPlayer;
+    meansOfDeath?: number;
+    gameTime: number;
+    serverTime: number;
+    map: string;
+};
+
 export type HeartbeatRequest = {
     targetHost: string;
     proxyPort: number;
@@ -66,6 +82,39 @@ export type StatusResponse = {
     service?: string;
     status?: string;
 };
+
+export type IngestData = {
+    body: EventRequest;
+    headers: {
+        /**
+         * Shared game-server event secret
+         */
+        'X-Q3JS-Client-Secret': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/events';
+};
+
+export type IngestErrors = {
+    /**
+     * Event payload is invalid
+     */
+    400: unknown;
+    /**
+     * Event client secret is missing or invalid
+     */
+    401: unknown;
+};
+
+export type IngestResponses = {
+    /**
+     * Event persisted
+     */
+    204: void;
+};
+
+export type IngestResponse = IngestResponses[keyof IngestResponses];
 
 export type ServersData = {
     body?: never;

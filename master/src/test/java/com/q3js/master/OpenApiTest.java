@@ -21,7 +21,8 @@ class OpenApiTest {
             .body("info.title", equalTo("Q3JS Master API"))
             .body("paths", hasKey("/api/status"))
             .body("paths", hasKey("/api/servers"))
-            .body("paths", hasKey("/api/servers/heartbeat"));
+            .body("paths", hasKey("/api/servers/heartbeat"))
+            .body("paths", hasKey("/api/events"));
     }
 
     @Test

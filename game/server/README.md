@@ -31,6 +31,11 @@ Runtime variables:
 - `Q3JS_GAME_HOST`, `Q3JS_GAME_PORT`: ioq3ded bind/target, defaults `127.0.0.1:27960`
 - `Q3JS_GATEWAY_HOST`, `Q3JS_GATEWAY_PORT`: gateway bind, defaults `0.0.0.0:27961`
 - `Q3JS_MASTER_URL`: master HTTP base URL, defaults `http://localhost:8080`
+- `Q3JS_EVENT_URL`: authenticated event-ingestion endpoint, defaults to
+  `/api/events` on `Q3JS_MASTER_URL`
+- `Q3JS_EVENT_CLIENT_SECRET`: shared event-ingestion secret. Local masters use
+  the same development-only fallback as the master application. It is required
+  when `Q3JS_MASTER_URL` is remote; `openssl rand -hex 32` generates one.
 - `Q3JS_PUBLISH_HOST`, `Q3JS_PUBLISH_PORT`: browser-reachable gateway address,
   defaults `localhost` and `Q3JS_GATEWAY_PORT`
 - `Q3JS_SECURE`: publish the gateway as `wss` instead of `ws`, defaults `false`
