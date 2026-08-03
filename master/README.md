@@ -1,62 +1,56 @@
-# code-with-quarkus
+# Q3JS master server
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+The master server is a Quarkus application backed by PostgreSQL. Flyway applies
+the existing Q3JS schema when the application starts.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## Development
 
-## Running the application in dev mode
+Start PostgreSQL from the repository root:
 
-You can run your application in dev mode that enables live coding using:
+```shell
+docker compose up -d database
+```
 
-```shell script
+Then start the master server:
+
+```shell
+cd master
 ./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+The API status endpoint is available at `http://localhost:8080/api/status` and
+Quarkus health checks are available at `http://localhost:8080/q/health`.
 
-## Packaging and running the application
+## jOOQ code generation
 
-The application can be packaged using:
+jOOQ generates records, POJOs, tables, keys, and sequences from the migrated
+development database on demand:
 
-```shell script
-./mvnw package
+```shell
+./mvnw jooq-codegen:generate
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+Generated classes use the `com.q3js.master.database.generated` package and are
+written under `src/main/java/com/q3js/master/database/generated`; they should be
+committed with the migration that changed them. The development database must
+be running and migrated before generation. Override the code-generation connection
+when needed with:
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
+```shell
+./mvnw jooq-codegen:generate \
+  -Djooq.codegen.jdbc.url=jdbc:postgresql://localhost:5432/postgres \
+  -Djooq.codegen.jdbc.user=postgres \
+  -Djooq.codegen.jdbc.password=postgres
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+The local defaults are `postgres` for the database, user, and password. Override
+them with `Q3JS_DB_URL`, `Q3JS_DB_USER`, and `Q3JS_DB_PASSWORD`.
 
-## Creating a native executable
+## Build
 
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
+```shell
+./mvnw verify
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/code-with-quarkus-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Provided Code
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+Application services can inject the configured `org.jooq.DSLContext`; it uses
+Quarkus's managed PostgreSQL datasource and the PostgreSQL dialect.
