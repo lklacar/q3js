@@ -1,7 +1,7 @@
 "use client";
 
 import type { Q3ClientOptions, Q3ClientProgress } from "@q3js/client";
-import { ArrowsOut, ArrowClockwise, Play, X } from "@phosphor-icons/react";
+import { ArrowClockwise, Play } from "@phosphor-icons/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameCanvas } from "@/components/game-canvas";
 import { Button } from "@/components/ui/button";
@@ -78,7 +78,6 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
   const [session, setSession] = useState<Session>();
   const [progress, setProgress] = useState<Q3ClientProgress>();
   const [error, setError] = useState<string>();
-  const [mouseCaptured, setMouseCaptured] = useState(false);
   const [autoStartSuppressed, setAutoStartSuppressed] = useState(false);
   const gameShellRef = useRef<HTMLElement>(null);
   const autoStartRef = useRef(false);
@@ -192,7 +191,6 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
     setSession(undefined);
     setProgress(undefined);
     setError(undefined);
-    setMouseCaptured(false);
     setAutoStartSuppressed(true);
   };
 
@@ -264,29 +262,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
       <GameCanvas
         options={options}
         className="absolute inset-0 block size-full bg-black outline-none"
-        onPointerLockChange={setMouseCaptured}
       />
-
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 bg-gradient-to-b from-black/75 to-transparent p-3 text-xs uppercase text-white/70">
-        <div>
-          <p>{progressLabel(progress)}</p>
-          {progress?.phase === "ready" && (
-            <p className="mt-1 text-white/45">
-              {mouseCaptured ? "Mouse captured · Escape to release" : "Click the game to capture the mouse"}
-            </p>
-          )}
-        </div>
-        <div className="pointer-events-auto flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={() => void toggleFullscreen()}>
-            <ArrowsOut />
-            Fullscreen
-          </Button>
-          <Button variant="secondary" size="sm" onClick={stop}>
-            <X />
-            Exit
-          </Button>
-        </div>
-      </div>
 
       {progress?.phase !== "ready" && !error && (
         <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-black/85 p-6 text-center">
