@@ -69,7 +69,7 @@ const guideStructuredData = {
 
 function Code({ children }: Readonly<{ children: string }>) {
   return (
-    <pre className="max-w-full overflow-x-auto border border-border bg-card/40 p-4 text-xs leading-6 text-foreground">
+    <pre className="max-w-full overflow-x-auto border border-border bg-card/40 p-4 text-sm leading-6 text-foreground">
       <code>{children}</code>
     </pre>
   );
@@ -81,14 +81,14 @@ export default function GuidePage() {
       <JsonLd data={guideStructuredData} />
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl px-4 py-12 md:py-16">
-        <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-primary">Field manual / Server operators</p>
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">Field manual / Server operators</p>
         <h1 className="mt-3 font-mono text-3xl font-black uppercase tracking-[0.035em]">Run your own arena</h1>
-        <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
+        <p className="mt-4 max-w-2xl text-base leading-6 text-muted-foreground">
           The packaged Q3JS server always runs the dedicated game server and WebSocket gateway
           together. It also announces itself to the master automatically.
         </p>
 
-        <div className="mt-10 grid gap-10 [&_h2]:font-mono [&_h2]:text-xl [&_h2]:font-bold [&_h2]:uppercase [&_h2]:tracking-[0.03em] [&_p]:text-sm [&_p]:leading-6 [&_p]:text-muted-foreground [&_section]:min-w-0">
+        <div className="mt-10 grid gap-10 [&_h2]:font-mono [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:uppercase [&_h2]:tracking-[0.03em] [&_p]:text-base [&_p]:leading-7 [&_p]:text-muted-foreground [&_section]:min-w-0">
           <section>
             <h2>1. Build the server</h2>
             <p className="my-3">
@@ -138,7 +138,7 @@ export default function GuidePage() {
           </section>
         </div>
 
-        <div className="mt-12 border-l-2 border-primary pl-4 text-xs leading-5 text-muted-foreground">
+        <div className="mt-12 border-l-2 border-primary pl-4 text-sm leading-5 text-muted-foreground">
           Need every runtime option? Read the{" "}
           <Link
             href="https://github.com/lklacar/q3js/blob/develop/game/server/README.md"

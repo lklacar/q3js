@@ -41,7 +41,7 @@ function stripQuakeColors(value: string): string {
 function SummaryStat({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
   return (
     <div className="px-5 py-4">
-      <dt className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{label}</dt>
+      <dt className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</dt>
       <dd className="mt-1 font-mono text-xl font-bold tracking-[0.025em] tabular-nums">{value}</dd>
     </div>
   );
@@ -90,9 +90,9 @@ export function ScoreboardPage({
       />
       <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">Frag archive / Global rankings</p>
+          <p className="font-mono text-xs uppercase tracking-[0.16em] text-primary">Frag archive / Global rankings</p>
           <h1 className="mt-2 font-mono text-3xl font-black uppercase tracking-[0.035em] md:text-4xl">Scoreboard</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
+          <p className="mt-3 max-w-xl text-base leading-6 text-muted-foreground">
             Frag leaders across every Q3JS server reporting to the master.
           </p>
         </div>
@@ -104,7 +104,7 @@ export function ScoreboardPage({
               href={scoreboardHref({ period: period.value, search, timeZone })}
               aria-current={scoreboard.period === period.response ? "page" : undefined}
               className={cn(
-                "px-3 py-2 text-[10px] font-medium text-muted-foreground hover:text-foreground",
+                "px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground",
                 scoreboard.period === period.response && "bg-secondary text-foreground",
               )}
             >
@@ -134,7 +134,7 @@ export function ScoreboardPage({
             defaultValue={search}
             maxLength={128}
             placeholder="Search player"
-            className="h-10 w-full bg-input pl-9 pr-3 font-mono text-xs placeholder:text-muted-foreground focus:outline-2 focus:outline-ring"
+            className="h-10 w-full bg-input pl-9 pr-3 font-mono text-sm placeholder:text-muted-foreground focus:outline-2 focus:outline-ring"
           />
         </label>
         <Button type="submit" size="lg" className="h-10 px-5">Search</Button>
@@ -147,8 +147,8 @@ export function ScoreboardPage({
 
       {scoreboard.entries.length ? (
         <div className="mt-4 overflow-x-auto border border-border/60 bg-card/35">
-          <table className="w-full min-w-[34rem] text-left text-xs">
-            <thead className="bg-card/70 font-mono text-[9px] uppercase tracking-[0.08em] text-muted-foreground">
+          <table className="w-full min-w-[34rem] text-left text-sm">
+            <thead className="bg-card/70 font-mono text-xs uppercase tracking-[0.08em] text-muted-foreground">
               <tr>
                 <th scope="col" className="w-20 px-5 py-3 font-medium">Rank</th>
                 <th scope="col" className="px-3 py-3 font-medium">Player</th>
@@ -173,7 +173,7 @@ export function ScoreboardPage({
                       >
                         <Q3ColoredText text={entry.playerName} />
                       </Link>
-                      <p className="mt-1 text-[10px] text-muted-foreground">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         Last online {formatRelativeTime(entry.lastOnline)}
                       </p>
                     </td>
@@ -188,14 +188,14 @@ export function ScoreboardPage({
         </div>
       ) : (
         <div className="mt-4 border border-border/60 bg-card/35 px-6 py-12 text-center">
-          <p className="text-sm font-semibold">{search ? "No matching players." : "No frags recorded yet."}</p>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="text-base font-semibold">{search ? "No matching players." : "No frags recorded yet."}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
             {search ? "Try a shorter player name or clear the search." : "Play a match and check back here."}
           </p>
         </div>
       )}
 
-      <div className="mt-4 flex items-center justify-between gap-4 font-mono text-[10px] text-muted-foreground">
+      <div className="mt-4 flex items-center justify-between gap-4 font-mono text-xs text-muted-foreground">
         <span>Page {scoreboard.page} of {scoreboard.totalPages}</span>
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm" className={cn(!scoreboard.hasPreviousPage && "pointer-events-none opacity-40")}>

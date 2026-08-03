@@ -5,6 +5,13 @@ const configuredSiteUrl = process.env.NEXT_PUBLIC_Q3JS_SITE_URL?.trim().replace(
 export const siteConfig = {
   name: "Q3JS",
   url: configuredSiteUrl || "https://q3js.com",
+  author: {
+    name: "LK",
+    coloredName: "^1L^2K",
+    url: "https://github.com/lklacar",
+    xHandle: "@lukathedev",
+    xUrl: "https://x.com/lukathedev",
+  },
   defaultTitle: "Play Quake III Arena in Your Browser",
   description:
     "Play Quake III Arena instantly with no install. Q3JS brings the classic arena shooter to the web with WebAssembly and online servers.",
@@ -66,6 +73,7 @@ export function buildPageMetadata({
     },
     twitter: {
       card: "summary_large_image",
+      creator: siteConfig.author.xHandle,
       title: pageTitle,
       description,
       images: ["/twitter-image"],

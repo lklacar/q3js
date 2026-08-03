@@ -30,10 +30,10 @@ function Stat({
 }: Readonly<{ compact?: boolean; label: string; value: React.ReactNode }>) {
   return (
     <div className="min-w-0 px-4 py-4">
-      <dt className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{label}</dt>
+      <dt className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</dt>
       <dd className={cn(
         "mt-1 font-bold tabular-nums",
-        compact ? "text-xs leading-5" : "truncate font-mono text-xl tracking-[0.025em]",
+        compact ? "text-sm leading-5" : "truncate font-mono text-xl tracking-[0.025em]",
       )}>{value}</dd>
     </div>
   );
@@ -44,14 +44,14 @@ function WeaponBreakdown({ kills, weapons }: Readonly<{ kills: number; weapons: 
   return (
     <section aria-labelledby="weapons-heading" className="border border-border/60 bg-card/45 p-5 md:p-6">
       <div className="flex items-baseline justify-between gap-4">
-        <h2 id="weapons-heading" className="font-mono text-lg font-bold uppercase tracking-[0.03em]">Weapons</h2>
-        <span className="font-mono text-[9px] uppercase text-muted-foreground">{kills} total kills</span>
+        <h2 id="weapons-heading" className="font-mono text-xl font-bold uppercase tracking-[0.03em]">Weapons</h2>
+        <span className="font-mono text-xs uppercase text-muted-foreground">{kills} total kills</span>
       </div>
       {weapons.length ? (
         <div className="mt-5 space-y-4">
           {weapons.map((weapon) => (
             <div key={weapon.meansOfDeath}>
-              <div className="flex items-center justify-between gap-4 text-xs">
+              <div className="flex items-center justify-between gap-4 text-sm">
                 <span className="font-semibold">{weapon.weaponName}</span>
                 <span className="font-mono text-muted-foreground">
                   {weapon.kills} · {kills ? Math.round((weapon.kills / kills) * 100) : 0}%
@@ -64,7 +64,7 @@ function WeaponBreakdown({ kills, weapons }: Readonly<{ kills: number; weapons: 
           ))}
         </div>
       ) : (
-        <p className="mt-4 text-xs text-muted-foreground">No weapon data recorded.</p>
+        <p className="mt-4 text-sm text-muted-foreground">No weapon data recorded.</p>
       )}
     </section>
   );
@@ -77,12 +77,12 @@ function Rivals({
 }: Readonly<{ empty: string; players: ProfileRivalResponse[]; title: string }>) {
   return (
     <section className="border border-border/60 bg-card/45 p-5 md:p-6">
-      <h2 className="font-mono text-lg font-bold uppercase tracking-[0.03em]">{title}</h2>
+      <h2 className="font-mono text-xl font-bold uppercase tracking-[0.03em]">{title}</h2>
       {players.length ? (
         <ol className="mt-4 divide-y divide-border/40">
           {players.map((player, index) => (
-            <li key={player.playerName} className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-2 py-3 text-xs">
-              <span className="font-mono text-[9px] text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
+            <li key={player.playerName} className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-2 py-3 text-sm">
+              <span className="font-mono text-xs text-muted-foreground">{String(index + 1).padStart(2, "0")}</span>
               <Link
                 href={`/players/${encodeURIComponent(player.playerName)}`}
                 className="truncate font-semibold hover:text-primary"
@@ -94,7 +94,7 @@ function Rivals({
           ))}
         </ol>
       ) : (
-        <p className="mt-4 text-xs text-muted-foreground">{empty}</p>
+        <p className="mt-4 text-sm text-muted-foreground">{empty}</p>
       )}
     </section>
   );
@@ -138,12 +138,12 @@ export function ProfilePage({ profile }: Readonly<{ profile: ProfileResponse }>)
       />
       <header>
         <div className="min-w-0">
-          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">Combat record / Player profile</p>
+          <p className="font-mono text-xs uppercase tracking-[0.16em] text-primary">Combat record / Player profile</p>
           <h1 className="mt-2 break-words font-mono text-3xl font-black tracking-[0.03em] md:text-4xl">
             <Q3ColoredText text={profile.playerName} />
           </h1>
           {plainName !== profile.playerName && (
-            <p className="mt-2 font-mono text-[10px] text-muted-foreground">{plainName}</p>
+            <p className="mt-2 font-mono text-xs text-muted-foreground">{plainName}</p>
           )}
         </div>
       </header>
@@ -161,20 +161,20 @@ export function ProfilePage({ profile }: Readonly<{ profile: ProfileResponse }>)
         <section className="border border-border/60 bg-card/35 p-5 md:p-6">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Trophy className="size-4" />
-            <h2 className="font-mono text-[9px] uppercase tracking-[0.12em]">Favorite map</h2>
+            <h2 className="font-mono text-xs uppercase tracking-[0.12em]">Favorite map</h2>
           </div>
           <p className="mt-3 font-mono text-xl font-bold uppercase tracking-[0.03em]">{profile.favoriteMap?.mapName ?? "No map yet"}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             {profile.favoriteMap ? `${profile.favoriteMap.kills} kills recorded here.` : "No kills recorded."}
           </p>
         </section>
         <section className="border border-border/60 bg-card/35 p-5 md:p-6">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Crosshair className="size-4" />
-            <h2 className="font-mono text-[9px] uppercase tracking-[0.12em]">Favorite weapon</h2>
+            <h2 className="font-mono text-xs uppercase tracking-[0.12em]">Favorite weapon</h2>
           </div>
           <p className="mt-3 font-mono text-xl font-bold uppercase tracking-[0.03em]">{profile.favoriteWeapon?.weaponName ?? "No weapon yet"}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             {profile.favoriteWeapon
               ? `${profile.favoriteWeapon.kills} kills · MOD ${profile.favoriteWeapon.meansOfDeath}`
               : "No kills recorded."}

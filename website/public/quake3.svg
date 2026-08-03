@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  version="1.0"
+  width="64"
+  height="64"
+  viewBox="0 0 64 64"
+>
+  <defs>
+    <linearGradient id="quake-red">
+      <stop stop-color="#ff0000" offset="0" />
+      <stop stop-color="#590000" offset="1" />
+    </linearGradient>
+    <linearGradient
+      id="quake-center"
+      x1="32"
+      y1="64.091171"
+      x2="32"
+      y2="0"
+      xlink:href="#quake-red"
+      gradientUnits="userSpaceOnUse"
+    />
+    <linearGradient
+      id="quake-left"
+      x1="14.860399"
+      y1="19.054131"
+      x2="15.042735"
+      y2="59"
+      xlink:href="#quake-red"
+      gradientUnits="userSpaceOnUse"
+    />
+    <linearGradient
+      id="quake-right"
+      x1="14.860399"
+      y1="19.054131"
+      x2="15.042735"
+      y2="59"
+      xlink:href="#quake-red"
+      gradientUnits="userSpaceOnUse"
+    />
+  </defs>
+  <path d="M34.538626 32.090265 32.538627 64l-2.000001-32L32.538627 0l1.999999 32.090265z" fill="url(#quake-center)" />
+  <path d="m28.059562 59-2.447281-24.963323S2.1281775 31.218199 2.0010765 25.064561c-.085484-4.047564 4.94105-5.969346 7.693524-5.969346 2.306121 0-5.486381.048249-5.523233 5.191858-.03082 4.39284 25.188532 6.05989 25.188532 6.05989L28.059562 59z" fill="url(#quake-left)" />
+  <path d="m36.940438 59 2.447281-24.963323s23.484104-2.818478 23.611205-8.972116c.085484-4.047564-4.941051-5.969346-7.693525-5.969346-2.30612 0 5.486381.048249 5.523233 5.191858.03082 4.39284-25.188532 6.05989-25.188532 6.05989L36.940438 59z" fill="url(#quake-right)" />
+</svg>

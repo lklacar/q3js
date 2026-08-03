@@ -54,7 +54,7 @@ function pingColor(ping: number): string {
 
 function Metadata({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <span className="inline-flex min-h-6 items-center gap-1.5 border border-border/60 px-2 font-mono text-[10px] text-muted-foreground">
+    <span className="inline-flex min-h-6 items-center gap-1.5 border border-border/60 px-2 font-mono text-xs text-muted-foreground">
       {children}
     </span>
   );
@@ -67,12 +67,12 @@ function ServerCard({ playerName, server }: Readonly<{ playerName: string; serve
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="break-words font-mono text-xl font-bold tracking-[0.025em]">
+              <h3 className="break-words font-mono text-2xl font-bold tracking-[0.025em]">
                 <Q3ColoredText text={server.coloredName} />
               </h3>
               {server.passwordProtected && <LockKey className="size-4 text-muted-foreground" aria-label="Password required" />}
             </div>
-            <p className="mt-1 font-mono text-[10px] text-muted-foreground">{server.host}:{server.targetPort}</p>
+            <p className="mt-1 font-mono text-xs text-muted-foreground">{server.host}:{server.targetPort}</p>
           </div>
           {isOpen(server) ? (
             <Button asChild size="lg" className="sm:self-start">
@@ -89,7 +89,7 @@ function ServerCard({ playerName, server }: Readonly<{ playerName: string; serve
           <Metadata>{server.limits}</Metadata>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs">
+        <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
           <div className="flex items-center gap-3">
             <span className="font-mono">{server.players}/{server.capacity || "—"}</span>
             <div className="h-1.5 w-24 overflow-hidden bg-secondary" aria-hidden="true">
@@ -103,13 +103,13 @@ function ServerCard({ playerName, server }: Readonly<{ playerName: string; serve
         </div>
 
         <div className="mt-5 border-t border-border/50 pt-4">
-          <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] px-3 pb-2 font-mono text-[9px] uppercase text-muted-foreground">
+          <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] px-3 pb-2 font-mono text-xs uppercase text-muted-foreground">
             <span>Players</span>
             <span className="text-right">Score</span>
             <span className="text-right">Ping</span>
           </div>
           {server.users.length ? (
-            <div className="divide-y divide-border/40 bg-background/25 font-mono text-xs">
+            <div className="divide-y divide-border/40 bg-background/25 font-mono text-sm">
               {server.users.map((player, index) => (
                 <div key={`${player.name}-${index}`} className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center px-3 py-2.5">
                   <Link
@@ -126,7 +126,7 @@ function ServerCard({ playerName, server }: Readonly<{ playerName: string; serve
               ))}
             </div>
           ) : (
-            <p className="py-2 text-xs text-muted-foreground">No players connected.</p>
+            <p className="py-2 text-sm text-muted-foreground">No players connected.</p>
           )}
         </div>
       </div>
@@ -155,12 +155,12 @@ function BrowserHeading({ serverCount, playerCount, pending = false }: Readonly<
   return (
     <div className="flex items-end justify-between gap-4">
       <div>
-        <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.16em] text-primary">02 / Live arenas</p>
+        <p className="mb-2 font-mono text-xs uppercase tracking-[0.16em] text-primary">02 / Live arenas</p>
         <h2 id="servers-heading" className="font-mono text-2xl font-bold uppercase tracking-[0.035em] md:text-3xl">Server browser</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Choose your arena and join the fight.</p>
+        <p className="mt-2 text-base text-muted-foreground">Choose your arena and join the fight.</p>
       </div>
       {serverCount !== undefined && (
-        <p className="shrink-0 text-right font-mono text-[10px] leading-5 text-muted-foreground">
+        <p className="shrink-0 text-right font-mono text-xs leading-5 text-muted-foreground">
           {countLabel(serverCount, "server")}<br />
           {countLabel(playerCount ?? 0, "player")} online
         </p>
@@ -209,7 +209,7 @@ function ServerBrowserQuery() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search server, map, or player"
-              className="h-10 w-full border border-border bg-input pl-9 pr-3 text-xs placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+              className="h-10 w-full border border-border bg-input pl-9 pr-3 text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
             />
           </label>
 
@@ -220,7 +220,7 @@ function ServerBrowserQuery() {
               maxLength={32}
               onChange={(event) => setPlayerName(event.target.value)}
               placeholder="Player name"
-              className="h-10 w-full border border-border bg-input px-3 pr-10 font-mono text-xs placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+              className="h-10 w-full border border-border bg-input px-3 pr-10 font-mono text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
             />
             <button
               type="button"
@@ -255,12 +255,12 @@ function ServerBrowserQuery() {
           <FilterButton active={filter === "all"} onClick={() => setFilter("all")}>All</FilterButton>
           <FilterButton active={filter === "active"} onClick={() => setFilter("active")}>With players</FilterButton>
           <FilterButton active={filter === "open"} onClick={() => setFilter("open")}>Open slots</FilterButton>
-          <span className="ml-auto font-mono text-[9px] text-muted-foreground">{filteredServers.length} shown</span>
+          <span className="ml-auto font-mono text-xs text-muted-foreground">{filteredServers.length} shown</span>
         </div>
       </div>
 
       {error && (
-        <p role="alert" className="mt-4 border-l-2 border-primary px-3 py-2 text-xs text-primary">
+        <p role="alert" className="mt-4 border-l-2 border-primary px-3 py-2 text-sm text-primary">
           Refresh failed: {error.message}. Showing cached results.
         </p>
       )}
@@ -273,10 +273,10 @@ function ServerBrowserQuery() {
         </div>
       ) : (
         <div className="mt-5 border border-border/60 bg-card/50 px-6 py-12 text-center">
-          <p className="text-sm font-semibold">
+          <p className="text-base font-semibold">
             {servers.length === 0 ? "No servers are live right now." : "No servers match your filters."}
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             {servers.length === 0 ? "Refresh the list or run your own server." : "Change the search or filter and try again."}
           </p>
           {(normalizedQuery || filter !== "all") && (
@@ -297,11 +297,11 @@ function ServerBrowserPending() {
 
       <div className="mt-6 border border-border/60 bg-card/60 p-4" aria-hidden="true">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.55fr)_auto]">
-          <div className="relative flex h-10 items-center border border-border bg-input pl-9 pr-3 text-xs text-muted-foreground">
+          <div className="relative flex h-10 items-center border border-border bg-input pl-9 pr-3 text-sm text-muted-foreground">
             <MagnifyingGlass className="absolute left-3 size-4" />
             Search server, map, or player
           </div>
-          <div className="relative flex h-10 items-center border border-border bg-input px-3 pr-10 font-mono text-xs text-muted-foreground">
+          <div className="relative flex h-10 items-center border border-border bg-input px-3 pr-10 font-mono text-sm text-muted-foreground">
             Player name
             <DiceFive className="absolute right-3 size-4" />
           </div>
@@ -317,7 +317,7 @@ function ServerBrowserPending() {
           <Button variant="secondary" size="sm" disabled>All</Button>
           <Button variant="ghost" size="sm" disabled>With players</Button>
           <Button variant="ghost" size="sm" disabled>Open slots</Button>
-          <span className="ml-auto flex items-center gap-2 font-mono text-[9px] text-muted-foreground">
+          <span className="ml-auto flex items-center gap-2 font-mono text-xs text-muted-foreground">
             <span className="size-1.5 bg-primary motion-safe:animate-pulse" /> Syncing arenas
           </span>
         </div>
@@ -342,12 +342,12 @@ function ServerBrowserPending() {
           <div className="mt-5 flex items-center gap-3">
             <Skeleton className="h-3 w-8" />
             <Skeleton className="h-1.5 w-24 bg-muted/70" />
-            <span className="text-xs text-muted-foreground">players</span>
+            <span className="text-sm text-muted-foreground">players</span>
             <Skeleton className="ml-3 h-3 w-10" />
           </div>
 
           <div className="mt-5 border-t border-border/50 pt-4">
-            <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] px-3 pb-2 font-mono text-[9px] uppercase text-muted-foreground">
+            <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] px-3 pb-2 font-mono text-xs uppercase text-muted-foreground">
               <span>Players</span>
               <span className="text-right">Score</span>
               <span className="text-right">Ping</span>
@@ -369,8 +369,8 @@ function ServerBrowserError({ error, reset }: Readonly<{ error: Error; reset: ()
     <section id="servers" aria-labelledby="servers-heading">
       <BrowserHeading />
       <div className="mt-6 border border-border/60 bg-card/50 px-6 py-12 text-center">
-        <p role="alert" className="text-sm font-semibold">Master server unavailable.</p>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-muted-foreground">{error.message}</p>
+        <p role="alert" className="text-base font-semibold">Master server unavailable.</p>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-5 text-muted-foreground">{error.message}</p>
         <Button variant="outline" size="sm" className="mt-4" onClick={reset}>
           <ArrowClockwise /> Try again
         </Button>

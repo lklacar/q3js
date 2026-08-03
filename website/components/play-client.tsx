@@ -187,23 +187,23 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
     return (
       <section className="grid size-full place-items-center overflow-auto bg-background p-4">
         <div className="w-full max-w-xl border border-border bg-card/40 p-5 md:p-7">
-          <p className="text-[10px] uppercase tracking-wider text-primary">
+          <p className="text-xs uppercase tracking-wider text-primary">
             {selectedServer ? "Selected server" : "Local match"}
           </p>
-          <h1 className="mt-2 text-xl font-bold uppercase tracking-tight md:text-2xl">
+          <h1 className="mt-2 text-2xl font-bold uppercase tracking-tight md:text-3xl">
             {selectedServer ? selectedServer.name : "Launch Q3JS"}
           </h1>
-          <p className="mt-3 text-xs leading-5 text-muted-foreground">
+          <p className="mt-3 text-sm leading-5 text-muted-foreground">
             The first launch downloads the base game data into browser storage. Later launches
             reuse the local copy. The Q3JS game package comes directly from the connected server.
           </p>
           {selectedServer && (
-            <p className="mt-3 text-[10px] uppercase text-muted-foreground">
+            <p className="mt-3 text-xs uppercase text-muted-foreground">
               {selectedServer.secure ? "wss" : "ws"}://{selectedServer.host}:{selectedServer.proxyPort}/ws
             </p>
           )}
 
-          <label className="mt-6 block text-[10px] uppercase text-muted-foreground">
+          <label className="mt-6 block text-xs uppercase text-muted-foreground">
             Player name
             <input
               value={playerName}
@@ -214,7 +214,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
                   void start();
                 }
               }}
-              className="mt-2 h-10 w-full border border-border bg-input px-3 text-sm text-foreground focus:border-ring focus:outline-none"
+              className="mt-2 h-10 w-full border border-border bg-input px-3 text-base text-foreground focus:border-ring focus:outline-none"
             />
           </label>
 
@@ -243,7 +243,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         onPointerLockChange={setMouseCaptured}
       />
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 bg-gradient-to-b from-black/75 to-transparent p-3 text-[10px] uppercase text-white/70">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 bg-gradient-to-b from-black/75 to-transparent p-3 text-xs uppercase text-white/70">
         <div>
           <p>{progressLabel(progress)}</p>
           {progress?.phase === "ready" && (
@@ -267,12 +267,12 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
       {progress?.phase !== "ready" && !error && (
         <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-black/85 p-6 text-center">
           <div className="w-full max-w-md">
-            <p className="text-sm font-semibold">{progressLabel(progress)}</p>
+            <p className="text-base font-semibold">{progressLabel(progress)}</p>
             <div className="mt-4 h-1 w-full bg-muted">
               <div className="h-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
             </div>
             {totalBytes > 0 && (
-              <p className="mt-2 text-[10px] text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground">
                 {formatBytes(loadedBytes)} / {formatBytes(totalBytes)}
               </p>
             )}
@@ -283,8 +283,8 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
       {error && (
         <div className="absolute inset-0 z-30 grid place-items-center bg-black/90 p-6 text-center">
           <div className="max-w-lg">
-            <p className="text-sm font-semibold text-primary">Unable to start Q3JS</p>
-            <p className="mt-2 break-words text-xs leading-5 text-muted-foreground">{error}</p>
+            <p className="text-base font-semibold text-primary">Unable to start Q3JS</p>
+            <p className="mt-2 break-words text-sm leading-5 text-muted-foreground">{error}</p>
             <Button variant="outline" size="sm" className="mt-4" onClick={stop}>
               <ArrowClockwise />
               Try again

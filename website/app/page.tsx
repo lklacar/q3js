@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { HomeStats } from "@/components/home-stats";
 import { JsonLd } from "@/components/json-ld";
+import { Q3ColoredText } from "@/components/q3-colored-text";
 import { ScoreboardPreview } from "@/components/scoreboard-preview";
 import { ServerBrowser } from "@/components/server-browser";
 import { SiteHeader } from "@/components/site-header";
@@ -42,6 +44,12 @@ const homeStructuredData = [
     applicationCategory: "GameApplication",
     operatingSystem: "Web Browser",
     genre: "First-person shooter",
+    author: {
+      "@type": "Person",
+      name: siteConfig.author.name,
+      url: siteConfig.author.url,
+      sameAs: [siteConfig.author.url, siteConfig.author.xUrl],
+    },
     image: absoluteUrl("/opengraph-image"),
     offers: {
       "@type": "Offer",
@@ -57,19 +65,53 @@ export default function Home() {
       <JsonLd data={homeStructuredData} />
       <SiteHeader />
       <main className="mx-auto w-full max-w-5xl px-4 pb-20 pt-10 md:pt-14">
-        <div className="mb-10">
-          <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.18em] text-primary">
-            <span className="size-1.5 bg-primary" aria-hidden="true" />
-            Arena online / WebAssembly build
-          </div>
-          <h1 className="mt-3 font-mono text-2xl font-black uppercase tracking-[0.035em] md:text-3xl">
-            Quake III Arena in your browser
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Pick a server. Enter the arena. Q3JS runs the official Quake III demo through an
-            ioquake3 WebAssembly build.
+        <section aria-labelledby="hero-heading" className="mb-14 py-6 text-center sm:py-8">
+          <p className="font-mono text-xs uppercase tracking-[0.24em] text-primary">
+            Quake 3 in browser
           </p>
-        </div>
+          <h1
+            id="hero-heading"
+            className="mx-auto mt-3 max-w-4xl font-mono text-3xl font-bold uppercase leading-tight tracking-[0.035em] md:text-4xl"
+          >
+            Play Quake III Multiplayer in Your Browser
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+            No install step. Pick a server and jump straight into a live Quake 3 match.
+          </p>
+          <div className="mx-auto mt-6 grid max-w-md grid-cols-2 gap-3">
+            <Link
+              href="/#servers"
+              className="inline-flex h-10 items-center justify-center bg-primary px-4 font-mono text-sm font-bold uppercase tracking-[0.05em] text-primary-foreground hover:bg-primary/80"
+            >
+              Play now
+            </Link>
+            <Link
+              href="/scoreboard"
+              className="inline-flex h-10 items-center justify-center bg-secondary px-4 font-mono text-sm font-bold uppercase tracking-[0.05em] text-secondary-foreground hover:bg-secondary/80"
+            >
+              Scoreboard
+            </Link>
+          </div>
+          <p className="mt-5 font-mono text-xs uppercase tracking-[0.16em] text-muted-foreground">
+            Created by{" "}
+            <a
+              href={siteConfig.author.xUrl}
+              target="_blank"
+              rel="author noreferrer"
+              className="font-bold hover:text-foreground"
+            >
+              <Q3ColoredText text={siteConfig.author.coloredName} />
+            </a>
+          </p>
+          <a
+            href="https://jk.q3js.com"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 inline-block font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-primary"
+          >
+            New: Play Jedi Academy ↗
+          </a>
+        </section>
         <HomeStats />
         <ScoreboardPreview />
         <ServerBrowser />

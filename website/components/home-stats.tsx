@@ -22,15 +22,15 @@ function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
   return (
     <dl className="mb-10 grid gap-3 sm:grid-cols-3">
       <div className="arena-card border border-border/60 bg-card/55 p-4">
-        <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+        <dt className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
           <Users className="size-4 text-primary" /> Players online
         </dt>
         <dd className="mt-3 font-mono text-2xl font-bold tracking-[0.03em] tabular-nums">{formatNumber(stats.playersOnline)}</dd>
-        <p className="mt-2 text-xs text-muted-foreground">Connected across live Q3JS servers.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Across all live arenas.</p>
       </div>
 
       <div className="arena-card border border-border/60 bg-card/55 p-4">
-        <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+        <dt className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
           <Crosshair className="size-4 text-primary" /> Most frags last 24 hours
         </dt>
         <dd className="mt-3 truncate font-mono text-xl font-bold tracking-[0.025em]">
@@ -40,17 +40,17 @@ function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
             </Link>
           ) : "No frags yet"}
         </dd>
-        <p className="mt-2 text-xs text-muted-foreground">
-          {topFragger ? countLabel(topFragger.frags, "frag") : "No recorded frags in the last 24 hours."}
+        <p className="mt-2 text-sm text-muted-foreground">
+          {topFragger ? `${countLabel(topFragger.frags, "frag")} in the last 24 hours.` : "No frags recorded in the last 24 hours."}
         </p>
       </div>
 
       <div className="arena-card border border-border/60 bg-card/55 p-4">
-        <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+        <dt className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
           <Skull className="size-4 text-primary" /> Total frags ever
         </dt>
         <dd className="mt-3 font-mono text-2xl font-bold tracking-[0.03em] tabular-nums">{formatNumber(stats.totalFragsEver)}</dd>
-        <p className="mt-2 text-xs text-muted-foreground">Recorded across Q3JS servers.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Since Q3JS started keeping score.</p>
       </div>
     </dl>
   );
@@ -72,7 +72,7 @@ function HomeStatsPending() {
     <div className="mb-10 grid gap-3 sm:grid-cols-3" aria-busy="true" aria-label="Loading Q3JS statistics">
       {pendingStats.map(({ label, icon: Icon, valueWidth, detailWidth }) => (
         <div key={label} className="arena-card border border-border/60 bg-card/55 p-4">
-          <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
             <Icon className="size-4 text-primary" /> {label}
           </div>
           <Skeleton className={`mt-3 h-7 ${valueWidth}`} />
@@ -88,7 +88,7 @@ export function HomeStats() {
     <QueryBoundary
       pendingFallback={<HomeStatsPending />}
       errorFallback={() => (
-        <div className="mb-10 border border-border/60 bg-card/55 px-5 py-4 text-xs text-muted-foreground">
+        <div className="mb-10 border border-border/60 bg-card/55 px-5 py-4 text-sm text-muted-foreground">
           Homepage statistics are temporarily unavailable.
         </div>
       )}

@@ -7,7 +7,7 @@ import { masterStatusQueryOptions } from "@/lib/master-server-query";
 function StatusBadge({ state }: Readonly<{ state: "checking" | "offline" | "online" }>) {
   return (
     <span
-      className="inline-flex items-center gap-2 text-[11px] text-muted-foreground"
+      className="inline-flex items-center gap-2 text-xs text-muted-foreground"
       aria-live="polite"
     >
       <span
