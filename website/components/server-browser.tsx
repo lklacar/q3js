@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   ArrowClockwise,
@@ -9,10 +9,19 @@ import {
   LockKey,
   MagnifyingGlass,
   Robot,
+  SealCheck,
 } from "@phosphor-icons/react";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import { QueryBoundary } from "@/components/query-boundary";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePlayerName } from "@/hooks/use-player-name";
 import type { ListedServer } from "@/lib/master-server";
@@ -60,9 +69,79 @@ function Metadata({ children }: Readonly<{ children: React.ReactNode }>) {
   );
 }
 
-function ServerCard({ playerName, server }: Readonly<{ playerName: string; server: ListedServer }>) {
+function PlayerNameDialog({
+  onOpenChange,
+  open,
+  server,
+}: Readonly<{
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+  server?: ListedServer;
+}>) {
+  const { playerName, randomizePlayerName, setPlayerName } = usePlayerName();
+
+  const join = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!server) return;
+
+    const name = playerName.trim() || "Player";
+    setPlayerName(name);
+    window.location.assign(joinHref(server, name));
+  };
+
   return (
-    <article className="arena-card border border-border/60 bg-card/50">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Join server</DialogTitle>
+          <DialogDescription>
+            Choose your player name before joining <span className="font-semibold text-foreground">{server?.name}</span>.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={join}>
+          <label htmlFor="join-player-name" className="block font-mono text-xs uppercase tracking-[0.1em] text-muted-foreground">
+            Player name
+          </label>
+          <div className="mt-2 flex gap-2">
+            <input
+              id="join-player-name"
+              autoFocus
+              required
+              maxLength={32}
+              value={playerName}
+              onChange={(event) => setPlayerName(event.target.value)}
+              placeholder="Enter your player name"
+              className="h-10 min-w-0 flex-1 border border-border bg-input px-3 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-lg"
+              onClick={randomizePlayerName}
+              aria-label="Generate a random player name"
+            >
+              <DiceFive />
+            </Button>
+          </div>
+
+          <DialogFooter className="mt-5">
+            <Button type="submit" size="lg" className="w-full" disabled={!server}>
+              Join arena
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ServerCard({ onJoin, server }: Readonly<{
+  onJoin: (server: ListedServer) => void;
+  server: ListedServer;
+}>) {
+  return (
+    <article className={`arena-card border ${server.official ? "border-primary/60 bg-card/80" : "border-border/60 bg-card/50"}`}>
       <div className="p-5 md:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
@@ -70,13 +149,19 @@ function ServerCard({ playerName, server }: Readonly<{ playerName: string; serve
               <h3 className="break-words font-mono text-2xl font-bold tracking-[0.025em]">
                 <Q3ColoredText text={server.coloredName} />
               </h3>
+              {server.official && (
+                <span className="inline-flex shrink-0 items-center gap-1 border border-primary/50 bg-primary/10 px-2 py-1 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-primary">
+                  <SealCheck className="size-4" weight="fill" aria-hidden="true" />
+                  Official
+                </span>
+              )}
               {server.passwordProtected && <LockKey className="size-4 text-muted-foreground" aria-label="Password required" />}
             </div>
             <p className="mt-1 font-mono text-xs text-muted-foreground">{server.host}:{server.targetPort}</p>
           </div>
           {isOpen(server) ? (
-            <Button asChild size="lg" className="sm:self-start">
-              <Link href={joinHref(server, playerName)}>Join arena</Link>
+            <Button size="lg" className="sm:self-start" onClick={() => onJoin(server)}>
+              Join arena
             </Button>
           ) : (
             <Button size="lg" className="sm:self-start" disabled>Server full</Button>
@@ -178,7 +263,7 @@ function BrowserHeading({ serverCount, playerCount, pending = false }: Readonly<
 function ServerBrowserQuery() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ServerFilter>("all");
-  const { playerName, randomizePlayerName, setPlayerName } = usePlayerName();
+  const [selectedServer, setSelectedServer] = useState<ListedServer>();
   const { data: servers, error, isFetching, refetch } = useSuspenseQuery(masterServerQueryOptions());
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -201,7 +286,7 @@ function ServerBrowserQuery() {
       <BrowserHeading serverCount={servers.length} playerCount={playerCount} />
 
       <div className="mt-6 border border-border/60 bg-card/60 p-4">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.55fr)_auto]">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
           <label className="relative min-w-0">
             <span className="sr-only">Search servers</span>
             <MagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -213,29 +298,10 @@ function ServerBrowserQuery() {
             />
           </label>
 
-          <label className="relative min-w-0">
-            <span className="sr-only">Player name</span>
-            <input
-              value={playerName}
-              maxLength={32}
-              onChange={(event) => setPlayerName(event.target.value)}
-              placeholder="Player name"
-              className="h-10 w-full border border-border bg-input px-3 pr-10 font-mono text-sm placeholder:text-muted-foreground focus:border-ring focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={randomizePlayerName}
-              className="absolute right-0 top-0 grid size-10 place-items-center text-muted-foreground hover:text-foreground"
-              aria-label="Generate a random player name"
-            >
-              <DiceFive className="size-4" />
-            </button>
-          </label>
-
           <div className="flex gap-2">
             {openServer && (
-              <Button asChild size="lg" className="h-10 flex-1 px-4 lg:flex-none">
-                <Link href={joinHref(openServer, playerName)}>Quick play</Link>
+              <Button size="lg" className="h-10 flex-1 px-4 lg:flex-none" onClick={() => setSelectedServer(openServer)}>
+                Quick play
               </Button>
             )}
             <Button
@@ -268,7 +334,7 @@ function ServerBrowserQuery() {
       {filteredServers.length ? (
         <div className="mt-5 grid gap-4">
           {filteredServers.map((server) => (
-            <ServerCard key={server.id} playerName={playerName} server={server} />
+            <ServerCard key={server.id} onJoin={setSelectedServer} server={server} />
           ))}
         </div>
       ) : (
@@ -286,6 +352,14 @@ function ServerBrowserQuery() {
           )}
         </div>
       )}
+
+      <PlayerNameDialog
+        open={selectedServer !== undefined}
+        server={selectedServer}
+        onOpenChange={(open) => {
+          if (!open) setSelectedServer(undefined);
+        }}
+      />
     </section>
   );
 }
@@ -296,14 +370,10 @@ function ServerBrowserPending() {
       <BrowserHeading pending />
 
       <div className="mt-6 border border-border/60 bg-card/60 p-4" aria-hidden="true">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.55fr)_auto]">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
           <div className="relative flex h-10 items-center border border-border bg-input pl-9 pr-3 text-sm text-muted-foreground">
             <MagnifyingGlass className="absolute left-3 size-4" />
             Search server, map, or player
-          </div>
-          <div className="relative flex h-10 items-center border border-border bg-input px-3 pr-10 font-mono text-sm text-muted-foreground">
-            Player name
-            <DiceFive className="absolute right-3 size-4" />
           </div>
           <div className="flex gap-2">
             <Button size="lg" className="h-10 flex-1 px-4 lg:flex-none" disabled>Quick play</Button>

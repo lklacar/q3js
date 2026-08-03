@@ -19,6 +19,7 @@ class ServerStatusParserTest {
             27961,
             27960,
             true,
+            false,
             OffsetDateTime.now()
         );
         String response = "\u00ff\u00ff\u00ff\u00ffstatusResponse\n"
@@ -45,6 +46,7 @@ class ServerStatusParserTest {
             "localhost",
             27961,
             27960,
+            false,
             false,
             OffsetDateTime.now()
         );

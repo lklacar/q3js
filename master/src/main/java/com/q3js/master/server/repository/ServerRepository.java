@@ -26,6 +26,7 @@ public class ServerRepository {
                 SERVERS.PROXY_PORT,
                 SERVERS.TARGET_PORT,
                 SERVERS.SECURE,
+                SERVERS.OFFICIAL,
                 SERVERS.LAST_HEARTBEAT
             )
             .values(
@@ -33,12 +34,14 @@ public class ServerRepository {
                 server.proxyPort(),
                 server.targetPort(),
                 server.secure(),
+                server.official(),
                 server.lastHeartbeat()
             )
             .onConflict(SERVERS.HOST, SERVERS.PROXY_PORT)
             .doUpdate()
             .set(SERVERS.TARGET_PORT, server.targetPort())
             .set(SERVERS.SECURE, server.secure())
+            .set(SERVERS.OFFICIAL, server.official())
             .set(SERVERS.LAST_HEARTBEAT, server.lastHeartbeat())
             .execute();
 
@@ -53,6 +56,7 @@ public class ServerRepository {
                     record.getProxyPort(),
                     record.getTargetPort(),
                     Boolean.TRUE.equals(record.getSecure()),
+                    Boolean.TRUE.equals(record.getOfficial()),
                     record.getLastHeartbeat()
                 ),
                 record.getLastInfoJson(),

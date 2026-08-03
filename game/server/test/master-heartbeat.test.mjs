@@ -28,6 +28,7 @@ test("registers the packaged server with the master", async () => {
       received = {
         method: request.method,
         path: request.url,
+        clientSecret: request.headers["x-q3js-client-secret"],
         body: JSON.parse(Buffer.concat(chunks).toString("utf8")),
       };
       response.writeHead(204);
@@ -39,6 +40,7 @@ test("registers the packaged server with the master", async () => {
 
   const heartbeat = new MasterHeartbeat({
     masterBaseUrl: `http://127.0.0.1:${address.port}`,
+    eventClientSecret: "0123456789abcdef0123456789abcdef",
     intervalMs: 60_000,
     timeoutMs: 2_000,
     targetHost: "game.example.com",
@@ -54,6 +56,7 @@ test("registers the packaged server with the master", async () => {
   assert.deepEqual(received, {
     method: "PUT",
     path: "/api/servers/heartbeat",
+    clientSecret: "0123456789abcdef0123456789abcdef",
     body: {
       targetHost: "game.example.com",
       proxyPort: 27961,

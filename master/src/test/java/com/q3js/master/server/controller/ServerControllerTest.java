@@ -19,6 +19,9 @@ import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class ServerControllerTest {
+    private static final String EVENT_CLIENT_SECRET =
+        "98e9b63a7b1bcd9103cdc951cda26976d06b6076df6ab13da1f20c25c7699167";
+
     @InjectMock
     ServerService serverService;
 
@@ -29,7 +32,7 @@ class ServerControllerTest {
             ServerInfo.class
         );
         when(serverService.servers()).thenReturn(List.of(
-            new ServerResponse("game.example.com", 27961, 27960, true, info)
+            new ServerResponse("game.example.com", 27961, 27960, true, true, info)
         ));
 
         given()
@@ -38,6 +41,7 @@ class ServerControllerTest {
             .statusCode(200)
             .body("size()", is(1))
             .body("[0].host", is("game.example.com"))
+            .body("[0].official", is(true))
             .body("[0].info.sv_hostname", is("Q3JS Arena"));
     }
 
@@ -55,7 +59,25 @@ class ServerControllerTest {
             .then()
             .statusCode(204);
 
-        verify(serverService).register(new HeartbeatRequest("game.example.com", 27961, 27960, true));
+        verify(serverService).register(new HeartbeatRequest("game.example.com", 27961, 27960, true), false);
+    }
+
+    @Test
+    void registersOfficialHeartbeat() {
+        given()
+            .header("X-Q3JS-Client-Secret", EVENT_CLIENT_SECRET)
+            .contentType("application/json")
+            .body(Map.of(
+                "targetHost", "official.example.com",
+                "proxyPort", 27961,
+                "targetPort", 27960,
+                "secure", true
+            ))
+            .when().put("/api/servers/heartbeat")
+            .then()
+            .statusCode(204);
+
+        verify(serverService).register(new HeartbeatRequest("official.example.com", 27961, 27960, true), true);
     }
 
     @Test

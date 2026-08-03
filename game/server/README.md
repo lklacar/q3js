@@ -35,7 +35,8 @@ Runtime variables:
   `/api/events` on `Q3JS_MASTER_URL`
 - `Q3JS_EVENT_CLIENT_SECRET`: shared event-ingestion secret. Local masters use
   the same development-only fallback as the master application. It is required
-  when `Q3JS_MASTER_URL` is remote; `openssl rand -hex 32` generates one.
+  when `Q3JS_MASTER_URL` is remote; `openssl rand -hex 32` generates one. The
+  server also sends it with heartbeats so matching servers are marked official.
 - `Q3JS_PUBLISH_HOST`, `Q3JS_PUBLISH_PORT`: browser-reachable gateway address,
   defaults `localhost` and `Q3JS_GATEWAY_PORT`
 - `Q3JS_SECURE`: publish the gateway as `wss` instead of `ws`, defaults `false`

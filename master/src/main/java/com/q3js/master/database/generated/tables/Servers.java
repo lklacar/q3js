@@ -89,6 +89,11 @@ public class Servers extends TableImpl<ServersRecord> {
      */
     public final TableField<ServersRecord, OffsetDateTime> LAST_INFO_FETCHED_AT = createField(DSL.name("last_info_fetched_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
 
+    /**
+     * The column <code>servers.official</code>.
+     */
+    public final TableField<ServersRecord, Boolean> OFFICIAL = createField(DSL.name("official"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
+
     private Servers(Name alias, Table<ServersRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

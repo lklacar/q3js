@@ -79,7 +79,9 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
   const [progress, setProgress] = useState<Q3ClientProgress>();
   const [error, setError] = useState<string>();
   const [mouseCaptured, setMouseCaptured] = useState(false);
+  const [autoStartSuppressed, setAutoStartSuppressed] = useState(false);
   const gameShellRef = useRef<HTMLElement>(null);
+  const autoStartRef = useRef(false);
 
   const toggleFullscreen = useCallback(async () => {
     const target = gameShellRef.current;
@@ -139,7 +141,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
     };
   }, [session]);
 
-  const start = async () => {
+  const start = useCallback(async () => {
     setError(undefined);
     setProgress(undefined);
     const countryCode = await requesterCountryCode();
@@ -170,7 +172,17 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
       address: process.env.NEXT_PUBLIC_Q3JS_SERVER_ADDRESS ?? `${host}:27961`,
       game: "q3js",
     });
-  };
+  }, [playerName, selectedServer]);
+
+  const shouldAutoStart = Boolean(selectedServer && initialPlayerName?.trim() && !autoStartSuppressed);
+
+  useEffect(() => {
+    if (!shouldAutoStart || autoStartRef.current) {
+      return;
+    }
+    autoStartRef.current = true;
+    void start();
+  }, [shouldAutoStart, start]);
 
   const stop = () => {
     const target = gameShellRef.current;
@@ -181,9 +193,21 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
     setProgress(undefined);
     setError(undefined);
     setMouseCaptured(false);
+    setAutoStartSuppressed(true);
   };
 
   if (!session || !options) {
+    if (shouldAutoStart) {
+      return (
+        <section className="grid size-full place-items-center bg-background p-4 text-center">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.14em] text-primary">Joining server</p>
+            <p className="mt-2 text-lg font-bold">{selectedServer?.name}</p>
+          </div>
+        </section>
+      );
+    }
+
     return (
       <section className="grid size-full place-items-center overflow-auto bg-background p-4">
         <div className="w-full max-w-xl border border-border bg-card/40 p-5 md:p-7">

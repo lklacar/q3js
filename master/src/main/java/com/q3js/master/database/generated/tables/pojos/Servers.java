@@ -23,6 +23,7 @@ public class Servers implements Serializable {
     private OffsetDateTime lastHeartbeat;
     private String lastInfoJson;
     private OffsetDateTime lastInfoFetchedAt;
+    private Boolean official;
 
     public Servers() {}
 
@@ -34,6 +35,7 @@ public class Servers implements Serializable {
         this.lastHeartbeat = value.lastHeartbeat;
         this.lastInfoJson = value.lastInfoJson;
         this.lastInfoFetchedAt = value.lastInfoFetchedAt;
+        this.official = value.official;
     }
 
     public Servers(
@@ -43,7 +45,8 @@ public class Servers implements Serializable {
         Boolean secure,
         OffsetDateTime lastHeartbeat,
         String lastInfoJson,
-        OffsetDateTime lastInfoFetchedAt
+        OffsetDateTime lastInfoFetchedAt,
+        Boolean official
     ) {
         this.host = host;
         this.proxyPort = proxyPort;
@@ -52,6 +55,7 @@ public class Servers implements Serializable {
         this.lastHeartbeat = lastHeartbeat;
         this.lastInfoJson = lastInfoJson;
         this.lastInfoFetchedAt = lastInfoFetchedAt;
+        this.official = official;
     }
 
     /**
@@ -152,6 +156,20 @@ public class Servers implements Serializable {
         this.lastInfoFetchedAt = lastInfoFetchedAt;
     }
 
+    /**
+     * Getter for <code>servers.official</code>.
+     */
+    public Boolean getOfficial() {
+        return this.official;
+    }
+
+    /**
+     * Setter for <code>servers.official</code>.
+     */
+    public void setOfficial(Boolean official) {
+        this.official = official;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -203,6 +221,12 @@ public class Servers implements Serializable {
         }
         else if (!this.lastInfoFetchedAt.equals(other.lastInfoFetchedAt))
             return false;
+        if (this.official == null) {
+            if (other.official != null)
+                return false;
+        }
+        else if (!this.official.equals(other.official))
+            return false;
         return true;
     }
 
@@ -217,6 +241,7 @@ public class Servers implements Serializable {
         result = prime * result + ((this.lastHeartbeat == null) ? 0 : this.lastHeartbeat.hashCode());
         result = prime * result + ((this.lastInfoJson == null) ? 0 : this.lastInfoJson.hashCode());
         result = prime * result + ((this.lastInfoFetchedAt == null) ? 0 : this.lastInfoFetchedAt.hashCode());
+        result = prime * result + ((this.official == null) ? 0 : this.official.hashCode());
         return result;
     }
 
@@ -231,6 +256,7 @@ public class Servers implements Serializable {
         sb.append(", ").append(lastHeartbeat);
         sb.append(", ").append(lastInfoJson);
         sb.append(", ").append(lastInfoFetchedAt);
+        sb.append(", ").append(official);
 
         sb.append(")");
         return sb.toString();

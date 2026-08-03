@@ -41,12 +41,13 @@ public class ServerService {
         this.heartbeatTtl = heartbeatTtl;
     }
 
-    public void register(HeartbeatRequest heartbeat) {
+    public void register(HeartbeatRequest heartbeat, boolean official) {
         RegisteredServer server = repository.upsert(new RegisteredServer(
             heartbeat.targetHost(),
             heartbeat.proxyPort(),
             heartbeat.targetPort(),
             heartbeat.secure(),
+            official,
             OffsetDateTime.now()
         ));
         refresh(server);
@@ -56,7 +57,10 @@ public class ServerService {
         return repository.findAll().stream()
             .map(this::response)
             .flatMap(Optional::stream)
-            .sorted(Comparator.comparingInt(ServerService::realPlayerCount).reversed())
+            .sorted(
+                Comparator.comparing(ServerResponse::official).reversed()
+                    .thenComparing(Comparator.comparingInt(ServerService::realPlayerCount).reversed())
+            )
             .toList();
     }
 
@@ -107,6 +111,7 @@ public class ServerService {
                 stored.server().proxyPort(),
                 stored.server().targetPort(),
                 stored.server().secure(),
+                stored.server().official(),
                 objectMapper.readValue(stored.infoJson(), ServerInfo.class)
             ));
         } catch (JsonProcessingException exception) {

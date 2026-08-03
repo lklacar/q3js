@@ -150,6 +150,7 @@ export type ServerResponse = {
     proxyPort: number;
     targetPort: number;
     secure: boolean;
+    official: boolean;
     info: ServerInfo;
 };
 
@@ -389,6 +390,12 @@ export type ServersResponse = ServersResponses[keyof ServersResponses];
 
 export type HeartbeatData = {
     body: HeartbeatRequest;
+    headers?: {
+        /**
+         * Shared game-server event secret
+         */
+        'X-Q3JS-Client-Secret'?: string;
+    };
     path?: never;
     query?: never;
     url: '/api/servers/heartbeat';

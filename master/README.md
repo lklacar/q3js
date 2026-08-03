@@ -46,8 +46,10 @@ make master-run
 Run a packaged Q3JS server separately with `make server-run`. Its local defaults
 publish `localhost:27961` to this master at `http://localhost:8080`.
 
-Event ingestion requires the `X-Q3JS-Client-Secret` header. The master in dev
-or test mode and a packaged server targeting localhost share a development-only
+Event ingestion requires the `X-Q3JS-Client-Secret` header. Heartbeats may use
+the same header; matching servers are persisted as official, while missing or
+invalid secrets remain registered as community servers. The master in dev or
+test mode and a packaged server targeting localhost share a development-only
 fallback. A deployed master requires an explicit secret; generate one and
 provide the same value to both processes:
 

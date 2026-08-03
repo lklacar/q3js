@@ -13,6 +13,7 @@ export interface ListedServer {
   proxyPort: number;
   targetPort: number;
   secure: boolean;
+  official: boolean;
   game: string;
   name: string;
   coloredName: string;
@@ -93,6 +94,7 @@ function mapServer(server: ServerResponse): ListedServer | undefined {
     proxyPort,
     targetPort: server.targetPort,
     secure: server.secure ?? false,
+    official: server.official ?? false,
     game: gamename === "cpma" ? "cpma" : "q3js",
     name: stripQuakeColors(rawName) || fallbackName,
     coloredName: rawName,

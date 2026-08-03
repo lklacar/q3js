@@ -8,6 +8,7 @@ async function main(): Promise<void> {
   const gameServer = new GameServer(config);
   const masterHeartbeat = new MasterHeartbeat({
     masterBaseUrl: config.masterBaseUrl,
+    eventClientSecret: config.eventClientSecret,
     intervalMs: config.heartbeatIntervalMs,
     timeoutMs: config.heartbeatTimeoutMs,
     targetHost: config.publishHost,
