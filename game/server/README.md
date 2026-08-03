@@ -44,3 +44,27 @@ Runtime variables:
 - `Q3JS_RCON_PASSWORD`: optional RCON password
 
 Arguments passed to `game/server/run.sh` are appended to the ioq3ded command line.
+
+## Container image
+
+Build the combined game server and WebSocket gateway from the repository root:
+
+```sh
+docker build -f game/server/Dockerfile -t q3js-server .
+```
+
+The image does not contain proprietary Quake III data. Mount a directory that
+contains `baseq3` at `/data`, and persist generated server state at `/state`:
+
+```sh
+docker run --rm \
+  -p 27960:27960/udp \
+  -p 27961:27961/tcp \
+  -v /path/to/game-data:/data:ro \
+  -v q3js-server-state:/state \
+  -e Q3JS_MASTER_URL=https://master.example.com \
+  -e Q3JS_EVENT_CLIENT_SECRET=replace-with-a-production-secret \
+  -e Q3JS_PUBLISH_HOST=quake.example.com \
+  -e Q3JS_SECURE=true \
+  q3js-server
+```

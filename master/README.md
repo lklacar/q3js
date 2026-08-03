@@ -29,10 +29,6 @@ Building the master also writes `target/openapi/openapi.json` and
 `target/openapi/openapi.yaml`; the website uses the JSON document to generate its
 typed API client and TanStack Query options.
 
-Profile statistics can be filtered with `period=daily|weekly|monthly|all-time`.
-Weekly and monthly boundaries use the optional IANA `timeZone` query parameter;
-UTC is used by default.
-
 ## Development
 
 Start PostgreSQL from the repository root:
@@ -113,3 +109,27 @@ make master
 
 Application services can inject the configured `org.jooq.DSLContext`; it uses
 Quarkus's managed PostgreSQL datasource and the PostgreSQL dialect.
+
+## Container image
+
+Build the production Quarkus image from the repository root:
+
+```shell
+docker build -f master/Dockerfile -t q3js-master .
+```
+
+The packaged application requires PostgreSQL and an explicit production event
+secret:
+
+```shell
+docker run --rm -p 8080:8080 \
+  -e Q3JS_DB_URL=jdbc:postgresql://database:5432/postgres \
+  -e Q3JS_DB_USER=postgres \
+  -e Q3JS_DB_PASSWORD=replace-with-the-database-password \
+  -e Q3JS_EVENT_CLIENT_SECRET=replace-with-the-shared-event-secret \
+  -e Q3JS_CORS_ORIGINS=https://q3js.example.com \
+  q3js-master
+```
+
+Flyway validates and applies the committed schema migrations when the container
+starts.

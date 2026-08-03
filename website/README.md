@@ -49,3 +49,24 @@ master DTO or endpoint annotations and run the command again.
 pnpm --dir website lint
 pnpm --dir website build
 ```
+
+## Container image
+
+The website image builds both the Emscripten game client and the standalone
+Next.js server. Public `NEXT_PUBLIC_*` values are compiled into the browser
+bundle, so pass production values as build arguments:
+
+```sh
+docker build -f website/Dockerfile -t q3js-website \
+  --build-arg NEXT_PUBLIC_Q3JS_MASTER_URL=https://master.example.com \
+  --build-arg NEXT_PUBLIC_Q3JS_SITE_URL=https://q3js.example.com \
+  .
+
+docker run --rm -p 3000:3000 \
+  -e Q3JS_MASTER_URL=http://master:8080 \
+  -v /path/to/game-data:/data:ro \
+  q3js-website
+```
+
+The mounted data directory must contain `baseq3/pak0.pk3` through
+`baseq3/pak8.pk3` for the browser client asset route.
