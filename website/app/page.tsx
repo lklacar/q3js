@@ -1,4 +1,6 @@
 import { Footer } from "@/components/footer";
+import { HomeStats } from "@/components/home-stats";
+import { ScoreboardPreview } from "@/components/scoreboard-preview";
 import { ServerBrowser } from "@/components/server-browser";
 import { SiteHeader } from "@/components/site-header";
 
@@ -14,6 +16,8 @@ export default function Home() {
             WebAssembly build.
           </p>
         </div>
+        <HomeStats />
+        <ScoreboardPreview />
         <ServerBrowser />
       </main>
 

@@ -1,0 +1,88 @@
+"use client";
+
+import Link from "next/link";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Crosshair, Skull, Users } from "@phosphor-icons/react";
+import { Q3ColoredText } from "@/components/q3-colored-text";
+import { QueryBoundary } from "@/components/query-boundary";
+import type { SiteStatsResponse } from "@/lib/api/generated/types.gen";
+import { masterStatsQueryOptions } from "@/lib/master-server-query";
+
+function countLabel(count: number, label: string): string {
+  return `${count} ${label}${count === 1 ? "" : "s"}`;
+}
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat("en").format(value);
+}
+
+function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
+  const topFragger = stats.mostFragsLast24Hours;
+  return (
+    <dl className="mb-10 grid gap-3 sm:grid-cols-3">
+      <div className="bg-card/55 p-5">
+        <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          <Users className="size-4 text-primary" /> Players online
+        </dt>
+        <dd className="mt-3 text-2xl font-bold tabular-nums">{formatNumber(stats.playersOnline)}</dd>
+        <p className="mt-2 text-xs text-muted-foreground">Connected across live Q3JS servers.</p>
+      </div>
+
+      <div className="bg-card/55 p-5">
+        <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          <Crosshair className="size-4 text-primary" /> Most frags last 24 hours
+        </dt>
+        <dd className="mt-3 truncate text-lg font-bold">
+          {topFragger ? (
+            <Link href={`/players/${encodeURIComponent(topFragger.playerName)}`} className="hover:text-primary">
+              <Q3ColoredText text={topFragger.playerName} />
+            </Link>
+          ) : "No frags yet"}
+        </dd>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {topFragger ? countLabel(topFragger.frags, "frag") : "No recorded frags in the last 24 hours."}
+        </p>
+      </div>
+
+      <div className="bg-card/55 p-5">
+        <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          <Skull className="size-4 text-primary" /> Total frags ever
+        </dt>
+        <dd className="mt-3 text-2xl font-bold tabular-nums">{formatNumber(stats.totalFragsEver)}</dd>
+        <p className="mt-2 text-xs text-muted-foreground">Recorded across Q3JS servers.</p>
+      </div>
+    </dl>
+  );
+}
+
+function HomeStatsQuery() {
+  const { data: stats } = useSuspenseQuery(masterStatsQueryOptions());
+  return <HomeStatsContent stats={stats} />;
+}
+
+function HomeStatsPending() {
+  return (
+    <div className="mb-10 grid gap-3 sm:grid-cols-3" aria-label="Loading Q3JS statistics">
+      {["Players online", "Most frags last 24 hours", "Total frags ever"].map((label) => (
+        <div key={label} className="h-[7.75rem] animate-pulse bg-card/55 p-5">
+          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function HomeStats() {
+  return (
+    <QueryBoundary
+      pendingFallback={<HomeStatsPending />}
+      errorFallback={() => (
+        <div className="mb-10 bg-card/55 px-5 py-4 text-xs text-muted-foreground">
+          Homepage statistics are temporarily unavailable.
+        </div>
+      )}
+    >
+      <HomeStatsQuery />
+    </QueryBoundary>
+  );
+}
