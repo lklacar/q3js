@@ -4,6 +4,7 @@ RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         build-essential \
         cmake \
+        curl \
         ninja-build \
         zip \
     && rm -rf /var/lib/apt/lists/* \
@@ -21,6 +22,16 @@ COPY game/engine game/engine
 COPY game/server game/server
 RUN ./game/server/build.sh
 
+ARG Q3JS_GAME_DATA_URL=
+RUN mkdir -p /workspace/game-data/baseq3 \
+    && if [ -n "${Q3JS_GAME_DATA_URL}" ]; then \
+        for archive in pak0.pk3 pak1.pk3 pak2.pk3 pak3.pk3 pak4.pk3 pak5.pk3 pak6.pk3 pak7.pk3 pak8.pk3; do \
+            curl --fail --location --retry 3 \
+                --output "/workspace/game-data/baseq3/${archive}" \
+                "${Q3JS_GAME_DATA_URL}/baseq3/${archive}"; \
+        done; \
+    fi
+
 FROM node:24-bookworm-slim AS runtime
 
 RUN apt-get update \
@@ -34,6 +45,7 @@ RUN apt-get update \
 WORKDIR /opt/q3js/server
 
 COPY --from=builder --chown=q3js:q3js /workspace/game/server/dist ./
+COPY --from=builder --chown=q3js:q3js /workspace/game-data/ /data/
 
 ENV NODE_ENV=production \
     Q3JS_BASEPATH=/data \

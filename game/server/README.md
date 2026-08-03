@@ -68,3 +68,7 @@ docker run --rm \
   -e Q3JS_SECURE=true \
   q3js-server
 ```
+
+For a controlled deployment pipeline, `Q3JS_GAME_DATA_URL` can instead be passed
+as a build argument. The builder fetches `baseq3/pak0.pk3` through
+`baseq3/pak8.pk3` from that URL and seeds `/data`; the default remains empty.

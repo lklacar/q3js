@@ -70,3 +70,7 @@ docker run --rm -p 3000:3000 \
 
 The mounted data directory must contain `baseq3/pak0.pk3` through
 `baseq3/pak8.pk3` for the browser client asset route.
+
+Alternatively, pass `Q3JS_GAME_DATA_URL` as a build argument to fetch those
+archives into the image during a controlled deployment. The default build does
+not download or bundle game data.
