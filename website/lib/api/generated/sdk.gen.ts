@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetProfileData, GetProfileErrors, GetProfileResponses, GetStatsData, GetStatsResponses, HeartbeatData, HeartbeatErrors, HeartbeatResponses, IngestData, IngestErrors, IngestResponses, SearchProfilesData, SearchProfilesErrors, SearchProfilesResponses, ServersData, ServersResponses, StatusData, StatusResponses } from './types.gen';
+import type { GetProfileData, GetProfileErrors, GetProfileResponses, GetScoreboardData, GetScoreboardDistributionData, GetScoreboardDistributionErrors, GetScoreboardDistributionResponses, GetScoreboardErrors, GetScoreboardResponses, GetStatsData, GetStatsResponses, HeartbeatData, HeartbeatErrors, HeartbeatResponses, IngestData, IngestErrors, IngestResponses, SearchProfilesData, SearchProfilesErrors, SearchProfilesResponses, ServersData, ServersResponses, StatusData, StatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -40,6 +40,16 @@ export const searchProfiles = <ThrowOnError extends boolean = true>(options?: Op
  * Get a player profile
  */
 export const getProfile = <ThrowOnError extends boolean = true>(options: Options<GetProfileData, ThrowOnError>): RequestResult<GetProfileResponses, GetProfileErrors, ThrowOnError> => (options.client ?? client).get<GetProfileResponses, GetProfileErrors, ThrowOnError>({ url: '/api/players/{playerName}', ...options });
+
+/**
+ * Get the global frag scoreboard
+ */
+export const getScoreboard = <ThrowOnError extends boolean = true>(options?: Options<GetScoreboardData, ThrowOnError>): RequestResult<GetScoreboardResponses, GetScoreboardErrors, ThrowOnError> => (options?.client ?? client).get<GetScoreboardResponses, GetScoreboardErrors, ThrowOnError>({ url: '/api/scoreboard', ...options });
+
+/**
+ * Get frag activity over time
+ */
+export const getScoreboardDistribution = <ThrowOnError extends boolean = true>(options?: Options<GetScoreboardDistributionData, ThrowOnError>): RequestResult<GetScoreboardDistributionResponses, GetScoreboardDistributionErrors, ThrowOnError> => (options?.client ?? client).get<GetScoreboardDistributionResponses, GetScoreboardDistributionErrors, ThrowOnError>({ url: '/api/scoreboard/distribution', ...options });
 
 /**
  * List live game servers

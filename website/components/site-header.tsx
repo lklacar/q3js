@@ -4,6 +4,7 @@ import { MasterStatus } from "@/components/master-status";
 
 const navItems = [
   { label: "Servers", href: "/#servers" },
+  { label: "Scoreboard", href: "/scoreboard" },
   { label: "Run a server", href: "/guide" },
 ];
 

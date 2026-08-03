@@ -27,6 +27,11 @@ export type HeartbeatRequest = {
     secure: boolean;
 };
 
+export type KillDistributionPointResponse = {
+    bucketStart: OffsetDateTime;
+    kills: number;
+};
+
 export type OffsetDateTime = string;
 
 export type ProfileMapResponse = {
@@ -66,6 +71,26 @@ export type ProfileWeaponResponse = {
     weaponName: string;
     kills: number;
 };
+
+export type ScoreboardEntryResponse = {
+    playerName: string;
+    kills: number;
+    lastOnline: OffsetDateTime | null;
+};
+
+export type ScoreboardPageResponse = {
+    period: ScoreboardPeriod;
+    page: number;
+    pageSize: number;
+    totalEntries: number;
+    totalPages: number;
+    totalKills: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+    entries: Array<ScoreboardEntryResponse>;
+};
+
+export type ScoreboardPeriod = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'ALL_TIME';
 
 export type ServerInfo = {
     id: string;
@@ -236,6 +261,82 @@ export type GetProfileResponses = {
 };
 
 export type GetProfileResponse = GetProfileResponses[keyof GetProfileResponses];
+
+export type GetScoreboardData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * One-based page number
+         */
+        page?: number;
+        /**
+         * Entries per page, from 1 to 100
+         */
+        pageSize?: number;
+        /**
+         * daily, weekly, monthly, or all-time
+         */
+        period?: string;
+        /**
+         * Player name, with Quake color codes ignored
+         */
+        search?: string;
+        /**
+         * IANA time zone used for period boundaries
+         */
+        timeZone?: string;
+    };
+    url: '/api/scoreboard';
+};
+
+export type GetScoreboardErrors = {
+    /**
+     * Scoreboard parameters are invalid
+     */
+    400: unknown;
+};
+
+export type GetScoreboardResponses = {
+    /**
+     * Paginated frag rankings
+     */
+    200: ScoreboardPageResponse;
+};
+
+export type GetScoreboardResponse = GetScoreboardResponses[keyof GetScoreboardResponses];
+
+export type GetScoreboardDistributionData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * daily, weekly, monthly, or all-time
+         */
+        period?: string;
+        /**
+         * IANA time zone used for bucket boundaries
+         */
+        timeZone?: string;
+    };
+    url: '/api/scoreboard/distribution';
+};
+
+export type GetScoreboardDistributionErrors = {
+    /**
+     * Distribution parameters are invalid
+     */
+    400: unknown;
+};
+
+export type GetScoreboardDistributionResponses = {
+    /**
+     * Hourly or daily frag totals
+     */
+    200: Array<KillDistributionPointResponse>;
+};
+
+export type GetScoreboardDistributionResponse = GetScoreboardDistributionResponses[keyof GetScoreboardDistributionResponses];
 
 export type ServersData = {
     body?: never;

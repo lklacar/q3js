@@ -7,6 +7,7 @@ import type {
   ProfileRivalResponse,
   ProfileWeaponResponse,
 } from "@/lib/api/generated/types.gen";
+import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const periods = [
@@ -26,29 +27,6 @@ function formatPlaytime(seconds: number): string {
   const minutes = Math.floor((seconds % 3600) / 60);
   if (hours === 0) return `${minutes}m`;
   return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
-}
-
-function formatLastOnline(value: string | null): string {
-  if (!value) return "Unknown";
-  const timestamp = new Date(value).getTime();
-  if (Number.isNaN(timestamp)) return "Unknown";
-
-  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
-  const units = [
-    { seconds: 31_536_000, label: "year" },
-    { seconds: 2_592_000, label: "month" },
-    { seconds: 86_400, label: "day" },
-    { seconds: 3_600, label: "hour" },
-    { seconds: 60, label: "minute" },
-  ] as const;
-
-  for (const unit of units) {
-    if (elapsedSeconds >= unit.seconds) {
-      const amount = Math.floor(elapsedSeconds / unit.seconds);
-      return `${amount} ${unit.label}${amount === 1 ? "" : "s"} ago`;
-    }
-  }
-  return "Just now";
 }
 
 function periodHref(playerName: string, period: string, timeZone: string): string {
@@ -172,7 +150,7 @@ export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileRe
         <Stat label="Deaths" value={profile.deaths} />
         <Stat label="K/D" value={profile.killDeathRatio ?? (profile.kills ? "∞" : "0.00")} />
         <Stat label="Playtime" value={formatPlaytime(profile.playtimeSeconds)} />
-        <Stat compact label="Last online" value={formatLastOnline(profile.lastOnline)} />
+        <Stat compact label="Last online" value={formatRelativeTime(profile.lastOnline)} />
       </dl>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">

@@ -14,6 +14,8 @@ The public API is compatible with the previous Q3JS server registry:
   packaged game servers.
 - `GET /api/players` searches player profiles by Quake handle.
 - `GET /api/players/{playerName}` returns detailed player statistics.
+- `GET /api/scoreboard` returns searchable and paginated global frag rankings.
+- `GET /api/scoreboard/distribution` returns hourly or daily frag activity.
 - `GET /api/stats` returns players online, the top fragger from the rolling last
   24 hours, and the all-time recorded frag count.
 - `GET /q/health` reports Quarkus health checks.
