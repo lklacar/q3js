@@ -5,6 +5,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Crosshair, Skull, Users } from "@phosphor-icons/react";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import { QueryBoundary } from "@/components/query-boundary";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { SiteStatsResponse } from "@/lib/api/generated/types.gen";
 import { masterStatsQueryOptions } from "@/lib/master-server-query";
 
@@ -61,11 +62,21 @@ function HomeStatsQuery() {
 }
 
 function HomeStatsPending() {
+  const pendingStats = [
+    { label: "Players online", icon: Users, valueWidth: "w-12", detailWidth: "w-4/5" },
+    { label: "Most frags last 24 hours", icon: Crosshair, valueWidth: "w-32", detailWidth: "w-24" },
+    { label: "Total frags ever", icon: Skull, valueWidth: "w-20", detailWidth: "w-3/4" },
+  ] as const;
+
   return (
-    <div className="mb-10 grid gap-3 sm:grid-cols-3" aria-label="Loading Q3JS statistics">
-      {["Players online", "Most frags last 24 hours", "Total frags ever"].map((label) => (
-        <div key={label} className="arena-card h-[7.75rem] animate-pulse border border-border/60 bg-card/55 p-4">
-          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
+    <div className="mb-10 grid gap-3 sm:grid-cols-3" aria-busy="true" aria-label="Loading Q3JS statistics">
+      {pendingStats.map(({ label, icon: Icon, valueWidth, detailWidth }) => (
+        <div key={label} className="arena-card border border-border/60 bg-card/55 p-4">
+          <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+            <Icon className="size-4 text-primary" /> {label}
+          </div>
+          <Skeleton className={`mt-3 h-7 ${valueWidth}`} />
+          <Skeleton className={`mt-3 h-2 ${detailWidth} bg-muted/70`} />
         </div>
       ))}
     </div>

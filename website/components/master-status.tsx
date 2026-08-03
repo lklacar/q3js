@@ -10,7 +10,9 @@ function StatusBadge({ state }: Readonly<{ state: "checking" | "offline" | "onli
       className="inline-flex items-center gap-2 text-[11px] text-muted-foreground"
       aria-live="polite"
     >
-      <span className={`size-1.5 rounded-full ${state === "online" ? "bg-green-500" : "bg-muted-foreground"}`} />
+      <span
+        className={`size-1.5 rounded-full ${state === "online" ? "bg-green-500" : "bg-muted-foreground"} ${state === "checking" ? "motion-safe:animate-pulse" : ""}`}
+      />
       {state === "checking" ? "Checking master" : `Master ${state}`}
     </span>
   );

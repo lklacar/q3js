@@ -13,6 +13,7 @@ import {
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import { QueryBoundary } from "@/components/query-boundary";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePlayerName } from "@/hooks/use-player-name";
 import type { ListedServer } from "@/lib/master-server";
 import { masterServerQueryOptions } from "@/lib/master-server-query";
@@ -146,7 +147,11 @@ function FilterButton({ active, children, onClick }: Readonly<{
   );
 }
 
-function BrowserHeading({ serverCount, playerCount }: Readonly<{ serverCount?: number; playerCount?: number }>) {
+function BrowserHeading({ serverCount, playerCount, pending = false }: Readonly<{
+  serverCount?: number;
+  playerCount?: number;
+  pending?: boolean;
+}>) {
   return (
     <div className="flex items-end justify-between gap-4">
       <div>
@@ -159,6 +164,12 @@ function BrowserHeading({ serverCount, playerCount }: Readonly<{ serverCount?: n
           {countLabel(serverCount, "server")}<br />
           {countLabel(playerCount ?? 0, "player")} online
         </p>
+      )}
+      {pending && (
+        <div className="w-20 shrink-0 space-y-2" aria-hidden="true">
+          <Skeleton className="ml-auto h-2 w-14" />
+          <Skeleton className="ml-auto h-2 w-20 bg-muted/70" />
+        </div>
       )}
     </div>
   );
@@ -281,14 +292,74 @@ function ServerBrowserQuery() {
 
 function ServerBrowserPending() {
   return (
-    <section id="servers" aria-labelledby="servers-heading">
-      <BrowserHeading />
-      <div className="mt-6 grid min-h-64 place-items-center border border-border/60 bg-card/50 text-center">
-        <div>
-          <ArrowClockwise className="mx-auto mb-3 size-4 animate-spin text-muted-foreground" />
-          <p className="text-xs text-muted-foreground">Loading server list…</p>
+    <section id="servers" aria-labelledby="servers-heading" aria-busy="true">
+      <BrowserHeading pending />
+
+      <div className="mt-6 border border-border/60 bg-card/60 p-4" aria-hidden="true">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.55fr)_auto]">
+          <div className="relative flex h-10 items-center border border-border bg-input pl-9 pr-3 text-xs text-muted-foreground">
+            <MagnifyingGlass className="absolute left-3 size-4" />
+            Search server, map, or player
+          </div>
+          <div className="relative flex h-10 items-center border border-border bg-input px-3 pr-10 font-mono text-xs text-muted-foreground">
+            Player name
+            <DiceFive className="absolute right-3 size-4" />
+          </div>
+          <div className="flex gap-2">
+            <Button size="lg" className="h-10 flex-1 px-4 lg:flex-none" disabled>Quick play</Button>
+            <Button variant="outline" size="icon-lg" className="size-10 bg-transparent" disabled>
+              <ArrowClockwise className="animate-spin" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-1">
+          <Button variant="secondary" size="sm" disabled>All</Button>
+          <Button variant="ghost" size="sm" disabled>With players</Button>
+          <Button variant="ghost" size="sm" disabled>Open slots</Button>
+          <span className="ml-auto flex items-center gap-2 font-mono text-[9px] text-muted-foreground">
+            <span className="size-1.5 bg-primary motion-safe:animate-pulse" /> Syncing arenas
+          </span>
         </div>
       </div>
+
+      <article className="arena-card mt-5 border border-border/60 bg-card/50" aria-hidden="true">
+        <div className="p-5 md:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <Skeleton className="h-5 w-44 max-w-[70%]" />
+              <Skeleton className="mt-2 h-2 w-28 bg-muted/70" />
+            </div>
+            <Button size="lg" disabled>Join arena</Button>
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            <Skeleton className="h-6 w-16 bg-muted/70" />
+            <Skeleton className="h-6 w-24 bg-muted/70" />
+            <Skeleton className="h-6 w-28 bg-muted/70" />
+          </div>
+
+          <div className="mt-5 flex items-center gap-3">
+            <Skeleton className="h-3 w-8" />
+            <Skeleton className="h-1.5 w-24 bg-muted/70" />
+            <span className="text-xs text-muted-foreground">players</span>
+            <Skeleton className="ml-3 h-3 w-10" />
+          </div>
+
+          <div className="mt-5 border-t border-border/50 pt-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] px-3 pb-2 font-mono text-[9px] uppercase text-muted-foreground">
+              <span>Players</span>
+              <span className="text-right">Score</span>
+              <span className="text-right">Ping</span>
+            </div>
+            <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center bg-background/25 px-3 py-2.5">
+              <Skeleton className="h-3 w-32 max-w-[75%]" />
+              <Skeleton className="ml-auto h-3 w-5" />
+              <Skeleton className="ml-auto h-3 w-8" />
+            </div>
+          </div>
+        </div>
+      </article>
     </section>
   );
 }

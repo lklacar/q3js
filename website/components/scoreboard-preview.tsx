@@ -6,6 +6,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight, Trophy } from "@phosphor-icons/react";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import { QueryBoundary } from "@/components/query-boundary";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { ScoreboardPeriod } from "@/lib/api/generated/types.gen";
 import { formatRelativeTime } from "@/lib/format";
 import { scoreboardPreviewQueryOptions } from "@/lib/scoreboard-query";
@@ -105,8 +106,55 @@ function PreviewQuery() {
 
 function ScoreboardPreviewPending() {
   return (
-    <section className="mb-10 h-72 animate-pulse border border-border/60 bg-card/35 p-5" aria-label="Loading top fraggers">
-      <span className="font-mono text-[9px] uppercase text-muted-foreground">Top fraggers</span>
+    <section
+      className="arena-card mb-10 border border-border/60 bg-card/35 p-5 md:p-6"
+      aria-busy="true"
+      aria-label="Loading top fraggers"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.16em] text-primary">01 / Global frag feed</p>
+          <div className="flex items-center gap-2">
+            <Trophy className="size-4 text-primary" />
+            <h2 className="font-mono text-xl font-bold uppercase tracking-[0.035em]">Top fraggers</h2>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">Global frag leaders for the selected period.</p>
+        </div>
+        <div className="flex flex-wrap gap-1 bg-background/35 p-1" aria-hidden="true">
+          {periods.map((option, index) => (
+            <button
+              key={option.value}
+              type="button"
+              disabled
+              className={cn(
+                "px-3 py-2 text-[10px] text-muted-foreground",
+                index === 0 && "bg-secondary text-foreground",
+              )}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <ol className="mt-5 divide-y divide-border/40" aria-hidden="true">
+        {[1, 2, 3].map((rank) => (
+          <li key={rank} className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 py-3">
+            <span className="font-mono text-[10px] font-bold text-primary">#{rank}</span>
+            <div>
+              <Skeleton className="h-3 w-28 max-w-[70%]" />
+              <Skeleton className="mt-2 h-2 w-36 max-w-[85%] bg-muted/70" />
+            </div>
+            <Skeleton className="h-3 w-16" />
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-4 flex justify-end">
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          View frag rankings <ArrowRight className="size-3.5" />
+        </span>
+      </div>
     </section>
   );
 }
