@@ -1,5 +1,8 @@
 .DS_Store
 
+# IDE metadata
+.idea/
+
 # Game client build output
 /game/build/
 /game/dist/
