@@ -25,7 +25,7 @@ export default function Home() {
         </div>
 
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-          <ServerBrowser servers={[]} />
+          <ServerBrowser />
           <ScoreboardPreview entries={[]} />
         </div>
       </main>

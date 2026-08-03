@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import { fileURLToPath } from "node:url";
 
 await build({
-  entryPoints: ["src/main.ts", "src/gateway.ts"],
+  entryPoints: ["src/main.ts", "src/gateway.ts", "src/master-heartbeat.ts"],
   bundle: true,
   platform: "node",
   format: "esm",

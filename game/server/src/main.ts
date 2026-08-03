@@ -1,10 +1,20 @@
 import { loadConfig } from "./config.js";
 import { GameServer } from "./game-server.js";
 import { Gateway } from "./gateway.js";
+import { MasterHeartbeat } from "./master-heartbeat.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
   const gameServer = new GameServer(config);
+  const masterHeartbeat = new MasterHeartbeat({
+    masterBaseUrl: config.masterBaseUrl,
+    intervalMs: config.heartbeatIntervalMs,
+    timeoutMs: config.heartbeatTimeoutMs,
+    targetHost: config.publishHost,
+    proxyPort: config.publishPort,
+    targetPort: config.gamePort,
+    secure: config.secure,
+  });
   let gameReady = false;
   let stopping = false;
 
@@ -30,6 +40,7 @@ async function main(): Promise<void> {
     }
     stopping = true;
     gameReady = false;
+    masterHeartbeat.stop();
     await gateway.stop().catch((error: unknown) => console.error("Gateway shutdown failed:", error));
     await gameServer.stop().catch((error: unknown) => console.error("Game server shutdown failed:", error));
     process.exitCode = exitCode;
@@ -44,6 +55,7 @@ async function main(): Promise<void> {
     void gameServer.waitForExit().then((exitCode) => requestStop(exitCode));
     await gameServer.waitUntilReady();
     gameReady = true;
+    await masterHeartbeat.start();
     console.log(`Q3JS server ready: ws://${config.gatewayHost}:${gateway.address().port}/ws`);
     await stop(await stopRequested);
   } catch (error) {

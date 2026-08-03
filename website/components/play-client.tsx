@@ -15,6 +15,20 @@ interface Session {
   playerName: string;
   websocketUrl: string;
   address: string;
+  game: string;
+}
+
+export interface SelectedServer {
+  host: string;
+  proxyPort: number;
+  secure: boolean;
+  game: string;
+  name: string;
+}
+
+interface PlayClientProps {
+  selectedServer?: SelectedServer;
+  initialPlayerName?: string;
 }
 
 function formatBytes(bytes: number): string {
@@ -42,8 +56,8 @@ function progressLabel(progress: Q3ClientProgress | undefined): string {
   }
 }
 
-export function PlayClient() {
-  const [playerName, setPlayerName] = useState("Player");
+export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProps) {
+  const [playerName, setPlayerName] = useState(initialPlayerName?.trim() || "Player");
   const [session, setSession] = useState<Session>();
   const [progress, setProgress] = useState<Q3ClientProgress>();
   const [error, setError] = useState<string>();
@@ -95,7 +109,7 @@ export function PlayClient() {
       },
       game: {
         baseGame: "baseq3",
-        game: "q3js",
+        game: session.game,
       },
       player: { name: session.playerName },
       assets: BASE_ASSETS,
@@ -106,16 +120,32 @@ export function PlayClient() {
   }, [session]);
 
   const start = () => {
-    const host = window.location.hostname || "localhost";
-    const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     setError(undefined);
     setProgress(undefined);
+
+    if (selectedServer) {
+      const host = selectedServer.host.includes(":") && !selectedServer.host.startsWith("[")
+        ? `[${selectedServer.host}]`
+        : selectedServer.host;
+      const websocketProtocol = selectedServer.secure ? "wss:" : "ws:";
+      setSession({
+        playerName: playerName.trim() || "Player",
+        websocketUrl: `${websocketProtocol}//${host}:${selectedServer.proxyPort}/ws`,
+        address: `${host}:${selectedServer.proxyPort}`,
+        game: selectedServer.game,
+      });
+      return;
+    }
+
+    const host = window.location.hostname || "localhost";
+    const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     setSession({
       playerName: playerName.trim() || "Player",
       websocketUrl:
         process.env.NEXT_PUBLIC_Q3JS_WEBSOCKET_URL
         ?? `${websocketProtocol}//${host}:27961/ws`,
       address: process.env.NEXT_PUBLIC_Q3JS_SERVER_ADDRESS ?? `${host}:27961`,
+      game: "q3js",
     });
   };
 
@@ -134,14 +164,21 @@ export function PlayClient() {
     return (
       <section className="grid size-full place-items-center overflow-auto bg-background p-4">
         <div className="w-full max-w-xl border border-border bg-card/40 p-5 md:p-7">
-          <p className="text-[10px] uppercase tracking-wider text-primary">Local match</p>
+          <p className="text-[10px] uppercase tracking-wider text-primary">
+            {selectedServer ? "Selected server" : "Local match"}
+          </p>
           <h1 className="mt-2 text-xl font-bold uppercase tracking-tight md:text-2xl">
-            Launch Q3JS
+            {selectedServer ? selectedServer.name : "Launch Q3JS"}
           </h1>
           <p className="mt-3 text-xs leading-5 text-muted-foreground">
             The first launch downloads the base game data into browser storage. Later launches
             reuse the local copy. The Q3JS game package comes directly from the connected server.
           </p>
+          {selectedServer && (
+            <p className="mt-3 text-[10px] uppercase text-muted-foreground">
+              {selectedServer.secure ? "wss" : "ws"}://{selectedServer.host}:{selectedServer.proxyPort}/ws
+            </p>
+          )}
 
           <label className="mt-6 block text-[10px] uppercase text-muted-foreground">
             Player name

@@ -1,7 +1,16 @@
 # Q3JS master server
 
-The master server is a Quarkus application backed by PostgreSQL. Flyway applies
-the existing Q3JS schema when the application starts.
+The master server is the Q3JS game-server registry. Packaged Q3JS servers send
+periodic heartbeats to it; the master queries their Quake status through the
+WebSocket gateway, persists the latest successful response, and removes servers
+that stop reporting.
+
+The public API is compatible with the previous Q3JS server registry:
+
+- `PUT /api/servers/heartbeat` registers or refreshes a server.
+- `GET /api/servers` returns live servers with their latest status and players.
+- `GET /api/status` reports application status.
+- `GET /q/health` reports Quarkus health checks.
 
 ## Development
 
@@ -11,15 +20,20 @@ Start PostgreSQL from the repository root:
 docker compose up -d database
 ```
 
-Then start the master server:
+Then start the master server from the repository root:
 
 ```shell
-cd master
-./mvnw quarkus:dev
+make master-run
 ```
 
-The API status endpoint is available at `http://localhost:8080/api/status` and
-Quarkus health checks are available at `http://localhost:8080/q/health`.
+Run a packaged Q3JS server separately with `make server-run`. Its local defaults
+publish `localhost:27961` to this master at `http://localhost:8080`.
+
+Servers are refreshed every five seconds. A failed status query retains the last
+successful response, while a missing heartbeat removes the server after five
+minutes. These values are configured with `q3js.master.refresh-every`,
+`q3js.master.prune-every`, `q3js.master.heartbeat-ttl`, and
+`q3js.master.server-status-timeout`.
 
 ## jOOQ code generation
 
@@ -49,7 +63,7 @@ them with `Q3JS_DB_URL`, `Q3JS_DB_USER`, and `Q3JS_DB_PASSWORD`.
 ## Build
 
 ```shell
-./mvnw verify
+make master
 ```
 
 Application services can inject the configured `org.jooq.DSLContext`; it uses

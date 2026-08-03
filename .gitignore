@@ -10,3 +10,7 @@
 
 # JavaScript workspace dependencies
 node_modules/
+
+# Local environment files
+.env*
+!.env.example

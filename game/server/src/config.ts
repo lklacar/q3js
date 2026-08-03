@@ -10,6 +10,12 @@ export interface ServerConfig {
   gamePort: number;
   gatewayHost: string;
   gatewayPort: number;
+  masterBaseUrl: string;
+  heartbeatIntervalMs: number;
+  heartbeatTimeoutMs: number;
+  publishHost: string;
+  publishPort: number;
+  secure: boolean;
   maxConnections: number;
   maxPacketBytes: number;
   idleTimeoutMs: number;
@@ -28,6 +34,29 @@ function integer(environment: NodeJS.ProcessEnv, name: string, fallback: number,
   return value;
 }
 
+function boolean(environment: NodeJS.ProcessEnv, name: string, fallback: boolean): boolean {
+  const raw = environment[name]?.trim().toLowerCase();
+  if (raw === undefined || raw === "") {
+    return fallback;
+  }
+  if (raw === "true" || raw === "1") {
+    return true;
+  }
+  if (raw === "false" || raw === "0") {
+    return false;
+  }
+  throw new Error(`${name} must be true, false, 1, or 0.`);
+}
+
+function httpUrl(environment: NodeJS.ProcessEnv, name: string, fallback: string): string {
+  const raw = environment[name]?.trim() || fallback;
+  const parsed = new URL(raw);
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error(`${name} must use the http or https protocol.`);
+  }
+  return parsed.href;
+}
+
 export function loadConfig(
   environment: NodeJS.ProcessEnv = process.env,
   extraGameArguments: readonly string[] = process.argv.slice(2),
@@ -35,6 +64,7 @@ export function loadConfig(
   const appDirectory = path.dirname(fileURLToPath(import.meta.url));
   const releaseDirectory = path.resolve(appDirectory, "..");
   const homePath = path.resolve(environment.Q3JS_HOME_PATH ?? path.join(releaseDirectory, "..", "state"));
+  const gatewayPort = integer(environment, "Q3JS_GATEWAY_PORT", 27961, 1, 65535);
 
   const config: ServerConfig = {
     releaseDirectory,
@@ -44,7 +74,13 @@ export function loadConfig(
     gameHost: environment.Q3JS_GAME_HOST?.trim() || "127.0.0.1",
     gamePort: integer(environment, "Q3JS_GAME_PORT", 27960, 1, 65535),
     gatewayHost: environment.Q3JS_GATEWAY_HOST?.trim() || "0.0.0.0",
-    gatewayPort: integer(environment, "Q3JS_GATEWAY_PORT", 27961, 1, 65535),
+    gatewayPort,
+    masterBaseUrl: httpUrl(environment, "Q3JS_MASTER_URL", "http://localhost:8080"),
+    heartbeatIntervalMs: integer(environment, "Q3JS_HEARTBEAT_INTERVAL_MS", 5000, 1000, 3600000),
+    heartbeatTimeoutMs: integer(environment, "Q3JS_HEARTBEAT_TIMEOUT_MS", 3000, 100, 60000),
+    publishHost: environment.Q3JS_PUBLISH_HOST?.trim() || "localhost",
+    publishPort: integer(environment, "Q3JS_PUBLISH_PORT", gatewayPort, 1, 65535),
+    secure: boolean(environment, "Q3JS_SECURE", false),
     maxConnections: integer(environment, "Q3JS_MAX_CONNECTIONS", 128, 1, 4096),
     maxPacketBytes: integer(environment, "Q3JS_MAX_PACKET_BYTES", 65535, 1024, 1048576),
     idleTimeoutMs: integer(environment, "Q3JS_IDLE_TIMEOUT_MS", 120000, 1000, 3600000),

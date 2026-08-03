@@ -1,21 +1,70 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowClockwise, MagnifyingGlass, UsersThree } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { fetchServers, type ListedServer } from "@/lib/master-server";
 
-export type Server = {
-  id: string;
-  name: string;
-  map: string;
-  mode: string;
-  players: number;
-  capacity: number;
-  ping?: number;
-};
+function joinHref(server: ListedServer): string {
+  const parameters = new URLSearchParams({
+    host: server.host,
+    proxyPort: String(server.proxyPort),
+    secure: server.secure ? "1" : "0",
+    game: server.game,
+    serverName: server.name,
+  });
+  const insecurePlayUrl = process.env.NEXT_PUBLIC_Q3JS_INSECURE_PLAY_URL?.replace(/\/$/, "") ?? "";
+  const baseUrl = server.secure ? "" : insecurePlayUrl;
+  return `${baseUrl}/play?${parameters.toString()}`;
+}
 
-export function ServerBrowser({ servers }: { servers: Server[] }) {
+export function ServerBrowser() {
   const [query, setQuery] = useState("");
+  const [servers, setServers] = useState<ListedServer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
+  const requestRef = useRef<AbortController>(undefined);
+
+  const refresh = useCallback(async () => {
+    requestRef.current?.abort();
+    const request = new AbortController();
+    requestRef.current = request;
+    setLoading(true);
+    setError(undefined);
+    try {
+      setServers(await fetchServers(request.signal));
+    } catch (requestError) {
+      if (!request.signal.aborted) {
+        setError(requestError instanceof Error ? requestError.message : "Unable to reach the master server");
+      }
+    } finally {
+      if (requestRef.current === request) {
+        requestRef.current = undefined;
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const request = new AbortController();
+    requestRef.current = request;
+    fetchServers(request.signal)
+      .then((liveServers) => setServers(liveServers))
+      .catch((requestError: unknown) => {
+        if (!request.signal.aborted) {
+          setError(requestError instanceof Error ? requestError.message : "Unable to reach the master server");
+        }
+      })
+      .finally(() => {
+        if (requestRef.current === request) {
+          requestRef.current = undefined;
+          setLoading(false);
+        }
+      });
+    return () => request.abort();
+  }, []);
+
   const normalizedQuery = query.trim().toLowerCase();
   const filteredServers = useMemo(
     () => servers.filter((server) =>
@@ -57,12 +106,19 @@ export function ServerBrowser({ servers }: { servers: Server[] }) {
             variant="outline"
             size="lg"
             className="h-9 border-border bg-transparent text-xs"
-            onClick={() => window.location.reload()}
+            disabled={loading}
+            onClick={() => void refresh()}
           >
-            <ArrowClockwise />
+            <ArrowClockwise className={loading ? "animate-spin" : undefined} />
             Refresh
           </Button>
         </div>
+
+        {error && (
+          <p role="alert" className="border-b border-border px-3 py-2 text-[10px] text-primary">
+            {error}. Check that the master server is running, then refresh.
+          </p>
+        )}
 
         {filteredServers.length > 0 ? (
           <div className="divide-y divide-border">
@@ -79,7 +135,13 @@ export function ServerBrowser({ servers }: { servers: Server[] }) {
                     <UsersThree className="size-4" />
                     {server.players}/{server.capacity}
                   </span>
-                  <Button size="lg" className="h-9 px-4 text-xs">Join</Button>
+                  {server.capacity > 0 && server.players >= server.capacity ? (
+                    <Button size="lg" className="h-9 px-4 text-xs" disabled>Full</Button>
+                  ) : (
+                    <Button asChild size="lg" className="h-9 px-4 text-xs">
+                      <Link href={joinHref(server)}>Join</Link>
+                    </Button>
+                  )}
                 </div>
               </article>
             ))}
@@ -91,12 +153,18 @@ export function ServerBrowser({ servers }: { servers: Server[] }) {
                 <UsersThree className="size-5" />
               </span>
               <p className="text-sm font-semibold">
-                {servers.length === 0 ? "No servers are live" : "No servers match your search"}
+                {loading && servers.length === 0
+                  ? "Finding live servers"
+                  : servers.length === 0
+                    ? "No servers are live"
+                    : "No servers match your search"}
               </p>
               <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-muted-foreground">
-                {servers.length === 0
-                  ? "The master server connection will appear here as the new backend comes online."
-                  : "Try another server name, map, or game mode."}
+                {loading && servers.length === 0
+                  ? "Asking the Q3JS master server for the current server list."
+                  : servers.length === 0
+                    ? "Start a Q3JS server or wait for one to send its next heartbeat."
+                    : "Try another server name, map, or game mode."}
               </p>
               {normalizedQuery && (
                 <Button variant="outline" size="sm" className="mt-4" onClick={() => setQuery("")}>

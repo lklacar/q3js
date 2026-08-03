@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DiscordLogo, GithubLogo } from "@phosphor-icons/react/dist/ssr";
+import { MasterStatus } from "@/components/master-status";
 
 const navItems = [
   { label: "Play", href: "/play" },
@@ -16,10 +17,7 @@ export function SiteHeader() {
         </Link>
 
         <div className="hidden items-center gap-2 sm:flex">
-          <span className="inline-flex h-7 items-center gap-2 border border-border px-2.5 text-[10px] uppercase text-muted-foreground">
-            <span className="size-1.5 bg-muted-foreground" />
-            Master offline
-          </span>
+          <MasterStatus />
           {navItems.map((item) => (
             <Link
               key={item.href}
