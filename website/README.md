@@ -64,13 +64,11 @@ docker build -f website/Dockerfile -t q3js-website \
 
 docker run --rm -p 3000:3000 \
   -e Q3JS_MASTER_URL=http://master:8080 \
-  -v /path/to/game-data:/data:ro \
+  -v /path/to/baseq3:/data/baseq3:ro \
   q3js-website
 ```
 
-The mounted data directory must contain `baseq3/pak0.pk3` through
-`baseq3/pak8.pk3` for the browser client asset route.
-
-Alternatively, pass `Q3JS_GAME_DATA_URL` as a build argument to fetch those
-archives into the image during a controlled deployment. The default build does
-not download or bundle game data.
+The image never downloads or contains proprietary Quake III data. For the
+preferred Dokploy setup, build `static/Dockerfile`, mount the PK3 volume into
+that container, and route `/baseq3` to it. Mount the volume into the website at
+`/data/baseq3` only when using the built-in Next.js asset route as a fallback.

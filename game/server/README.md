@@ -54,14 +54,15 @@ Build the combined game server and WebSocket gateway from the repository root:
 docker build -f game/server/Dockerfile -t q3js-server .
 ```
 
-The image does not contain proprietary Quake III data. Mount a directory that
-contains `baseq3` at `/data`, and persist generated server state at `/state`:
+The image never downloads or contains proprietary Quake III data. Mount the
+directory containing `pak0.pk3` through `pak8.pk3` at `/data/baseq3`, and
+persist generated server state at `/state`:
 
 ```sh
 docker run --rm \
   -p 27960:27960/udp \
   -p 27961:27961/tcp \
-  -v /path/to/game-data:/data:ro \
+  -v /path/to/baseq3:/data/baseq3:ro \
   -v q3js-server-state:/state \
   -e Q3JS_MASTER_URL=https://master.example.com \
   -e Q3JS_EVENT_CLIENT_SECRET=replace-with-a-production-secret \
@@ -70,6 +71,5 @@ docker run --rm \
   q3js-server
 ```
 
-For a controlled deployment pipeline, `Q3JS_GAME_DATA_URL` can instead be passed
-as a build argument. The builder fetches `baseq3/pak0.pk3` through
-`baseq3/pak8.pk3` from that URL and seeds `/data`; the default remains empty.
+In Dokploy, attach the PK3 volume to `/data/baseq3`. The PK3 files must be at
+the root of that volume; no build arguments or download URLs are required.
