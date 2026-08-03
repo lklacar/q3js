@@ -27,6 +27,25 @@ test("allows event ingestion URL and secret overrides", () => {
   assert.equal(config.eventClientSecret, secret);
 });
 
+test("allows the complete game-server config to come from the environment", () => {
+  const serverConfig = 'seta sv_hostname "Environment Arena"; seta fraglimit "30"; map q3dm17';
+  const config = loadConfig({ Q3JS_SERVER_CONFIG: `  ${serverConfig}  ` }, []);
+
+  assert.equal(config.serverConfig, serverConfig);
+  assert.equal(loadConfig({}, []).serverConfig, undefined);
+});
+
+test("rejects unsafe or oversized game-server config", () => {
+  assert.throws(
+    () => loadConfig({ Q3JS_SERVER_CONFIG: "seta sv_hostname bad\0name" }, []),
+    /must not contain null bytes/,
+  );
+  assert.throws(
+    () => loadConfig({ Q3JS_SERVER_CONFIG: "x".repeat(65_537) }, []),
+    /must not exceed 65536 bytes/,
+  );
+});
+
 test("rejects weak event client secrets", () => {
   assert.throws(
     () => loadConfig({ Q3JS_EVENT_CLIENT_SECRET: "too-short" }, []),

@@ -53,6 +53,7 @@ export class GameServer {
   #process?: ChildProcess;
   #exitPromise?: Promise<number>;
   #eventConfigPath: string | undefined;
+  #serverConfigPath: string | undefined;
 
   constructor(config: ServerConfig) {
     this.#config = config;
@@ -92,7 +93,7 @@ export class GameServer {
         child.once("error", reject);
       });
     } catch (error) {
-      await this.#removeEventConfig();
+      await this.#removeRuntimeConfigs();
       throw error;
     }
   }
@@ -104,7 +105,7 @@ export class GameServer {
         throw new Error("ioq3ded exited before becoming ready.");
       }
       if (await queryStatus(this.#config.gameHost, this.#config.gamePort, 500)) {
-        await this.#removeEventConfig();
+        await this.#removeRuntimeConfigs();
         return;
       }
       await delay(250);
@@ -122,7 +123,7 @@ export class GameServer {
   async stop(): Promise<void> {
     const child = this.#process;
     if (!child || child.exitCode !== null || child.signalCode !== null) {
-      await this.#removeEventConfig();
+      await this.#removeRuntimeConfigs();
       return;
     }
 
@@ -135,10 +136,13 @@ export class GameServer {
       child.kill("SIGKILL");
       await this.waitForExit();
     }
-    await this.#removeEventConfig();
+    await this.#removeRuntimeConfigs();
   }
 
   #arguments(): string[] {
+    const serverConfigArguments = this.#config.serverConfig
+      ? ["+exec", "q3js-server.cfg"]
+      : ["+exec", "q3js-defaults.cfg", "+exec", "autoexec.cfg"];
     const arguments_ = [
       "+set", "dedicated", "2",
       "+set", "fs_basepath", this.#config.basePath,
@@ -151,8 +155,7 @@ export class GameServer {
       "+set", "sv_dlURL", "",
       "+sets", "gamename", "q3js",
       "+exec", "q3js-events.cfg",
-      "+exec", "q3js-defaults.cfg",
-      "+exec", "autoexec.cfg",
+      ...serverConfigArguments,
     ];
 
     if (this.#config.rconPassword) {
@@ -185,10 +188,19 @@ export class GameServer {
       sourceGamePackage,
       path.join(targetGameDirectory, manifest.gamePackage.filename),
     );
-    await copyFile(
-      path.join(this.#config.releaseDirectory, "config", "q3js-defaults.cfg"),
-      path.join(targetGameDirectory, "q3js-defaults.cfg"),
-    );
+    if (this.#config.serverConfig) {
+      this.#serverConfigPath = path.join(targetGameDirectory, "q3js-server.cfg");
+      await writeFile(
+        this.#serverConfigPath,
+        `${this.#config.serverConfig}\n`,
+        { encoding: "utf8", mode: 0o600 },
+      );
+    } else {
+      await copyFile(
+        path.join(this.#config.releaseDirectory, "config", "q3js-defaults.cfg"),
+        path.join(targetGameDirectory, "q3js-defaults.cfg"),
+      );
+    }
 
     this.#eventConfigPath = path.join(targetGameDirectory, "q3js-events.cfg");
     await writeFile(
@@ -198,12 +210,11 @@ export class GameServer {
     );
   }
 
-  async #removeEventConfig(): Promise<void> {
-    if (!this.#eventConfigPath) {
-      return;
-    }
-    const eventConfigPath = this.#eventConfigPath;
+  async #removeRuntimeConfigs(): Promise<void> {
+    const configPaths = [this.#eventConfigPath, this.#serverConfigPath]
+      .filter((configPath): configPath is string => configPath !== undefined);
     this.#eventConfigPath = undefined;
-    await rm(eventConfigPath, { force: true });
+    this.#serverConfigPath = undefined;
+    await Promise.all(configPaths.map((configPath) => rm(configPath, { force: true })));
   }
 }

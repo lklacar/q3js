@@ -24,6 +24,7 @@ export interface ServerConfig {
   startupTimeoutMs: number;
   shutdownTimeoutMs: number;
   rconPassword?: string;
+  serverConfig?: string;
   extraGameArguments: readonly string[];
 }
 
@@ -78,6 +79,20 @@ function eventClientSecret(environment: NodeJS.ProcessEnv, eventIngestionUrl: st
   return value;
 }
 
+function serverConfig(environment: NodeJS.ProcessEnv): string | undefined {
+  const configured = environment.Q3JS_SERVER_CONFIG?.trim();
+  if (!configured) {
+    return undefined;
+  }
+  if (configured.includes("\0")) {
+    throw new Error("Q3JS_SERVER_CONFIG must not contain null bytes.");
+  }
+  if (Buffer.byteLength(configured, "utf8") > 65_536) {
+    throw new Error("Q3JS_SERVER_CONFIG must not exceed 65536 bytes.");
+  }
+  return configured;
+}
+
 export function loadConfig(
   environment: NodeJS.ProcessEnv = process.env,
   extraGameArguments: readonly string[] = process.argv.slice(2),
@@ -121,6 +136,11 @@ export function loadConfig(
   const rconPassword = environment.Q3JS_RCON_PASSWORD?.trim();
   if (rconPassword) {
     config.rconPassword = rconPassword;
+  }
+
+  const configuredServer = serverConfig(environment);
+  if (configuredServer) {
+    config.serverConfig = configuredServer;
   }
 
   return config;

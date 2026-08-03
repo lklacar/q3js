@@ -43,6 +43,8 @@ Runtime variables:
 - `Q3JS_HEARTBEAT_INTERVAL_MS`, `Q3JS_HEARTBEAT_TIMEOUT_MS`: heartbeat timing,
   defaults `5000` and `3000`
 - `Q3JS_RCON_PASSWORD`: optional RCON password
+- `Q3JS_SERVER_CONFIG`: complete ioq3 server config. When set, it replaces the
+  bundled `q3js-defaults.cfg` and `autoexec.cfg`; include a `map` command.
 
 Arguments passed to `game/server/run.sh` are appended to the ioq3ded command line.
 
@@ -68,8 +70,11 @@ docker run --rm \
   -e Q3JS_EVENT_CLIENT_SECRET=replace-with-a-production-secret \
   -e Q3JS_PUBLISH_HOST=quake.example.com \
   -e Q3JS_SECURE=true \
+  -e 'Q3JS_SERVER_CONFIG=seta sv_hostname "Q3JS Arena"; seta sv_maxclients "16"; seta g_gametype "0"; seta fraglimit "20"; seta timelimit "15"; map q3dm17' \
   q3js-server
 ```
 
 In Dokploy, attach the PK3 volume to `/data/baseq3`. The PK3 files must be at
 the root of that volume; no build arguments or download URLs are required.
+Put the full Quake config in a single `Q3JS_SERVER_CONFIG` environment entry;
+commands may be separated with semicolons or literal newlines.
