@@ -11,6 +11,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@next/third-parties": "16.2.12",
     "@phosphor-icons/react": "^2.1.10",
     "@q3js/client": "workspace:*",
     "@tanstack/react-query": "^5.101.4",

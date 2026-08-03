@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { CaretLeft, CaretRight, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
+import { JsonLd } from "@/components/json-ld";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import { Button } from "@/components/ui/button";
 import type { ScoreboardPageResponse, ScoreboardPeriod } from "@/lib/api/generated/types.gen";
 import { formatRelativeTime } from "@/lib/format";
+import { absoluteUrl, siteConfig } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 const periods = [
@@ -32,6 +34,10 @@ function formatNumber(value: number): string {
   return new Intl.NumberFormat("en").format(value);
 }
 
+function stripQuakeColors(value: string): string {
+  return value.replace(/\^(?:[0-9]|x[0-9a-f]{6})/gi, "").replaceAll("^^", "^");
+}
+
 function SummaryStat({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
   return (
     <div className="px-5 py-4">
@@ -52,9 +58,36 @@ export function ScoreboardPage({
 }>) {
   const activePeriod = periods.find((period) => period.response === scoreboard.period) ?? periods[0];
   const firstRank = (scoreboard.page - 1) * scoreboard.pageSize + 1;
+  const description = `Global Q3JS frag rankings for ${activePeriod.label.toLowerCase()}.`;
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-20 pt-8 md:pt-12">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Q3JS Global Scoreboard",
+          description,
+          url: absoluteUrl("/scoreboard"),
+          inLanguage: siteConfig.language,
+          isPartOf: {
+            "@type": "WebSite",
+            name: siteConfig.name,
+            url: siteConfig.url,
+          },
+          mainEntity: {
+            "@type": "ItemList",
+            name: `${activePeriod.label} frag rankings`,
+            numberOfItems: scoreboard.totalEntries,
+            itemListElement: scoreboard.entries.map((entry, index) => ({
+              "@type": "ListItem",
+              position: firstRank + index,
+              url: absoluteUrl(`/players/${encodeURIComponent(entry.playerName)}`),
+              name: stripQuakeColors(entry.playerName) || entry.playerName,
+            })),
+          },
+        }}
+      />
       <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">Global rankings</p>
@@ -64,7 +97,7 @@ export function ScoreboardPage({
           </p>
         </div>
 
-        <nav aria-label="Scoreboard period" className="flex flex-wrap gap-1 bg-card/45 p-1">
+        <nav aria-label="Scoreboard period" className="flex flex-wrap gap-1 border border-border/60 bg-card/45 p-1">
           {periods.map((period) => (
             <Link
               key={period.value}
@@ -81,7 +114,7 @@ export function ScoreboardPage({
         </nav>
       </header>
 
-      <dl className="mt-8 grid grid-cols-2 bg-card/55 sm:grid-cols-3">
+      <dl className="mt-8 grid grid-cols-2 border border-border/60 bg-card/55 sm:grid-cols-3">
         <SummaryStat label={search ? "Matching players" : "Ranked players"} value={formatNumber(scoreboard.totalEntries)} />
         <SummaryStat label={search ? "Matching frags" : "Total frags"} value={formatNumber(scoreboard.totalKills)} />
         <div className="col-span-2 sm:col-span-1">
@@ -89,7 +122,7 @@ export function ScoreboardPage({
         </div>
       </dl>
 
-      <form action="/scoreboard" method="get" className="mt-4 flex flex-col gap-2 bg-card/35 p-3 sm:flex-row">
+      <form action="/scoreboard" method="get" className="mt-4 flex flex-col gap-2 border border-border/60 bg-card/35 p-3 sm:flex-row">
         <input type="hidden" name="period" value={activePeriod.value} />
         {timeZone !== "UTC" && <input type="hidden" name="timeZone" value={timeZone} />}
         <label className="relative min-w-0 flex-1">
@@ -113,7 +146,7 @@ export function ScoreboardPage({
       </form>
 
       {scoreboard.entries.length ? (
-        <div className="mt-4 overflow-x-auto bg-card/35">
+        <div className="mt-4 overflow-x-auto border border-border/60 bg-card/35">
           <table className="w-full min-w-[34rem] text-left text-xs">
             <thead className="bg-card/70 font-mono text-[9px] uppercase tracking-[0.08em] text-muted-foreground">
               <tr>
@@ -154,7 +187,7 @@ export function ScoreboardPage({
           </table>
         </div>
       ) : (
-        <div className="mt-4 bg-card/35 px-6 py-12 text-center">
+        <div className="mt-4 border border-border/60 bg-card/35 px-6 py-12 text-center">
           <p className="text-sm font-semibold">{search ? "No matching players." : "No frags recorded yet."}</p>
           <p className="mt-2 text-xs text-muted-foreground">
             {search ? "Try a shorter player name or clear the search." : "Play a match and check back here."}

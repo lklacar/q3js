@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Crosshair, Trophy } from "@phosphor-icons/react/dist/ssr";
+import { JsonLd } from "@/components/json-ld";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import type {
   ProfilePeriod,
@@ -8,6 +9,7 @@ import type {
   ProfileWeaponResponse,
 } from "@/lib/api/generated/types.gen";
 import { formatRelativeTime } from "@/lib/format";
+import { absoluteUrl, siteConfig } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 const periods = [
@@ -54,7 +56,7 @@ function Stat({
 function WeaponBreakdown({ kills, weapons }: Readonly<{ kills: number; weapons: ProfileWeaponResponse[] }>) {
   const maximum = Math.max(...weapons.map((weapon) => weapon.kills), 1);
   return (
-    <section aria-labelledby="weapons-heading" className="bg-card/45 p-5 md:p-6">
+    <section aria-labelledby="weapons-heading" className="border border-border/60 bg-card/45 p-5 md:p-6">
       <div className="flex items-baseline justify-between gap-4">
         <h2 id="weapons-heading" className="text-base font-bold">Weapons</h2>
         <span className="font-mono text-[9px] uppercase text-muted-foreground">{kills} total kills</span>
@@ -88,7 +90,7 @@ function Rivals({
   title,
 }: Readonly<{ empty: string; players: ProfileRivalResponse[]; title: string }>) {
   return (
-    <section className="bg-card/45 p-5 md:p-6">
+    <section className="border border-border/60 bg-card/45 p-5 md:p-6">
       <h2 className="text-base font-bold">{title}</h2>
       {players.length ? (
         <ol className="mt-4 divide-y divide-border/40">
@@ -114,8 +116,41 @@ function Rivals({
 
 export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileResponse; timeZone: string }>) {
   const plainName = stripQuakeColors(profile.playerName) || profile.playerName;
+  const activePeriod = periods.find((period) => period.response === profile.period) ?? periods[0];
+  const profileUrl = absoluteUrl(`/players/${encodeURIComponent(profile.playerName)}`);
+  const description = `${plainName}'s Q3JS player profile: ${profile.kills} kills and ${profile.deaths} deaths for ${activePeriod.label.toLowerCase()}.`;
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-20 pt-8 md:pt-12">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ProfilePage",
+          name: `${plainName} Player Profile`,
+          description,
+          url: profileUrl,
+          inLanguage: siteConfig.language,
+          dateModified: profile.lastOnline,
+          isPartOf: {
+            "@type": "WebSite",
+            name: siteConfig.name,
+            url: siteConfig.url,
+          },
+          mainEntity: {
+            "@type": "Person",
+            name: plainName,
+            identifier: profile.playerName,
+            url: profileUrl,
+            description: `${activePeriod.label} Q3JS stats for ${plainName}.`,
+            mainEntityOfPage: profileUrl,
+            additionalProperty: [
+              { "@type": "PropertyValue", name: "Q3JS rank", value: profile.rank ?? "Unranked" },
+              { "@type": "PropertyValue", name: "Kills", value: profile.kills },
+              { "@type": "PropertyValue", name: "Deaths", value: profile.deaths },
+              { "@type": "PropertyValue", name: "Playtime in seconds", value: profile.playtimeSeconds },
+            ],
+          },
+        }}
+      />
       <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0">
           <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">Player profile</p>
@@ -127,7 +162,7 @@ export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileRe
           )}
         </div>
 
-        <nav aria-label="Profile period" className="flex flex-wrap gap-1 bg-card/45 p-1">
+        <nav aria-label="Profile period" className="flex flex-wrap gap-1 border border-border/60 bg-card/45 p-1">
           {periods.map((period) => (
             <Link
               key={period.value}
@@ -144,7 +179,7 @@ export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileRe
         </nav>
       </header>
 
-      <dl className="mt-8 grid grid-cols-2 bg-card/55 sm:grid-cols-3 lg:grid-cols-6">
+      <dl className="mt-8 grid grid-cols-2 border border-border/60 bg-card/55 sm:grid-cols-3 lg:grid-cols-6">
         <Stat label="Rank" value={profile.rank ? `#${profile.rank}` : "—"} />
         <Stat label="Kills" value={profile.kills} />
         <Stat label="Deaths" value={profile.deaths} />
@@ -154,7 +189,7 @@ export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileRe
       </dl>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <section className="bg-card/35 p-5 md:p-6">
+        <section className="border border-border/60 bg-card/35 p-5 md:p-6">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Trophy className="size-4" />
             <h2 className="font-mono text-[9px] uppercase tracking-[0.12em]">Favorite map</h2>
@@ -164,7 +199,7 @@ export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileRe
             {profile.favoriteMap ? `${profile.favoriteMap.kills} kills recorded here.` : "No kills in this period."}
           </p>
         </section>
-        <section className="bg-card/35 p-5 md:p-6">
+        <section className="border border-border/60 bg-card/35 p-5 md:p-6">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Crosshair className="size-4" />
             <h2 className="font-mono text-[9px] uppercase tracking-[0.12em]">Favorite weapon</h2>

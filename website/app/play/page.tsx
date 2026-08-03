@@ -1,10 +1,22 @@
 import type { Metadata } from "next";
 import { PlayClient, type SelectedServer } from "@/components/play-client";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Play — Q3JS",
-  description: "Launch Quake III in your browser and connect to a Q3JS server.",
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Play Quake III Arena",
+  description: "Join a Q3JS server and play Quake III Arena in your browser.",
+  path: "/play",
+  robots: {
+    index: false,
+    follow: false,
+    noarchive: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
+});
 
 type SearchParameters = Record<string, string | string[] | undefined>;
 

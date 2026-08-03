@@ -4,6 +4,7 @@ import com.q3js.master.profile.domain.PlayerProfile;
 import com.q3js.master.profile.domain.ProfileLifecycleEvent;
 import com.q3js.master.profile.domain.ProfilePeriod;
 import com.q3js.master.profile.domain.ProfileRivalStats;
+import com.q3js.master.profile.domain.ProfileSitemapEntry;
 import com.q3js.master.profile.domain.ProfileWeaponKills;
 import com.q3js.master.profile.domain.ProfileWeaponStats;
 import com.q3js.master.profile.repository.ProfileRepository;
@@ -30,6 +31,10 @@ public class ProfileService {
 
     public List<String> search(String search, int limit) {
         return repository.search(search, limit);
+    }
+
+    public List<ProfileSitemapEntry> sitemapEntries() {
+        return repository.sitemapEntries();
     }
 
     public PlayerProfile get(String playerName, ProfilePeriod period, ZoneId timeZone) {

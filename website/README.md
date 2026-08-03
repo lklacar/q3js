@@ -17,6 +17,18 @@ Then open [http://localhost:3000](http://localhost:3000). The game server sends 
 
 Copy `.env.example` to `.env.local` to override local endpoints. `NEXT_PUBLIC_Q3JS_MASTER_URL` selects the HTTP master API. In a production HTTPS deployment, `NEXT_PUBLIC_Q3JS_INSECURE_PLAY_URL` can point insecure game servers at a separate HTTP play page so browsers do not reject their `ws://` connection as mixed content.
 
+## SEO and analytics
+
+Set `NEXT_PUBLIC_Q3JS_SITE_URL` to the public canonical origin. It is used for
+canonical URLs, Open Graph metadata, structured data, `robots.txt`, and the
+generated sitemap. `NEXT_PUBLIC_GA_MEASUREMENT_ID` defaults to the existing Q3JS
+Google Analytics property, while `GOOGLE_SITE_VERIFICATION` optionally adds the
+Google Search Console verification meta tag.
+
+The sitemap includes every player profile known to the master server. Keep
+`Q3JS_MASTER_URL` configured with a server-reachable API URL in production so
+Next.js can populate those entries during sitemap requests.
+
 ## Master API client
 
 The master API types, client functions, and TanStack Query options are generated

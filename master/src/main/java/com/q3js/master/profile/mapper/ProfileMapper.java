@@ -2,11 +2,13 @@ package com.q3js.master.profile.mapper;
 
 import com.q3js.master.profile.domain.PlayerProfile;
 import com.q3js.master.profile.domain.ProfileRivalStats;
+import com.q3js.master.profile.domain.ProfileSitemapEntry;
 import com.q3js.master.profile.domain.ProfileWeaponStats;
 import com.q3js.master.profile.dto.ProfileMapResponse;
 import com.q3js.master.profile.dto.ProfileResponse;
 import com.q3js.master.profile.dto.ProfileRivalResponse;
 import com.q3js.master.profile.dto.ProfileSummaryResponse;
+import com.q3js.master.profile.dto.ProfileSitemapEntryResponse;
 import com.q3js.master.profile.dto.ProfileWeaponResponse;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -16,6 +18,12 @@ import java.util.List;
 public class ProfileMapper {
     public List<ProfileSummaryResponse> summaries(List<String> playerNames) {
         return playerNames.stream().map(ProfileSummaryResponse::new).toList();
+    }
+
+    public List<ProfileSitemapEntryResponse> sitemapEntries(List<ProfileSitemapEntry> entries) {
+        return entries.stream()
+            .map(entry -> new ProfileSitemapEntryResponse(entry.playerName(), entry.lastModified()))
+            .toList();
     }
 
     public ProfileResponse response(PlayerProfile profile) {

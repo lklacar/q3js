@@ -20,7 +20,7 @@ function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
   const topFragger = stats.mostFragsLast24Hours;
   return (
     <dl className="mb-10 grid gap-3 sm:grid-cols-3">
-      <div className="bg-card/55 p-5">
+      <div className="border border-border/60 bg-card/55 p-5">
         <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
           <Users className="size-4 text-primary" /> Players online
         </dt>
@@ -28,7 +28,7 @@ function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
         <p className="mt-2 text-xs text-muted-foreground">Connected across live Q3JS servers.</p>
       </div>
 
-      <div className="bg-card/55 p-5">
+      <div className="border border-border/60 bg-card/55 p-5">
         <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
           <Crosshair className="size-4 text-primary" /> Most frags last 24 hours
         </dt>
@@ -44,7 +44,7 @@ function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
         </p>
       </div>
 
-      <div className="bg-card/55 p-5">
+      <div className="border border-border/60 bg-card/55 p-5">
         <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
           <Skull className="size-4 text-primary" /> Total frags ever
         </dt>
@@ -64,7 +64,7 @@ function HomeStatsPending() {
   return (
     <div className="mb-10 grid gap-3 sm:grid-cols-3" aria-label="Loading Q3JS statistics">
       {["Players online", "Most frags last 24 hours", "Total frags ever"].map((label) => (
-        <div key={label} className="h-[7.75rem] animate-pulse bg-card/55 p-5">
+        <div key={label} className="h-[7.75rem] animate-pulse border border-border/60 bg-card/55 p-5">
           <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
         </div>
       ))}
@@ -77,7 +77,7 @@ export function HomeStats() {
     <QueryBoundary
       pendingFallback={<HomeStatsPending />}
       errorFallback={() => (
-        <div className="mb-10 bg-card/55 px-5 py-4 text-xs text-muted-foreground">
+        <div className="mb-10 border border-border/60 bg-card/55 px-5 py-4 text-xs text-muted-foreground">
           Homepage statistics are temporarily unavailable.
         </div>
       )}

@@ -1,12 +1,71 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Footer } from "@/components/footer";
+import { JsonLd } from "@/components/json-ld";
 import { SiteHeader } from "@/components/site-header";
+import { absoluteUrl, buildPageMetadata, siteConfig } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Run a server — Q3JS",
-  description: "Build, run, and publish a Q3JS game server.",
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Run Your Own Q3JS Server",
+  description:
+    "Build and publish a Q3JS Quake III server, configure game data, expose the required ports, and register it with the master.",
+  path: "/guide",
+  keywords: [
+    "Q3JS server setup",
+    "Quake 3 dedicated server",
+    "run Quake 3 server",
+    "WebSocket Quake 3 server",
+    "Q3JS guide",
+  ],
+});
+
+const guideStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  name: "Run Your Own Q3JS Server",
+  description:
+    "Build and publish the packaged Q3JS dedicated game server and WebSocket gateway.",
+  inLanguage: siteConfig.language,
+  url: absoluteUrl("/guide"),
+  totalTime: "PT15M",
+  tool: [
+    { "@type": "HowToTool", name: "pnpm" },
+    { "@type": "HowToTool", name: "CMake and Ninja" },
+  ],
+  supply: [{ "@type": "HowToSupply", name: "Legally obtained baseq3 game data" }],
+  step: [
+    {
+      "@type": "HowToStep",
+      name: "Build the packaged server",
+      text: "Install workspace dependencies and run make server from the project root.",
+    },
+    {
+      "@type": "HowToStep",
+      name: "Provide baseq3 game data",
+      text: "Set Q3JS_BASEPATH to a directory containing legally obtained baseq3 data.",
+    },
+    {
+      "@type": "HowToStep",
+      name: "Publish the browser-reachable address",
+      text: "Configure the public host, WebSocket port, TLS setting, and master URL.",
+    },
+    {
+      "@type": "HowToStep",
+      name: "Open the required ports",
+      text: "Expose UDP 27960 for Quake traffic and TCP 27961 for browser WebSocket connections.",
+    },
+    {
+      "@type": "HowToStep",
+      name: "Verify the server",
+      text: "Check the gateway health endpoint and confirm the server appears in the Q3JS browser.",
+    },
+  ],
+  publisher: {
+    "@type": "Organization",
+    name: siteConfig.name,
+    url: siteConfig.url,
+  },
+} satisfies Record<string, unknown>;
 
 function Code({ children }: Readonly<{ children: string }>) {
   return (
@@ -19,6 +78,7 @@ function Code({ children }: Readonly<{ children: string }>) {
 export default function GuidePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <JsonLd data={guideStructuredData} />
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl px-4 py-12 md:py-16">
         <p className="text-[10px] uppercase tracking-[0.24em] text-primary">Server operator guide</p>

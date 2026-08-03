@@ -3,6 +3,7 @@ package com.q3js.master.profile.repository;
 import com.q3js.master.profile.domain.ProfileLifecycleEvent;
 import com.q3js.master.profile.domain.ProfileMapStats;
 import com.q3js.master.profile.domain.ProfileRivalStats;
+import com.q3js.master.profile.domain.ProfileSitemapEntry;
 import com.q3js.master.profile.domain.ProfileWeaponKills;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.jooq.Condition;
@@ -63,6 +64,40 @@ public class ProfileRepository {
             .orderBy(order)
             .limit(limit)
             .fetch(playerName);
+    }
+
+    public List<ProfileSitemapEntry> sitemapEntries() {
+        Table<?> activity = dsl.select(
+                EVENTS.KILLER_NAME.as("player_name"),
+                EVENTS.RECEIVED_AT.as("last_modified")
+            )
+            .from(EVENTS)
+            .where(EVENTS.KILLER_NAME.isNotNull())
+            .unionAll(
+                dsl.select(
+                        EVENTS.VICTIM_NAME.as("player_name"),
+                        EVENTS.RECEIVED_AT.as("last_modified")
+                    )
+                    .from(EVENTS)
+                    .where(EVENTS.VICTIM_NAME.isNotNull())
+            )
+            .asTable("player_activity");
+        Field<String> playerName = DSL.field(DSL.name("player_activity", "player_name"), String.class);
+        Field<OffsetDateTime> activityTime = DSL.field(
+            DSL.name("player_activity", "last_modified"),
+            OffsetDateTime.class
+        );
+        Field<OffsetDateTime> lastModified = DSL.max(activityTime).as("last_modified");
+
+        return dsl.select(playerName, lastModified)
+            .from(activity)
+            .where(DSL.trim(playerName).ne(""))
+            .groupBy(playerName)
+            .orderBy(playerName.asc())
+            .fetch(record -> new ProfileSitemapEntry(
+                record.get(playerName),
+                record.get(lastModified)
+            ));
     }
 
     public OffsetDateTime findLastOnline(String playerName) {

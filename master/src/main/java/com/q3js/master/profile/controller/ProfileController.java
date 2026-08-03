@@ -2,6 +2,7 @@ package com.q3js.master.profile.controller;
 
 import com.q3js.master.profile.domain.ProfilePeriod;
 import com.q3js.master.profile.dto.ProfileResponse;
+import com.q3js.master.profile.dto.ProfileSitemapEntryResponse;
 import com.q3js.master.profile.dto.ProfileSummaryResponse;
 import com.q3js.master.profile.mapper.ProfileMapper;
 import com.q3js.master.profile.service.ProfileService;
@@ -53,6 +54,14 @@ public class ProfileController {
             throw new BadRequestException("Profile search must not exceed 128 characters.");
         }
         return profileMapper.summaries(profileService.search(search, searchLimit(limit)));
+    }
+
+    @GET
+    @Path("/sitemap")
+    @Operation(operationId = "getProfileSitemap", summary = "List player profile sitemap entries")
+    @APIResponse(responseCode = "200", description = "All player profiles with their last activity time")
+    public List<ProfileSitemapEntryResponse> sitemap() {
+        return profileMapper.sitemapEntries(profileService.sitemapEntries());
     }
 
     @GET

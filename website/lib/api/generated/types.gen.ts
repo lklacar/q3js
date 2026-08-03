@@ -70,6 +70,11 @@ export type ProfileRivalResponse = {
     kills: number;
 };
 
+export type ProfileSitemapEntryResponse = {
+    playerName: string;
+    lastModified: OffsetDateTime;
+};
+
 export type ProfileSummaryResponse = {
     playerName: string;
 };
@@ -247,6 +252,22 @@ export type SearchProfilesResponses = {
 };
 
 export type SearchProfilesResponse = SearchProfilesResponses[keyof SearchProfilesResponses];
+
+export type GetProfileSitemapData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/players/sitemap';
+};
+
+export type GetProfileSitemapResponses = {
+    /**
+     * All player profiles with their last activity time
+     */
+    200: Array<ProfileSitemapEntryResponse>;
+};
+
+export type GetProfileSitemapResponse = GetProfileSitemapResponses[keyof GetProfileSitemapResponses];
 
 export type GetProfileData = {
     body?: never;

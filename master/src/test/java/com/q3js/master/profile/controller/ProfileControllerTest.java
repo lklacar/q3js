@@ -2,6 +2,7 @@ package com.q3js.master.profile.controller;
 
 import com.q3js.master.profile.domain.PlayerProfile;
 import com.q3js.master.profile.domain.ProfilePeriod;
+import com.q3js.master.profile.domain.ProfileSitemapEntry;
 import com.q3js.master.profile.service.ProfileService;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -37,6 +38,21 @@ class ProfileControllerTest {
             .statusCode(200)
             .body("size()", is(2))
             .body("[0].playerName", is("^1Ranger"));
+    }
+
+    @Test
+    void returnsProfileSitemapEntries() {
+        when(profileService.sitemapEntries()).thenReturn(List.of(
+            new ProfileSitemapEntry("^1Ranger", OffsetDateTime.parse("2026-08-03T12:00:00Z"))
+        ));
+
+        given()
+            .when().get("/api/players/sitemap")
+            .then()
+            .statusCode(200)
+            .body("size()", is(1))
+            .body("[0].playerName", is("^1Ranger"))
+            .body("[0].lastModified", is("2026-08-03T12:00:00Z"));
     }
 
     @Test

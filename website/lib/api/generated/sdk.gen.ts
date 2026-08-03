@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetProfileData, GetProfileErrors, GetProfileResponses, GetRequesterCountryData, GetRequesterCountryResponses, GetScoreboardData, GetScoreboardDistributionData, GetScoreboardDistributionErrors, GetScoreboardDistributionResponses, GetScoreboardErrors, GetScoreboardResponses, GetStatsData, GetStatsResponses, HeartbeatData, HeartbeatErrors, HeartbeatResponses, IngestData, IngestErrors, IngestResponses, SearchProfilesData, SearchProfilesErrors, SearchProfilesResponses, ServersData, ServersResponses, StatusData, StatusResponses } from './types.gen';
+import type { GetProfileData, GetProfileErrors, GetProfileResponses, GetProfileSitemapData, GetProfileSitemapResponses, GetRequesterCountryData, GetRequesterCountryResponses, GetScoreboardData, GetScoreboardDistributionData, GetScoreboardDistributionErrors, GetScoreboardDistributionResponses, GetScoreboardErrors, GetScoreboardResponses, GetStatsData, GetStatsResponses, HeartbeatData, HeartbeatErrors, HeartbeatResponses, IngestData, IngestErrors, IngestResponses, SearchProfilesData, SearchProfilesErrors, SearchProfilesResponses, ServersData, ServersResponses, StatusData, StatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -40,6 +40,11 @@ export const ingest = <ThrowOnError extends boolean = true>(options: Options<Ing
  * Search player profiles
  */
 export const searchProfiles = <ThrowOnError extends boolean = true>(options?: Options<SearchProfilesData, ThrowOnError>): RequestResult<SearchProfilesResponses, SearchProfilesErrors, ThrowOnError> => (options?.client ?? client).get<SearchProfilesResponses, SearchProfilesErrors, ThrowOnError>({ url: '/api/players', ...options });
+
+/**
+ * List player profile sitemap entries
+ */
+export const getProfileSitemap = <ThrowOnError extends boolean = true>(options?: Options<GetProfileSitemapData, ThrowOnError>): RequestResult<GetProfileSitemapResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetProfileSitemapResponses, unknown, ThrowOnError>({ url: '/api/players/sitemap', ...options });
 
 /**
  * Get a player profile

@@ -4,6 +4,7 @@ import com.q3js.master.profile.domain.ProfileLifecycleEvent;
 import com.q3js.master.profile.domain.ProfileMapStats;
 import com.q3js.master.profile.domain.ProfilePeriod;
 import com.q3js.master.profile.domain.ProfileRivalStats;
+import com.q3js.master.profile.domain.ProfileSitemapEntry;
 import com.q3js.master.profile.domain.ProfileWeaponKills;
 import com.q3js.master.profile.repository.ProfileRepository;
 import jakarta.ws.rs.NotFoundException;
@@ -88,6 +89,16 @@ class ProfileServiceTest {
         assertEquals(2, repository.limit);
     }
 
+    @Test
+    void returnsSitemapEntries() {
+        var repository = new RecordingProfileRepository();
+        repository.sitemapEntries = List.of(new ProfileSitemapEntry("Ranger", NOW));
+
+        var entries = new FixedTimeProfileService(repository, NOW).sitemapEntries();
+
+        assertEquals(repository.sitemapEntries, entries);
+    }
+
     private static RecordingProfileRepository populatedRepository() {
         var repository = new RecordingProfileRepository();
         repository.lastOnline = NOW.minusMinutes(1);
@@ -138,6 +149,7 @@ class ProfileServiceTest {
         private List<ProfileRivalStats> victims = List.of();
         private List<ProfileRivalStats> nemeses = List.of();
         private List<ProfileLifecycleEvent> lifecycleEvents = List.of();
+        private List<ProfileSitemapEntry> sitemapEntries = List.of();
 
         private RecordingProfileRepository() {
             super(null);
@@ -148,6 +160,11 @@ class ProfileServiceTest {
             this.search = search;
             this.limit = limit;
             return names;
+        }
+
+        @Override
+        public List<ProfileSitemapEntry> sitemapEntries() {
+            return sitemapEntries;
         }
 
         @Override

@@ -3,13 +3,22 @@ import { Footer } from "@/components/footer";
 import { ScoreboardPage } from "@/components/scoreboard-page";
 import { SiteHeader } from "@/components/site-header";
 import { fetchScoreboard } from "@/lib/scoreboard-server";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Scoreboard — Q3JS",
-  description: "Global Q3JS frag rankings for the last 24 hours, week, month, and all time.",
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Global Scoreboard",
+  description: "Live Q3JS scoreboard with last 24 hours, weekly, monthly, and all-time frag leaders.",
+  path: "/scoreboard",
+  keywords: [
+    "Q3JS scoreboard",
+    "Quake 3 leaderboard",
+    "frag leaderboard",
+    "Q3JS stats",
+    "Quake III player stats",
+  ],
+});
 
 type SearchParameters = Record<string, string | string[] | undefined>;
 

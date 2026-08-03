@@ -4,6 +4,7 @@ import { Footer } from "@/components/footer";
 import { ProfilePage } from "@/components/profile-page";
 import { SiteHeader } from "@/components/site-header";
 import { fetchProfile } from "@/lib/profile-server";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -58,14 +59,23 @@ export async function generateMetadata({
   searchParams,
 }: Readonly<{ params: Promise<RouteParameters>; searchParams: Promise<SearchParameters> }>): Promise<Metadata> {
   const { playerName, profile } = await routeProfile(params, searchParams);
+  const path = `/players/${encodeURIComponent(playerName)}`;
   if (!profile) {
-    return { title: "Player not found — Q3JS", robots: { index: false, follow: false } };
+    return buildPageMetadata({
+      title: "Player not found",
+      description: "This Q3JS player profile could not be found.",
+      path,
+      robots: { index: false, follow: false },
+    });
   }
   const plainName = playerName.replace(/\^(?:[0-9]|x[0-9a-f]{6})/gi, "");
-  return {
-    title: `${plainName || playerName} — Q3JS player profile`,
+  const displayName = plainName || playerName;
+  return buildPageMetadata({
+    title: `${displayName} Player Profile`,
     description: `Kills, deaths, playtime, weapons, maps, and rivals for ${plainName || playerName} on Q3JS.`,
-  };
+    path,
+    keywords: [displayName, `${displayName} Q3JS`, "Q3JS player", "Quake 3 stats", "Quake III Arena player"],
+  });
 }
 
 export default async function PlayerProfileRoute({

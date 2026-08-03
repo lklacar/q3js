@@ -3,8 +3,8 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { getProfile, getRequesterCountry, getScoreboard, getScoreboardDistribution, getStats, heartbeat, ingest, type Options, searchProfiles, servers, status } from '../sdk.gen';
-import type { GetProfileData, GetProfileResponse, GetRequesterCountryData, GetRequesterCountryResponse, GetScoreboardData, GetScoreboardDistributionData, GetScoreboardDistributionResponse, GetScoreboardResponse, GetStatsData, GetStatsResponse, HeartbeatData, HeartbeatResponse, IngestData, IngestResponse, SearchProfilesData, SearchProfilesResponse, ServersData, ServersResponse, StatusData, StatusResponse2 } from '../types.gen';
+import { getProfile, getProfileSitemap, getRequesterCountry, getScoreboard, getScoreboardDistribution, getStats, heartbeat, ingest, type Options, searchProfiles, servers, status } from '../sdk.gen';
+import type { GetProfileData, GetProfileResponse, GetProfileSitemapData, GetProfileSitemapResponse, GetRequesterCountryData, GetRequesterCountryResponse, GetScoreboardData, GetScoreboardDistributionData, GetScoreboardDistributionResponse, GetScoreboardResponse, GetStatsData, GetStatsResponse, HeartbeatData, HeartbeatResponse, IngestData, IngestResponse, SearchProfilesData, SearchProfilesResponse, ServersData, ServersResponse, StatusData, StatusResponse2 } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -122,6 +122,24 @@ export const searchProfilesOptions = (options?: Options<SearchProfilesData>) => 
         return data;
     },
     queryKey: searchProfilesQueryKey(options)
+});
+
+export const getProfileSitemapQueryKey = (options?: Options<GetProfileSitemapData>) => createQueryKey('getProfileSitemap', options, false, ['Profiles']);
+
+/**
+ * List player profile sitemap entries
+ */
+export const getProfileSitemapOptions = (options?: Options<GetProfileSitemapData>) => queryOptions<GetProfileSitemapResponse, DefaultError, GetProfileSitemapResponse, ReturnType<typeof getProfileSitemapQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getProfileSitemap({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getProfileSitemapQueryKey(options)
 });
 
 export const getProfileQueryKey = (options: Options<GetProfileData>) => createQueryKey('getProfile', options, false, ['Profiles']);
