@@ -36,13 +36,23 @@ function addSet(arguments_: string[], name: string, value: Q3CvarValue | undefin
   arguments_.push("+set", name, safeValue(value));
 }
 
-export function buildQ3Arguments(options: Omit<Q3ClientOptions, "canvas">): string[] {
+interface RenderSize {
+  width: number;
+  height: number;
+}
+
+export function buildQ3Arguments(
+  options: Omit<Q3ClientOptions, "canvas">,
+  renderSize?: RenderSize,
+): string[] {
   const arguments_: string[] = [];
   const baseGame = options.game?.baseGame ?? "baseq3";
   const homePath = options.game?.homePath ?? "/persist";
 
   addSet(arguments_, "sv_pure", 0);
-  addSet(arguments_, "r_mode", -2);
+  addSet(arguments_, "r_mode", renderSize ? -1 : -2);
+  addSet(arguments_, "r_customwidth", renderSize?.width);
+  addSet(arguments_, "r_customheight", renderSize?.height);
   addSet(arguments_, "r_fullscreen", 0);
   addSet(arguments_, "com_introplayed", 1);
   addSet(arguments_, "com_basegame", baseGame);
@@ -88,8 +98,14 @@ export class Q3Client {
   }
 
   resize(width: number, height: number, scale = 1): void {
-    this.canvas.width = Math.max(1, Math.round(width * scale));
-    this.canvas.height = Math.max(1, Math.round(height * scale));
+    const nextWidth = Math.max(1, Math.round(width * scale));
+    const nextHeight = Math.max(1, Math.round(height * scale));
+    if (this.canvas.width !== nextWidth) {
+      this.canvas.width = nextWidth;
+    }
+    if (this.canvas.height !== nextHeight) {
+      this.canvas.height = nextHeight;
+    }
   }
 
   mobileKey(key: number, down: boolean): void {
@@ -142,6 +158,7 @@ export async function createQ3Client(options: Q3ClientOptions): Promise<Q3Client
 
     const engineOptions: Q3EngineModuleOptions = {
       canvas: options.canvas,
+      elementPointerLock: true,
       noInitialRun: true,
     };
 
@@ -178,7 +195,12 @@ export async function createQ3Client(options: Q3ClientOptions): Promise<Q3Client
 
     report({ phase: "starting", loadedBytes: 0, totalBytes: 0 });
     const client = new Q3Client(runtime, options.canvas, persistent);
-    runtime.callMain(buildQ3Arguments(options));
+    const bounds = options.canvas.getBoundingClientRect();
+    const renderSize = {
+      width: Math.max(1, Math.round(bounds.width || window.innerWidth)),
+      height: Math.max(1, Math.round(bounds.height || window.innerHeight)),
+    };
+    runtime.callMain(buildQ3Arguments(options, renderSize));
     report({ phase: "ready", loadedBytes: 0, totalBytes: 0 });
     options.onReady?.(client);
     return client;

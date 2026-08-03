@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { Footer } from "@/components/footer";
 import { PlayClient } from "@/components/play-client";
-import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "Play — Q3JS",
@@ -10,12 +8,8 @@ export const metadata: Metadata = {
 
 export default function PlayPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 md:py-10">
-        <PlayClient />
-      </main>
-      <Footer />
-    </div>
+    <main className="relative isolate h-dvh min-h-dvh w-screen overflow-hidden bg-black text-foreground">
+      <PlayClient />
+    </main>
   );
 }

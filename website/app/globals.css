@@ -56,6 +56,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+html.game-page-active,
+body.game-page-active {
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  background: #000;
+}
+
 ::selection {
   background: var(--primary);
   color: var(--primary-foreground);

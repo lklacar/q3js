@@ -1,8 +1,8 @@
 "use client";
 
 import type { Q3ClientOptions, Q3ClientProgress } from "@q3js/client";
-import { ArrowClockwise, Play } from "@phosphor-icons/react";
-import { useMemo, useState } from "react";
+import { ArrowsOut, ArrowClockwise, Play, X } from "@phosphor-icons/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameCanvas } from "@/components/game-canvas";
 import { Button } from "@/components/ui/button";
 
@@ -47,6 +47,42 @@ export function PlayClient() {
   const [session, setSession] = useState<Session>();
   const [progress, setProgress] = useState<Q3ClientProgress>();
   const [error, setError] = useState<string>();
+  const [mouseCaptured, setMouseCaptured] = useState(false);
+  const gameShellRef = useRef<HTMLElement>(null);
+
+  const toggleFullscreen = useCallback(async () => {
+    const target = gameShellRef.current;
+    if (!target) {
+      return;
+    }
+    if (document.fullscreenElement) {
+      await document.exitFullscreen().catch(() => undefined);
+    } else {
+      await target.requestFullscreen().catch(() => undefined);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!session) {
+      return;
+    }
+
+    document.documentElement.classList.add("game-page-active");
+    document.body.classList.add("game-page-active");
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "F11") {
+        event.preventDefault();
+        void toggleFullscreen();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.documentElement.classList.remove("game-page-active");
+      document.body.classList.remove("game-page-active");
+    };
+  }, [session, toggleFullscreen]);
 
   const options = useMemo<Omit<Q3ClientOptions, "canvas"> | undefined>(() => {
     if (!session) {
@@ -84,15 +120,20 @@ export function PlayClient() {
   };
 
   const stop = () => {
+    const target = gameShellRef.current;
+    if (target && document.fullscreenElement && target.contains(document.fullscreenElement)) {
+      void document.exitFullscreen().catch(() => undefined);
+    }
     setSession(undefined);
     setProgress(undefined);
     setError(undefined);
+    setMouseCaptured(false);
   };
 
   if (!session || !options) {
     return (
-      <section className="border border-border bg-card/40 p-5 md:p-7">
-        <div className="max-w-xl">
+      <section className="grid size-full place-items-center overflow-auto bg-background p-4">
+        <div className="w-full max-w-xl border border-border bg-card/40 p-5 md:p-7">
           <p className="text-[10px] uppercase tracking-wider text-primary">Local match</p>
           <h1 className="mt-2 text-xl font-bold uppercase tracking-tight md:text-2xl">
             Launch Q3JS
@@ -131,53 +172,66 @@ export function PlayClient() {
   const percent = totalBytes > 0 ? Math.min(100, Math.round((loadedBytes / totalBytes) * 100)) : 0;
 
   return (
-    <section aria-label="Q3JS client">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-[10px] uppercase text-muted-foreground">
-        <span>{progressLabel(progress)}</span>
-        <div className="flex items-center gap-3">
-          <span>{session.websocketUrl}</span>
-          <Button variant="outline" size="xs" onClick={stop}>
-            Stop
+    <section
+      ref={gameShellRef}
+      aria-label="Q3JS client"
+      className="absolute inset-0 size-full overflow-hidden bg-black"
+    >
+      <GameCanvas
+        options={options}
+        className="absolute inset-0 block size-full bg-black outline-none"
+        onPointerLockChange={setMouseCaptured}
+      />
+
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 bg-gradient-to-b from-black/75 to-transparent p-3 text-[10px] uppercase text-white/70">
+        <div>
+          <p>{progressLabel(progress)}</p>
+          {progress?.phase === "ready" && (
+            <p className="mt-1 text-white/45">
+              {mouseCaptured ? "Mouse captured · Escape to release" : "Click the game to capture the mouse"}
+            </p>
+          )}
+        </div>
+        <div className="pointer-events-auto flex items-center gap-2">
+          <Button variant="secondary" size="sm" onClick={() => void toggleFullscreen()}>
+            <ArrowsOut />
+            Fullscreen
+          </Button>
+          <Button variant="secondary" size="sm" onClick={stop}>
+            <X />
+            Exit
           </Button>
         </div>
       </div>
 
-      <div className="relative aspect-video min-h-64 overflow-hidden border border-border bg-black">
-        <GameCanvas options={options} className="block size-full bg-black" />
-
-        {progress?.phase !== "ready" && !error && (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center bg-black/80 p-6 text-center">
-            <div className="w-full max-w-md">
-              <p className="text-sm font-semibold">{progressLabel(progress)}</p>
-              <div className="mt-4 h-1 w-full bg-muted">
-                <div className="h-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
-              </div>
-              {totalBytes > 0 && (
-                <p className="mt-2 text-[10px] text-muted-foreground">
-                  {formatBytes(loadedBytes)} / {formatBytes(totalBytes)}
-                </p>
-              )}
+      {progress?.phase !== "ready" && !error && (
+        <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-black/85 p-6 text-center">
+          <div className="w-full max-w-md">
+            <p className="text-sm font-semibold">{progressLabel(progress)}</p>
+            <div className="mt-4 h-1 w-full bg-muted">
+              <div className="h-full bg-primary transition-[width]" style={{ width: `${percent}%` }} />
             </div>
+            {totalBytes > 0 && (
+              <p className="mt-2 text-[10px] text-muted-foreground">
+                {formatBytes(loadedBytes)} / {formatBytes(totalBytes)}
+              </p>
+            )}
           </div>
-        )}
+        </div>
+      )}
 
-        {error && (
-          <div className="absolute inset-0 grid place-items-center bg-black/90 p-6 text-center">
-            <div className="max-w-lg">
-              <p className="text-sm font-semibold text-primary">Unable to start Q3JS</p>
-              <p className="mt-2 break-words text-xs leading-5 text-muted-foreground">{error}</p>
-              <Button variant="outline" size="sm" className="mt-4" onClick={stop}>
-                <ArrowClockwise />
-                Try again
-              </Button>
-            </div>
+      {error && (
+        <div className="absolute inset-0 z-30 grid place-items-center bg-black/90 p-6 text-center">
+          <div className="max-w-lg">
+            <p className="text-sm font-semibold text-primary">Unable to start Q3JS</p>
+            <p className="mt-2 break-words text-xs leading-5 text-muted-foreground">{error}</p>
+            <Button variant="outline" size="sm" className="mt-4" onClick={stop}>
+              <ArrowClockwise />
+              Try again
+            </Button>
           </div>
-        )}
-      </div>
-
-      <p className="mt-3 text-[10px] leading-5 text-muted-foreground">
-        Click the game to focus it. Press Escape to release the mouse.
-      </p>
+        </div>
+      )}
     </section>
   );
 }

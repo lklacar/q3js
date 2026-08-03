@@ -14,6 +14,7 @@ export interface Q3EngineModule {
 export interface Q3EngineModuleOptions {
   canvas: HTMLCanvasElement;
   noInitialRun: boolean;
+  elementPointerLock?: boolean;
   websocket?: {
     url: string;
     subprotocol: string;
