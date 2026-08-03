@@ -16,6 +16,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --font-mono: var(--font-terminal);
+  --font-sans: var(--font-terminal);
   --radius-sm: 0;
   --radius-md: 0;
   --radius-lg: 0;
@@ -23,6 +25,7 @@
 }
 
 :root {
+  --font-terminal: "Courier New", Courier, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --background: oklch(0.2264 0 0);
   --foreground: oklch(0.9491 0 0);
   --card: oklch(0.2931 0 0);
@@ -45,6 +48,7 @@
 html {
   min-width: 320px;
   background: var(--background);
+  font-size: 17px;
   scroll-behavior: smooth;
 }
 
@@ -52,7 +56,7 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-terminal);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -80,4 +84,22 @@ button:focus-visible,
 input:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+
+@layer components {
+  .arena-card {
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+
+  .arena-card:hover,
+  .arena-card:focus-within {
+    border-color: color-mix(in oklch, var(--primary) 48%, var(--border));
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-card {
+    transition: none;
+  }
 }

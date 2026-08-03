@@ -81,14 +81,14 @@ export default function GuidePage() {
       <JsonLd data={guideStructuredData} />
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl px-4 py-12 md:py-16">
-        <p className="text-[10px] uppercase tracking-[0.24em] text-primary">Server operator guide</p>
-        <h1 className="mt-3 text-3xl font-black uppercase tracking-tight">Run your own arena</h1>
+        <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-primary">Field manual / Server operators</p>
+        <h1 className="mt-3 font-mono text-3xl font-black uppercase tracking-[0.035em]">Run your own arena</h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
           The packaged Q3JS server always runs the dedicated game server and WebSocket gateway
           together. It also announces itself to the master automatically.
         </p>
 
-        <div className="mt-10 grid gap-10 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:uppercase [&_p]:text-sm [&_p]:leading-6 [&_p]:text-muted-foreground [&_section]:min-w-0">
+        <div className="mt-10 grid gap-10 [&_h2]:font-mono [&_h2]:text-xl [&_h2]:font-bold [&_h2]:uppercase [&_h2]:tracking-[0.03em] [&_p]:text-sm [&_p]:leading-6 [&_p]:text-muted-foreground [&_section]:min-w-0">
           <section>
             <h2>1. Build the server</h2>
             <p className="my-3">

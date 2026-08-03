@@ -42,7 +42,7 @@ function SummaryStat({ label, value }: Readonly<{ label: string; value: React.Re
   return (
     <div className="px-5 py-4">
       <dt className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-xl font-bold tabular-nums">{value}</dd>
+      <dd className="mt-1 font-mono text-xl font-bold tracking-[0.025em] tabular-nums">{value}</dd>
     </div>
   );
 }
@@ -90,8 +90,8 @@ export function ScoreboardPage({
       />
       <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">Global rankings</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight md:text-4xl">Scoreboard</h1>
+          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">Frag archive / Global rankings</p>
+          <h1 className="mt-2 font-mono text-3xl font-black uppercase tracking-[0.035em] md:text-4xl">Scoreboard</h1>
           <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
             Frag leaders across every Q3JS server reporting to the master.
           </p>
@@ -134,7 +134,7 @@ export function ScoreboardPage({
             defaultValue={search}
             maxLength={128}
             placeholder="Search player"
-            className="h-10 w-full bg-input pl-9 pr-3 text-xs placeholder:text-muted-foreground focus:outline-2 focus:outline-ring"
+            className="h-10 w-full bg-input pl-9 pr-3 font-mono text-xs placeholder:text-muted-foreground focus:outline-2 focus:outline-ring"
           />
         </label>
         <Button type="submit" size="lg" className="h-10 px-5">Search</Button>

@@ -2,7 +2,6 @@ package com.q3js.master.profile.service;
 
 import com.q3js.master.profile.domain.ProfileLifecycleEvent;
 import com.q3js.master.profile.domain.ProfileMapStats;
-import com.q3js.master.profile.domain.ProfilePeriod;
 import com.q3js.master.profile.domain.ProfileRivalStats;
 import com.q3js.master.profile.domain.ProfileSitemapEntry;
 import com.q3js.master.profile.domain.ProfileWeaponKills;
@@ -11,7 +10,6 @@ import jakarta.ws.rs.NotFoundException;
 import org.junit.jupiter.api.Test;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,11 +24,10 @@ class ProfileServiceTest {
         var repository = populatedRepository();
         var service = new FixedTimeProfileService(repository, NOW);
 
-        var profile = service.get("Ranger", ProfilePeriod.ALL_TIME, ZoneId.of("Z"));
+        var profile = service.get("Ranger");
 
         assertEquals("Ranger", profile.playerName());
-        assertEquals(ProfilePeriod.ALL_TIME, profile.period());
-        assertEquals(2400, profile.playtimeSeconds());
+        assertEquals(1800, profile.playtimeSeconds());
         assertEquals(2, profile.rank());
         assertEquals(12, profile.kills());
         assertEquals(5, profile.deaths());
@@ -44,23 +41,12 @@ class ProfileServiceTest {
     }
 
     @Test
-    void appliesTheRequestedPeriodAndClipsPlaytime() {
-        var repository = populatedRepository();
-        var service = new FixedTimeProfileService(repository, NOW);
-
-        var profile = service.get("Ranger", ProfilePeriod.DAILY, ZoneId.of("Z"));
-
-        assertEquals(NOW.minusHours(24), repository.lastPeriodStart);
-        assertEquals(600, profile.playtimeSeconds());
-    }
-
-    @Test
     void returnsNullRatioWhenThePlayerHasKillsButNoDeaths() {
         var repository = populatedRepository();
         repository.deaths = 0;
 
         var profile = new FixedTimeProfileService(repository, NOW)
-            .get("Ranger", ProfilePeriod.ALL_TIME, ZoneId.of("Z"));
+            .get("Ranger");
 
         assertNull(profile.killDeathRatio());
     }
@@ -72,7 +58,7 @@ class ProfileServiceTest {
 
         assertThrows(
             NotFoundException.class,
-            () -> service.get("Unknown", ProfilePeriod.ALL_TIME, ZoneId.of("Z"))
+            () -> service.get("Unknown")
         );
     }
 
@@ -97,6 +83,34 @@ class ProfileServiceTest {
         var entries = new FixedTimeProfileService(repository, NOW).sitemapEntries();
 
         assertEquals(repository.sitemapEntries, entries);
+    }
+
+    @Test
+    void ignoresOrphanedJoinsAndPairsReconnectsWithTheLatestJoin() {
+        var repository = populatedRepository();
+        repository.lifecycleEvents = List.of(
+            new ProfileLifecycleEvent("server", "join", NOW.minusDays(10)),
+            new ProfileLifecycleEvent("server", "join", NOW.minusMinutes(20)),
+            new ProfileLifecycleEvent("server", "leave", NOW.minusMinutes(5))
+        );
+
+        var profile = new FixedTimeProfileService(repository, NOW).get("Ranger");
+
+        assertEquals(900, profile.playtimeSeconds());
+    }
+
+    @Test
+    void doesNotPairLifecycleEventsFromDifferentServers() {
+        var repository = populatedRepository();
+        repository.lifecycleEvents = List.of(
+            new ProfileLifecycleEvent("one", "join", NOW.minusMinutes(30)),
+            new ProfileLifecycleEvent("two", "join", NOW.minusMinutes(20)),
+            new ProfileLifecycleEvent("one", "leave", NOW.minusMinutes(10))
+        );
+
+        var profile = new FixedTimeProfileService(repository, NOW).get("Ranger");
+
+        assertEquals(1200, profile.playtimeSeconds());
     }
 
     private static RecordingProfileRepository populatedRepository() {
@@ -140,7 +154,6 @@ class ProfileServiceTest {
         private String search;
         private int limit;
         private OffsetDateTime lastOnline;
-        private OffsetDateTime lastPeriodStart;
         private int kills;
         private int deaths;
         private Integer rank;
@@ -173,44 +186,37 @@ class ProfileServiceTest {
         }
 
         @Override
-        public int countKills(String playerName, OffsetDateTime periodStart) {
-            lastPeriodStart = periodStart;
+        public int countKills(String playerName) {
             return kills;
         }
 
         @Override
-        public int countDeaths(String playerName, OffsetDateTime periodStart) {
-            lastPeriodStart = periodStart;
+        public int countDeaths(String playerName) {
             return deaths;
         }
 
         @Override
-        public Integer findRank(String playerName, OffsetDateTime periodStart, int kills) {
-            lastPeriodStart = periodStart;
+        public Integer findRank(String playerName, int kills) {
             return rank;
         }
 
         @Override
-        public ProfileMapStats findFavoriteMap(String playerName, OffsetDateTime periodStart) {
-            lastPeriodStart = periodStart;
+        public ProfileMapStats findFavoriteMap(String playerName) {
             return favoriteMap;
         }
 
         @Override
-        public List<ProfileWeaponKills> findWeaponStats(String playerName, OffsetDateTime periodStart) {
-            lastPeriodStart = periodStart;
+        public List<ProfileWeaponKills> findWeaponStats(String playerName) {
             return weapons;
         }
 
         @Override
-        public List<ProfileRivalStats> findTopVictims(String playerName, OffsetDateTime periodStart) {
-            lastPeriodStart = periodStart;
+        public List<ProfileRivalStats> findTopVictims(String playerName) {
             return victims;
         }
 
         @Override
-        public List<ProfileRivalStats> findTopNemeses(String playerName, OffsetDateTime periodStart) {
-            lastPeriodStart = periodStart;
+        public List<ProfileRivalStats> findTopNemeses(String playerName) {
             return nemeses;
         }
 

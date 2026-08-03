@@ -3,11 +3,14 @@ import Link from "next/link";
 export function Footer() {
   return (
     <footer className="border-t border-border/70">
-      <div className="mx-auto grid w-full max-w-6xl gap-4 px-4 py-6 text-[11px] leading-5 text-muted-foreground md:grid-cols-[1fr_auto]">
-        <p className="max-w-3xl">
-          Q3JS is a non-commercial fan project using the officially released demo data and a
-          GPL-licensed ioquake3 engine build. Not affiliated with id Software or ZeniMax.
-        </p>
+      <div className="mx-auto grid w-full max-w-5xl gap-4 px-4 py-6 text-[11px] leading-5 text-muted-foreground md:grid-cols-[1fr_auto]">
+        <div>
+          <p className="mb-1 font-mono text-[9px] uppercase tracking-[0.14em] text-primary">Q3JS // Browser arena</p>
+          <p className="max-w-3xl">
+            Q3JS is a non-commercial fan project using the officially released demo data and a
+            GPL-licensed ioquake3 engine build. Not affiliated with id Software or ZeniMax.
+          </p>
+        </div>
         <div className="flex flex-wrap content-start gap-x-4 md:justify-end">
           <Link href="/guide" className="hover:text-foreground">Run a server</Link>
           <a href="https://github.com/lklacar/q3js" target="_blank" rel="noreferrer" className="hover:text-foreground">

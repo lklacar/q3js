@@ -29,7 +29,6 @@ public class ProfileMapper {
     public ProfileResponse response(PlayerProfile profile) {
         return new ProfileResponse(
             profile.playerName(),
-            profile.period(),
             profile.playtimeSeconds(),
             profile.lastOnline(),
             profile.rank(),

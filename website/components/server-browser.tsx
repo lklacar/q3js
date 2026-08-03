@@ -61,12 +61,12 @@ function Metadata({ children }: Readonly<{ children: React.ReactNode }>) {
 
 function ServerCard({ playerName, server }: Readonly<{ playerName: string; server: ListedServer }>) {
   return (
-    <article className="border border-border/60 bg-card/50 transition-colors hover:border-primary/50">
+    <article className="arena-card border border-border/60 bg-card/50">
       <div className="p-5 md:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="break-words text-lg font-bold">
+              <h3 className="break-words font-mono text-xl font-bold tracking-[0.025em]">
                 <Q3ColoredText text={server.coloredName} />
               </h3>
               {server.passwordProtected && <LockKey className="size-4 text-muted-foreground" aria-label="Password required" />}
@@ -75,7 +75,7 @@ function ServerCard({ playerName, server }: Readonly<{ playerName: string; serve
           </div>
           {isOpen(server) ? (
             <Button asChild size="lg" className="sm:self-start">
-              <Link href={joinHref(server, playerName)}>Join server</Link>
+              <Link href={joinHref(server, playerName)}>Join arena</Link>
             </Button>
           ) : (
             <Button size="lg" className="sm:self-start" disabled>Server full</Button>
@@ -150,8 +150,9 @@ function BrowserHeading({ serverCount, playerCount }: Readonly<{ serverCount?: n
   return (
     <div className="flex items-end justify-between gap-4">
       <div>
-        <h2 id="servers-heading" className="text-2xl font-bold tracking-tight md:text-3xl">Server Browser</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Pick a server and jump in immediately.</p>
+        <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.16em] text-primary">02 / Live arenas</p>
+        <h2 id="servers-heading" className="font-mono text-2xl font-bold uppercase tracking-[0.035em] md:text-3xl">Server browser</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Choose your arena and join the fight.</p>
       </div>
       {serverCount !== undefined && (
         <p className="shrink-0 text-right font-mono text-[10px] leading-5 text-muted-foreground">

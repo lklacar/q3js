@@ -1,6 +1,5 @@
 package com.q3js.master.profile.controller;
 
-import com.q3js.master.profile.domain.ProfilePeriod;
 import com.q3js.master.profile.dto.ProfileResponse;
 import com.q3js.master.profile.dto.ProfileSitemapEntryResponse;
 import com.q3js.master.profile.dto.ProfileSummaryResponse;
@@ -19,11 +18,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
-import java.time.DateTimeException;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Locale;
 
 @Path("/api/players")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -68,19 +63,13 @@ public class ProfileController {
     @Path("/{playerName}")
     @Operation(operationId = "getProfile", summary = "Get a player profile")
     @APIResponse(responseCode = "200", description = "Player profile statistics")
-    @APIResponse(responseCode = "400", description = "Profile parameters are invalid")
+    @APIResponse(responseCode = "400", description = "Player name is invalid")
     @APIResponse(responseCode = "404", description = "Player profile was not found")
-    public ProfileResponse getProfile(
-        @PathParam("playerName") String playerName,
-        @QueryParam("period") @Parameter(description = "daily, weekly, monthly, or all-time") String period,
-        @QueryParam("timeZone") @Parameter(description = "IANA time zone used for calendar periods") String timeZone
-    ) {
+    public ProfileResponse getProfile(@PathParam("playerName") String playerName) {
         if (playerName == null || playerName.isBlank() || playerName.length() > MAX_PLAYER_NAME_LENGTH) {
             throw new BadRequestException("Player name must contain between 1 and 128 characters.");
         }
-        return profileMapper.response(
-            profileService.get(playerName, profilePeriod(period), profileTimeZone(timeZone))
-        );
+        return profileMapper.response(profileService.get(playerName));
     }
 
     private static int searchLimit(Integer limit) {
@@ -91,29 +80,5 @@ public class ProfileController {
             throw new BadRequestException("Profile search limit must be between 1 and 100.");
         }
         return limit;
-    }
-
-    private static ProfilePeriod profilePeriod(String value) {
-        if (value == null || value.isBlank()) {
-            return ProfilePeriod.ALL_TIME;
-        }
-        return switch (value.trim().toLowerCase(Locale.ROOT)) {
-            case "daily", "day" -> ProfilePeriod.DAILY;
-            case "weekly", "week" -> ProfilePeriod.WEEKLY;
-            case "monthly", "month" -> ProfilePeriod.MONTHLY;
-            case "all-time", "all_time", "alltime", "all" -> ProfilePeriod.ALL_TIME;
-            default -> throw new BadRequestException("Unsupported profile period: " + value);
-        };
-    }
-
-    private static ZoneId profileTimeZone(String value) {
-        if (value == null || value.isBlank()) {
-            return ZoneOffset.UTC;
-        }
-        try {
-            return ZoneId.of(value.trim());
-        } catch (DateTimeException exception) {
-            throw new BadRequestException("Unsupported time zone: " + value);
-        }
     }
 }

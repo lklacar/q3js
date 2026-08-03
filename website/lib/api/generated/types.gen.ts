@@ -47,11 +47,8 @@ export type ProfileMapResponse = {
     kills: number;
 };
 
-export type ProfilePeriod = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'ALL_TIME';
-
 export type ProfileResponse = {
     playerName: string;
-    period: ProfilePeriod;
     playtimeSeconds: number;
     lastOnline: OffsetDateTime | null;
     rank: number | null;
@@ -274,22 +271,13 @@ export type GetProfileData = {
     path: {
         playerName: string;
     };
-    query?: {
-        /**
-         * daily, weekly, monthly, or all-time
-         */
-        period?: string;
-        /**
-         * IANA time zone used for calendar periods
-         */
-        timeZone?: string;
-    };
+    query?: never;
     url: '/api/players/{playerName}';
 };
 
 export type GetProfileErrors = {
     /**
-     * Profile parameters are invalid
+     * Player name is invalid
      */
     400: unknown;
     /**

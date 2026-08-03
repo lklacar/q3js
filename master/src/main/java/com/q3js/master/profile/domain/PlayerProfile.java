@@ -5,7 +5,6 @@ import java.util.List;
 
 public record PlayerProfile(
     String playerName,
-    ProfilePeriod period,
     long playtimeSeconds,
     OffsetDateTime lastOnline,
     Integer rank,

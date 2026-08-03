@@ -32,12 +32,13 @@ function PreviewQuery() {
   const activePeriod = periods.find((option) => option.value === period) ?? periods[0];
 
   return (
-    <section aria-labelledby="top-fraggers-heading" className="mb-10 border border-border/60 bg-card/35 p-5 md:p-6">
+    <section aria-labelledby="top-fraggers-heading" className="arena-card mb-10 border border-border/60 bg-card/35 p-5 md:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
+          <p className="mb-2 font-mono text-[9px] uppercase tracking-[0.16em] text-primary">01 / Global frag feed</p>
           <div className="flex items-center gap-2">
             <Trophy className="size-4 text-primary" />
-            <h2 id="top-fraggers-heading" className="text-xl font-bold">Top fraggers</h2>
+            <h2 id="top-fraggers-heading" className="font-mono text-xl font-bold uppercase tracking-[0.035em]">Top fraggers</h2>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">Global frag leaders for the selected period.</p>
         </div>
@@ -95,7 +96,7 @@ function PreviewQuery() {
           href={`/scoreboard?period=${activePeriod.query}`}
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
         >
-          Full scoreboard <ArrowRight className="size-3.5" />
+          View frag rankings <ArrowRight className="size-3.5" />
         </Link>
       </div>
     </section>

@@ -7,13 +7,10 @@ import { serverApiClient } from "@/lib/api/server-client";
 
 export const fetchProfile = cache(async (
   playerName: string,
-  period: string,
-  timeZone: string,
 ): Promise<ProfileResponse | undefined> => {
   const result = await getProfile({
     client: serverApiClient,
     path: { playerName },
-    query: { period, timeZone },
     cache: "no-store",
     throwOnError: false,
   });

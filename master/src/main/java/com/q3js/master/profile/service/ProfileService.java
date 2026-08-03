@@ -2,7 +2,6 @@ package com.q3js.master.profile.service;
 
 import com.q3js.master.profile.domain.PlayerProfile;
 import com.q3js.master.profile.domain.ProfileLifecycleEvent;
-import com.q3js.master.profile.domain.ProfilePeriod;
 import com.q3js.master.profile.domain.ProfileRivalStats;
 import com.q3js.master.profile.domain.ProfileSitemapEntry;
 import com.q3js.master.profile.domain.ProfileWeaponKills;
@@ -13,10 +12,7 @@ import jakarta.ws.rs.NotFoundException;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.util.ArrayDeque;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,33 +33,31 @@ public class ProfileService {
         return repository.sitemapEntries();
     }
 
-    public PlayerProfile get(String playerName, ProfilePeriod period, ZoneId timeZone) {
+    public PlayerProfile get(String playerName) {
         OffsetDateTime now = currentTime();
         OffsetDateTime lastOnline = repository.findLastOnline(playerName);
         if (lastOnline == null) {
             throw new NotFoundException("Player profile not found.");
         }
 
-        OffsetDateTime periodStart = period.startsAt(now, timeZone).orElse(null);
-        int kills = repository.countKills(playerName, periodStart);
-        int deaths = repository.countDeaths(playerName, periodStart);
+        int kills = repository.countKills(playerName);
+        int deaths = repository.countDeaths(playerName);
         List<ProfileWeaponStats> weaponBreakdown = weapons(
-            repository.findWeaponStats(playerName, periodStart)
+            repository.findWeaponStats(playerName)
         );
         return new PlayerProfile(
             playerName,
-            period,
-            playtimeSeconds(repository.findLifecycleEvents(playerName), periodStart, now),
+            playtimeSeconds(repository.findLifecycleEvents(playerName), now),
             lastOnline,
-            repository.findRank(playerName, periodStart, kills),
+            repository.findRank(playerName, kills),
             kills,
             deaths,
             killDeathRatio(kills, deaths),
-            repository.findFavoriteMap(playerName, periodStart),
+            repository.findFavoriteMap(playerName),
             weaponBreakdown.isEmpty() ? null : weaponBreakdown.get(0),
             weaponBreakdown,
-            repository.findTopVictims(playerName, periodStart),
-            repository.findTopNemeses(playerName, periodStart)
+            repository.findTopVictims(playerName),
+            repository.findTopNemeses(playerName)
         );
     }
 
@@ -73,44 +67,35 @@ public class ProfileService {
 
     private static long playtimeSeconds(
         List<ProfileLifecycleEvent> events,
-        OffsetDateTime periodStart,
         OffsetDateTime now
     ) {
-        Map<String, Deque<OffsetDateTime>> openSessions = new HashMap<>();
+        Map<String, OffsetDateTime> openSessions = new HashMap<>();
         long totalSeconds = 0;
 
         for (ProfileLifecycleEvent event : events) {
             String source = event.sourceIp() == null ? "" : event.sourceIp();
-            Deque<OffsetDateTime> sourceSessions = openSessions.computeIfAbsent(source, ignored -> new ArrayDeque<>());
             if ("join".equalsIgnoreCase(event.type())) {
-                sourceSessions.addLast(event.receivedAt());
+                // A newer join supersedes an orphaned session left behind by a crashed server.
+                openSessions.put(source, event.receivedAt());
             } else if ("leave".equalsIgnoreCase(event.type())) {
-                OffsetDateTime joinedAt = sourceSessions.pollFirst();
+                OffsetDateTime joinedAt = openSessions.remove(source);
                 if (joinedAt != null) {
-                    totalSeconds += overlapSeconds(joinedAt, event.receivedAt(), periodStart, now);
+                    totalSeconds += elapsedSeconds(joinedAt, event.receivedAt(), now);
                 }
             }
         }
 
-        for (Deque<OffsetDateTime> sourceSessions : openSessions.values()) {
-            for (OffsetDateTime joinedAt : sourceSessions) {
-                totalSeconds += overlapSeconds(joinedAt, now, periodStart, now);
-            }
-        }
+        // Open sessions have no reliable end time, so they must not contribute to historical playtime.
         return totalSeconds;
     }
 
-    private static long overlapSeconds(
+    private static long elapsedSeconds(
         OffsetDateTime sessionStart,
         OffsetDateTime sessionEnd,
-        OffsetDateTime periodStart,
-        OffsetDateTime periodEnd
+        OffsetDateTime now
     ) {
-        OffsetDateTime overlapStart = periodStart != null && sessionStart.isBefore(periodStart)
-            ? periodStart
-            : sessionStart;
-        OffsetDateTime overlapEnd = sessionEnd.isAfter(periodEnd) ? periodEnd : sessionEnd;
-        return overlapEnd.isAfter(overlapStart) ? Duration.between(overlapStart, overlapEnd).getSeconds() : 0;
+        OffsetDateTime effectiveEnd = sessionEnd.isAfter(now) ? now : sessionEnd;
+        return effectiveEnd.isAfter(sessionStart) ? Duration.between(sessionStart, effectiveEnd).getSeconds() : 0;
     }
 
     private static List<ProfileWeaponStats> weapons(List<ProfileWeaponKills> rawWeapons) {

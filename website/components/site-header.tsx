@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { DiscordLogo, GithubLogo } from "@phosphor-icons/react/dist/ssr";
 import { MasterStatus } from "@/components/master-status";
@@ -11,9 +12,10 @@ const navItems = [
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-5 px-4">
-        <Link href="/" className="mr-auto flex items-baseline gap-2" aria-label="Q3JS home">
-          <span className="text-xl font-black tracking-[-0.04em]">Q3JS</span>
+      <div className="mx-auto flex h-14 w-full max-w-5xl items-center gap-5 px-4">
+        <Link href="/" className="mr-auto flex items-center gap-2.5" aria-label="Q3JS home">
+          <Image src="/logo192.png" alt="" width={24} height={24} className="size-6 mix-blend-screen" priority />
+          <span className="font-mono text-xl font-black uppercase tracking-[0.04em]">Q3JS</span>
           <span className="font-mono text-[9px] text-muted-foreground">0.0.1</span>
         </Link>
 
@@ -23,7 +25,7 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              className="font-mono text-xs uppercase tracking-[0.05em] text-muted-foreground transition-colors hover:text-primary"
             >
               {item.label}
             </Link>
@@ -38,7 +40,7 @@ export function SiteHeader() {
           href="https://github.com/lklacar/q3js"
           target="_blank"
           rel="noreferrer"
-          className="hidden text-muted-foreground transition-colors hover:text-foreground sm:block"
+          className="hidden text-muted-foreground transition-colors hover:text-primary sm:block"
           aria-label="Q3JS on GitHub"
         >
           <GithubLogo className="size-5" weight="fill" />
@@ -47,7 +49,7 @@ export function SiteHeader() {
           href="https://discord.gg/mKvM9su443"
           target="_blank"
           rel="noreferrer"
-          className="hidden text-muted-foreground transition-colors hover:text-foreground sm:block"
+          className="hidden text-muted-foreground transition-colors hover:text-primary sm:block"
           aria-label="Q3JS Discord"
         >
           <DiscordLogo className="size-5" weight="fill" />

@@ -20,19 +20,19 @@ function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
   const topFragger = stats.mostFragsLast24Hours;
   return (
     <dl className="mb-10 grid gap-3 sm:grid-cols-3">
-      <div className="border border-border/60 bg-card/55 p-5">
+      <div className="arena-card border border-border/60 bg-card/55 p-4">
         <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
           <Users className="size-4 text-primary" /> Players online
         </dt>
-        <dd className="mt-3 text-2xl font-bold tabular-nums">{formatNumber(stats.playersOnline)}</dd>
+        <dd className="mt-3 font-mono text-2xl font-bold tracking-[0.03em] tabular-nums">{formatNumber(stats.playersOnline)}</dd>
         <p className="mt-2 text-xs text-muted-foreground">Connected across live Q3JS servers.</p>
       </div>
 
-      <div className="border border-border/60 bg-card/55 p-5">
+      <div className="arena-card border border-border/60 bg-card/55 p-4">
         <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
           <Crosshair className="size-4 text-primary" /> Most frags last 24 hours
         </dt>
-        <dd className="mt-3 truncate text-lg font-bold">
+        <dd className="mt-3 truncate font-mono text-xl font-bold tracking-[0.025em]">
           {topFragger ? (
             <Link href={`/players/${encodeURIComponent(topFragger.playerName)}`} className="hover:text-primary">
               <Q3ColoredText text={topFragger.playerName} />
@@ -44,11 +44,11 @@ function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
         </p>
       </div>
 
-      <div className="border border-border/60 bg-card/55 p-5">
+      <div className="arena-card border border-border/60 bg-card/55 p-4">
         <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
           <Skull className="size-4 text-primary" /> Total frags ever
         </dt>
-        <dd className="mt-3 text-2xl font-bold tabular-nums">{formatNumber(stats.totalFragsEver)}</dd>
+        <dd className="mt-3 font-mono text-2xl font-bold tracking-[0.03em] tabular-nums">{formatNumber(stats.totalFragsEver)}</dd>
         <p className="mt-2 text-xs text-muted-foreground">Recorded across Q3JS servers.</p>
       </div>
     </dl>
@@ -64,7 +64,7 @@ function HomeStatsPending() {
   return (
     <div className="mb-10 grid gap-3 sm:grid-cols-3" aria-label="Loading Q3JS statistics">
       {["Players online", "Most frags last 24 hours", "Total frags ever"].map((label) => (
-        <div key={label} className="h-[7.75rem] animate-pulse border border-border/60 bg-card/55 p-5">
+        <div key={label} className="arena-card h-[7.75rem] animate-pulse border border-border/60 bg-card/55 p-4">
           <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
         </div>
       ))}

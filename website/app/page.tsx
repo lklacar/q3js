@@ -58,10 +58,16 @@ export default function Home() {
       <SiteHeader />
       <main className="mx-auto w-full max-w-5xl px-4 pb-20 pt-10 md:pt-14">
         <div className="mb-10">
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Quake III Arena in your browser</h1>
+          <div className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.18em] text-primary">
+            <span className="size-1.5 bg-primary" aria-hidden="true" />
+            Arena online / WebAssembly build
+          </div>
+          <h1 className="mt-3 font-mono text-2xl font-black uppercase tracking-[0.035em] md:text-3xl">
+            Quake III Arena in your browser
+          </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Choose a server and join. Q3JS runs the official Quake III demo through an ioquake3
-            WebAssembly build.
+            Pick a server. Enter the arena. Q3JS runs the official Quake III demo through an
+            ioquake3 WebAssembly build.
           </p>
         </div>
         <HomeStats />

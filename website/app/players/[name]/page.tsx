@@ -9,12 +9,6 @@ import { buildPageMetadata } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 type RouteParameters = { name: string };
-type SearchParameters = Record<string, string | string[] | undefined>;
-
-function parameter(parameters: SearchParameters, name: string): string | undefined {
-  const value = parameters[name];
-  return Array.isArray(value) ? value[0] : value;
-}
 
 function decodePlayerName(value: string): string {
   try {
@@ -24,41 +18,19 @@ function decodePlayerName(value: string): string {
   }
 }
 
-function profilePeriod(value?: string): string {
-  const normalized = value?.trim().toLowerCase();
-  return ["daily", "weekly", "monthly", "all-time"].includes(normalized ?? "")
-    ? normalized!
-    : "all-time";
-}
-
-function profileTimeZone(value?: string): string {
-  const timeZone = value?.trim() || "UTC";
-  try {
-    new Intl.DateTimeFormat("en", { timeZone }).format();
-    return timeZone;
-  } catch {
-    return "UTC";
-  }
-}
-
-async function routeProfile(params: Promise<RouteParameters>, searchParams: Promise<SearchParameters>) {
-  const [parameters, query] = await Promise.all([params, searchParams]);
+async function routeProfile(params: Promise<RouteParameters>) {
+  const parameters = await params;
   const playerName = decodePlayerName(parameters.name);
-  const period = profilePeriod(parameter(query, "period"));
-  const timeZone = profileTimeZone(parameter(query, "timeZone"));
   return {
     playerName,
-    period,
-    timeZone,
-    profile: await fetchProfile(playerName, period, timeZone),
+    profile: await fetchProfile(playerName),
   };
 }
 
 export async function generateMetadata({
   params,
-  searchParams,
-}: Readonly<{ params: Promise<RouteParameters>; searchParams: Promise<SearchParameters> }>): Promise<Metadata> {
-  const { playerName, profile } = await routeProfile(params, searchParams);
+}: Readonly<{ params: Promise<RouteParameters> }>): Promise<Metadata> {
+  const { playerName, profile } = await routeProfile(params);
   const path = `/players/${encodeURIComponent(playerName)}`;
   if (!profile) {
     return buildPageMetadata({
@@ -80,15 +52,14 @@ export async function generateMetadata({
 
 export default async function PlayerProfileRoute({
   params,
-  searchParams,
-}: Readonly<{ params: Promise<RouteParameters>; searchParams: Promise<SearchParameters> }>) {
-  const { profile, timeZone } = await routeProfile(params, searchParams);
+}: Readonly<{ params: Promise<RouteParameters> }>) {
+  const { profile } = await routeProfile(params);
   if (!profile) notFound();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
-      <ProfilePage profile={profile} timeZone={timeZone} />
+      <ProfilePage profile={profile} />
       <Footer />
     </div>
   );

@@ -107,15 +107,15 @@ public class ProfileRepository {
             .fetchOne(0, OffsetDateTime.class);
     }
 
-    public int countKills(String playerName, OffsetDateTime periodStart) {
-        return count(killCondition(periodStart).and(EVENTS.KILLER_NAME.eq(playerName)));
+    public int countKills(String playerName) {
+        return count(killCondition().and(EVENTS.KILLER_NAME.eq(playerName)));
     }
 
-    public int countDeaths(String playerName, OffsetDateTime periodStart) {
-        return count(killCondition(periodStart).and(EVENTS.VICTIM_NAME.eq(playerName)));
+    public int countDeaths(String playerName) {
+        return count(killCondition().and(EVENTS.VICTIM_NAME.eq(playerName)));
     }
 
-    public Integer findRank(String playerName, OffsetDateTime periodStart, int kills) {
+    public Integer findRank(String playerName, int kills) {
         if (kills == 0) {
             return null;
         }
@@ -123,7 +123,7 @@ public class ProfileRepository {
         Field<Integer> groupedKills = DSL.count().as("kills");
         Table<?> leaderboard = dsl.select(EVENTS.KILLER_NAME.as("player_name"), groupedKills)
             .from(EVENTS)
-            .where(killCondition(periodStart))
+            .where(killCondition())
             .groupBy(EVENTS.KILLER_NAME)
             .asTable("leaderboard");
         Field<String> leaderboardPlayer = DSL.field(DSL.name("leaderboard", "player_name"), String.class);
@@ -137,11 +137,11 @@ public class ProfileRepository {
         return valueOrZero(playersAhead) + 1;
     }
 
-    public ProfileMapStats findFavoriteMap(String playerName, OffsetDateTime periodStart) {
+    public ProfileMapStats findFavoriteMap(String playerName) {
         Field<Integer> kills = DSL.count().as("kills");
         return dsl.select(EVENTS.MAP_NAME, kills)
             .from(EVENTS)
-            .where(killCondition(periodStart).and(EVENTS.KILLER_NAME.eq(playerName)))
+            .where(killCondition().and(EVENTS.KILLER_NAME.eq(playerName)))
             .groupBy(EVENTS.MAP_NAME)
             .orderBy(kills.desc(), EVENTS.MAP_NAME.asc())
             .limit(1)
@@ -151,11 +151,11 @@ public class ProfileRepository {
             ));
     }
 
-    public List<ProfileWeaponKills> findWeaponStats(String playerName, OffsetDateTime periodStart) {
+    public List<ProfileWeaponKills> findWeaponStats(String playerName) {
         Field<Integer> kills = DSL.count().as("kills");
         return dsl.select(EVENTS.MEANS_OF_DEATH, kills)
             .from(EVENTS)
-            .where(killCondition(periodStart).and(EVENTS.KILLER_NAME.eq(playerName)))
+            .where(killCondition().and(EVENTS.KILLER_NAME.eq(playerName)))
             .groupBy(EVENTS.MEANS_OF_DEATH)
             .fetch(record -> new ProfileWeaponKills(
                 record.get(EVENTS.MEANS_OF_DEATH),
@@ -163,11 +163,11 @@ public class ProfileRepository {
             ));
     }
 
-    public List<ProfileRivalStats> findTopVictims(String playerName, OffsetDateTime periodStart) {
+    public List<ProfileRivalStats> findTopVictims(String playerName) {
         Field<Integer> kills = DSL.count().as("kills");
         return dsl.select(EVENTS.VICTIM_NAME, kills)
             .from(EVENTS)
-            .where(killCondition(periodStart)
+            .where(killCondition()
                 .and(EVENTS.KILLER_NAME.eq(playerName))
                 .and(EVENTS.VICTIM_NAME.isNotNull())
                 .and(EVENTS.VICTIM_NAME.ne(playerName)))
@@ -180,11 +180,11 @@ public class ProfileRepository {
             ));
     }
 
-    public List<ProfileRivalStats> findTopNemeses(String playerName, OffsetDateTime periodStart) {
+    public List<ProfileRivalStats> findTopNemeses(String playerName) {
         Field<Integer> kills = DSL.count().as("kills");
         return dsl.select(EVENTS.KILLER_NAME, kills)
             .from(EVENTS)
-            .where(killCondition(periodStart)
+            .where(killCondition()
                 .and(EVENTS.VICTIM_NAME.eq(playerName))
                 .and(EVENTS.KILLER_NAME.isNotNull())
                 .and(EVENTS.KILLER_NAME.ne(playerName)))
@@ -201,7 +201,7 @@ public class ProfileRepository {
         return dsl.select(EVENTS.SOURCE_IP, EVENTS.EVENT_TYPE, EVENTS.RECEIVED_AT)
             .from(EVENTS)
             .where(EVENTS.KILLER_NAME.eq(playerName).and(EVENTS.EVENT_TYPE.in("join", "leave")))
-            .orderBy(EVENTS.RECEIVED_AT.asc())
+            .orderBy(EVENTS.RECEIVED_AT.asc(), EVENTS.ID.asc())
             .fetch(record -> new ProfileLifecycleEvent(
                 record.get(EVENTS.SOURCE_IP),
                 record.get(EVENTS.EVENT_TYPE),
@@ -217,9 +217,8 @@ public class ProfileRepository {
         return valueOrZero(count);
     }
 
-    private Condition killCondition(OffsetDateTime periodStart) {
-        Condition condition = EVENTS.EVENT_TYPE.eq("kill");
-        return periodStart == null ? condition : condition.and(EVENTS.RECEIVED_AT.ge(periodStart));
+    private Condition killCondition() {
+        return EVENTS.EVENT_TYPE.eq("kill");
     }
 
     private static Field<String> normalizedPlayerName(Field<String> playerName) {

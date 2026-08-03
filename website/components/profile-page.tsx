@@ -3,7 +3,6 @@ import { Crosshair, Trophy } from "@phosphor-icons/react/dist/ssr";
 import { JsonLd } from "@/components/json-ld";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import type {
-  ProfilePeriod,
   ProfileResponse,
   ProfileRivalResponse,
   ProfileWeaponResponse,
@@ -11,13 +10,6 @@ import type {
 import { formatRelativeTime } from "@/lib/format";
 import { absoluteUrl, siteConfig } from "@/lib/seo";
 import { cn } from "@/lib/utils";
-
-const periods = [
-  { value: "all-time", response: "ALL_TIME", label: "All time" },
-  { value: "daily", response: "DAILY", label: "24 hours" },
-  { value: "weekly", response: "WEEKLY", label: "This week" },
-  { value: "monthly", response: "MONTHLY", label: "This month" },
-] as const satisfies ReadonlyArray<{ value: string; response: ProfilePeriod; label: string }>;
 
 function stripQuakeColors(value: string): string {
   return value.replace(/\^(?:[0-9]|x[0-9a-f]{6})/gi, "").replaceAll("^^", "^");
@@ -31,12 +23,6 @@ function formatPlaytime(seconds: number): string {
   return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
 }
 
-function periodHref(playerName: string, period: string, timeZone: string): string {
-  const parameters = new URLSearchParams({ period });
-  if (timeZone !== "UTC") parameters.set("timeZone", timeZone);
-  return `/players/${encodeURIComponent(playerName)}?${parameters.toString()}`;
-}
-
 function Stat({
   compact = false,
   label,
@@ -47,7 +33,7 @@ function Stat({
       <dt className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{label}</dt>
       <dd className={cn(
         "mt-1 font-bold tabular-nums",
-        compact ? "text-xs leading-5" : "truncate text-xl",
+        compact ? "text-xs leading-5" : "truncate font-mono text-xl tracking-[0.025em]",
       )}>{value}</dd>
     </div>
   );
@@ -58,7 +44,7 @@ function WeaponBreakdown({ kills, weapons }: Readonly<{ kills: number; weapons: 
   return (
     <section aria-labelledby="weapons-heading" className="border border-border/60 bg-card/45 p-5 md:p-6">
       <div className="flex items-baseline justify-between gap-4">
-        <h2 id="weapons-heading" className="text-base font-bold">Weapons</h2>
+        <h2 id="weapons-heading" className="font-mono text-lg font-bold uppercase tracking-[0.03em]">Weapons</h2>
         <span className="font-mono text-[9px] uppercase text-muted-foreground">{kills} total kills</span>
       </div>
       {weapons.length ? (
@@ -78,7 +64,7 @@ function WeaponBreakdown({ kills, weapons }: Readonly<{ kills: number; weapons: 
           ))}
         </div>
       ) : (
-        <p className="mt-4 text-xs text-muted-foreground">No weapon data for this period.</p>
+        <p className="mt-4 text-xs text-muted-foreground">No weapon data recorded.</p>
       )}
     </section>
   );
@@ -91,7 +77,7 @@ function Rivals({
 }: Readonly<{ empty: string; players: ProfileRivalResponse[]; title: string }>) {
   return (
     <section className="border border-border/60 bg-card/45 p-5 md:p-6">
-      <h2 className="text-base font-bold">{title}</h2>
+      <h2 className="font-mono text-lg font-bold uppercase tracking-[0.03em]">{title}</h2>
       {players.length ? (
         <ol className="mt-4 divide-y divide-border/40">
           {players.map((player, index) => (
@@ -114,11 +100,10 @@ function Rivals({
   );
 }
 
-export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileResponse; timeZone: string }>) {
+export function ProfilePage({ profile }: Readonly<{ profile: ProfileResponse }>) {
   const plainName = stripQuakeColors(profile.playerName) || profile.playerName;
-  const activePeriod = periods.find((period) => period.response === profile.period) ?? periods[0];
   const profileUrl = absoluteUrl(`/players/${encodeURIComponent(profile.playerName)}`);
-  const description = `${plainName}'s Q3JS player profile: ${profile.kills} kills and ${profile.deaths} deaths for ${activePeriod.label.toLowerCase()}.`;
+  const description = `${plainName}'s Q3JS player profile: ${profile.kills} kills and ${profile.deaths} deaths.`;
   return (
     <main className="mx-auto w-full max-w-5xl px-4 pb-20 pt-8 md:pt-12">
       <JsonLd
@@ -140,7 +125,7 @@ export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileRe
             name: plainName,
             identifier: profile.playerName,
             url: profileUrl,
-            description: `${activePeriod.label} Q3JS stats for ${plainName}.`,
+            description: `All-time Q3JS stats for ${plainName}.`,
             mainEntityOfPage: profileUrl,
             additionalProperty: [
               { "@type": "PropertyValue", name: "Q3JS rank", value: profile.rank ?? "Unranked" },
@@ -151,32 +136,16 @@ export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileRe
           },
         }}
       />
-      <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+      <header>
         <div className="min-w-0">
-          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">Player profile</p>
-          <h1 className="mt-2 break-words text-3xl font-black tracking-tight md:text-4xl">
+          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-primary">Combat record / Player profile</p>
+          <h1 className="mt-2 break-words font-mono text-3xl font-black tracking-[0.03em] md:text-4xl">
             <Q3ColoredText text={profile.playerName} />
           </h1>
           {plainName !== profile.playerName && (
             <p className="mt-2 font-mono text-[10px] text-muted-foreground">{plainName}</p>
           )}
         </div>
-
-        <nav aria-label="Profile period" className="flex flex-wrap gap-1 border border-border/60 bg-card/45 p-1">
-          {periods.map((period) => (
-            <Link
-              key={period.value}
-              href={periodHref(profile.playerName, period.value, timeZone)}
-              aria-current={profile.period === period.response ? "page" : undefined}
-              className={cn(
-                "px-3 py-2 text-[10px] font-medium text-muted-foreground hover:text-foreground",
-                profile.period === period.response && "bg-secondary text-foreground",
-              )}
-            >
-              {period.label}
-            </Link>
-          ))}
-        </nav>
       </header>
 
       <dl className="mt-8 grid grid-cols-2 border border-border/60 bg-card/55 sm:grid-cols-3 lg:grid-cols-6">
@@ -194,9 +163,9 @@ export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileRe
             <Trophy className="size-4" />
             <h2 className="font-mono text-[9px] uppercase tracking-[0.12em]">Favorite map</h2>
           </div>
-          <p className="mt-3 text-xl font-bold uppercase">{profile.favoriteMap?.mapName ?? "No map yet"}</p>
+          <p className="mt-3 font-mono text-xl font-bold uppercase tracking-[0.03em]">{profile.favoriteMap?.mapName ?? "No map yet"}</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {profile.favoriteMap ? `${profile.favoriteMap.kills} kills recorded here.` : "No kills in this period."}
+            {profile.favoriteMap ? `${profile.favoriteMap.kills} kills recorded here.` : "No kills recorded."}
           </p>
         </section>
         <section className="border border-border/60 bg-card/35 p-5 md:p-6">
@@ -204,11 +173,11 @@ export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileRe
             <Crosshair className="size-4" />
             <h2 className="font-mono text-[9px] uppercase tracking-[0.12em]">Favorite weapon</h2>
           </div>
-          <p className="mt-3 text-xl font-bold">{profile.favoriteWeapon?.weaponName ?? "No weapon yet"}</p>
+          <p className="mt-3 font-mono text-xl font-bold uppercase tracking-[0.03em]">{profile.favoriteWeapon?.weaponName ?? "No weapon yet"}</p>
           <p className="mt-1 text-xs text-muted-foreground">
             {profile.favoriteWeapon
               ? `${profile.favoriteWeapon.kills} kills · MOD ${profile.favoriteWeapon.meansOfDeath}`
-              : "No kills in this period."}
+              : "No kills recorded."}
           </p>
         </section>
       </div>
@@ -216,8 +185,8 @@ export function ProfilePage({ profile, timeZone }: Readonly<{ profile: ProfileRe
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
         <WeaponBreakdown kills={profile.kills} weapons={profile.weaponBreakdown} />
         <div className="grid gap-4">
-          <Rivals title="Top victims" players={profile.topVictims} empty="No victims for this period." />
-          <Rivals title="Top nemeses" players={profile.topNemeses} empty="No nemeses for this period." />
+          <Rivals title="Top victims" players={profile.topVictims} empty="No victims recorded." />
+          <Rivals title="Top nemeses" players={profile.topNemeses} empty="No nemeses recorded." />
         </div>
       </div>
 
