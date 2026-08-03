@@ -8,8 +8,8 @@ import {
   DiceFive,
   LockKey,
   MagnifyingGlass,
-  Robot,
   SealCheck,
+  Users,
 } from "@phosphor-icons/react";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import { QueryBoundary } from "@/components/query-boundary";
@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePlayerName } from "@/hooks/use-player-name";
 import type { ListedServer } from "@/lib/master-server";
 import { masterServerQueryOptions } from "@/lib/master-server-query";
@@ -188,30 +189,35 @@ function ServerCard({ onJoin, server }: Readonly<{
         </div>
 
         <div className="mt-5 border-t border-border/50 pt-4">
-          <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] px-3 pb-2 font-mono text-xs uppercase text-muted-foreground">
-            <span>Players</span>
-            <span className="text-right">Score</span>
-            <span className="text-right">Ping</span>
+          <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="size-4" />
+            <span className="font-semibold text-foreground">Players ({server.users.length})</span>
           </div>
           {server.users.length ? (
-            <div className="divide-y divide-border/40 bg-background/25 font-mono text-sm">
+            <ScrollArea className="h-40 overflow-y-auto rounded-md border border-border/40 bg-background/40">
+              <div className="grid grid-cols-[4rem_4rem_minmax(0,1fr)] border-b border-border/40 px-3 py-2 font-mono text-[11px] text-muted-foreground">
+                <span>Score</span>
+                <span>Ping</span>
+                <span>Name</span>
+              </div>
               {server.users.map((player, index) => (
-                <div key={`${player.name}-${index}`} className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center px-3 py-2.5">
+                <div
+                  key={`${player.name}-${index}`}
+                  className="grid grid-cols-[4rem_4rem_minmax(0,1fr)] px-3 py-1.5 font-mono text-[11px] text-foreground odd:bg-background/40"
+                >
+                  <span className="tabular-nums">{player.score}</span>
+                  <span className="tabular-nums">{player.ping}</span>
                   <Link
                     href={`/players/${encodeURIComponent(player.name)}`}
-                    className="truncate font-semibold hover:text-primary"
+                    className="min-w-0 truncate transition-opacity hover:opacity-80"
                   >
-                    <Q3ColoredText text={player.name} />
+                    <Q3ColoredText text={player.name} className="block truncate" />
                   </Link>
-                  <span className="text-right tabular-nums">{player.score}</span>
-                  <span className="flex items-center justify-end gap-1 tabular-nums text-muted-foreground">
-                    {player.bot ? <Robot className="size-3" aria-label="Bot" /> : player.ping}
-                  </span>
                 </div>
               ))}
-            </div>
+            </ScrollArea>
           ) : (
-            <p className="py-2 text-sm text-muted-foreground">No players connected.</p>
+            <p className="text-xs italic text-muted-foreground">No players online.</p>
           )}
         </div>
       </div>
