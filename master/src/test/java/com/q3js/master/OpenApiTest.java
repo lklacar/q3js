@@ -24,7 +24,8 @@ class OpenApiTest {
             .body("paths", hasKey("/api/servers/heartbeat"))
             .body("paths", hasKey("/api/events"))
             .body("paths", hasKey("/api/players"))
-            .body("paths", hasKey("/api/players/{playerName}"));
+            .body("paths", hasKey("/api/players/{playerName}"))
+            .body("paths", hasKey("/api/stats"));
     }
 
     @Test

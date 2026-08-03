@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { getProfile, heartbeat, ingest, type Options, searchProfiles, servers, status } from '../sdk.gen';
-import type { GetProfileData, GetProfileResponse, HeartbeatData, HeartbeatResponse, IngestData, IngestResponse, SearchProfilesData, SearchProfilesResponse, ServersData, ServersResponse, StatusData, StatusResponse2 } from '../types.gen';
+import { getProfile, getStats, heartbeat, ingest, type Options, searchProfiles, servers, status } from '../sdk.gen';
+import type { GetProfileData, GetProfileResponse, GetStatsData, GetStatsResponse, HeartbeatData, HeartbeatResponse, IngestData, IngestResponse, SearchProfilesData, SearchProfilesResponse, ServersData, ServersResponse, StatusData, StatusResponse2 } from '../types.gen';
 
 export type MutationKey<TOptions extends Partial<Options>> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -161,6 +161,24 @@ export const heartbeatMutation = (options?: Partial<Options<HeartbeatData>>): Us
     };
     return mutationOptions;
 };
+
+export const getStatsQueryKey = (options?: Options<GetStatsData>) => createQueryKey('getStats', options, false, ['Stats']);
+
+/**
+ * Get homepage statistics
+ */
+export const getStatsOptions = (options?: Options<GetStatsData>) => queryOptions<GetStatsResponse, DefaultError, GetStatsResponse, ReturnType<typeof getStatsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getStats({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getStatsQueryKey(options)
+});
 
 export const statusQueryKey = (options?: Options<StatusData>) => createQueryKey('status', options, false, ['Status']);
 

@@ -60,6 +60,12 @@ public class ServerService {
             .toList();
     }
 
+    public int playerCount() {
+        return servers().stream()
+            .mapToInt(server -> Math.max(0, server.info().players()))
+            .sum();
+    }
+
     @Scheduled(
         every = "${q3js.master.refresh-every}",
         concurrentExecution = Scheduled.ConcurrentExecution.SKIP

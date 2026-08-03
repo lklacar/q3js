@@ -14,6 +14,8 @@ The public API is compatible with the previous Q3JS server registry:
   packaged game servers.
 - `GET /api/players` searches player profiles by Quake handle.
 - `GET /api/players/{playerName}` returns detailed player statistics.
+- `GET /api/stats` returns players online, the top fragger from the rolling last
+  24 hours, and the all-time recorded frag count.
 - `GET /q/health` reports Quarkus health checks.
 - `GET /q/openapi` returns the generated OpenAPI document.
 - `GET /q/swagger-ui` opens the interactive Swagger UI.

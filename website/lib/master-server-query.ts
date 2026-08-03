@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import {
+  getStatsOptions,
   serversOptions,
   statusOptions,
 } from "@/lib/api/generated/@tanstack/react-query.gen";
@@ -17,6 +18,13 @@ export function masterServerQueryOptions() {
 export function masterStatusQueryOptions() {
   return queryOptions({
     ...statusOptions({ client }),
+    refetchInterval: 5_000,
+  });
+}
+
+export function masterStatsQueryOptions() {
+  return queryOptions({
+    ...getStatsOptions({ client }),
     refetchInterval: 5_000,
   });
 }

@@ -3,13 +3,23 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { ArrowClockwise, DiceFive, LockKey, MagnifyingGlass, Robot } from "@phosphor-icons/react";
+import {
+  ArrowClockwise,
+  Crosshair,
+  DiceFive,
+  LockKey,
+  MagnifyingGlass,
+  Robot,
+  Skull,
+  Users,
+} from "@phosphor-icons/react";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import { QueryBoundary } from "@/components/query-boundary";
 import { Button } from "@/components/ui/button";
 import { usePlayerName } from "@/hooks/use-player-name";
+import type { SiteStatsResponse } from "@/lib/api/generated/types.gen";
 import type { ListedServer } from "@/lib/master-server";
-import { masterServerQueryOptions } from "@/lib/master-server-query";
+import { masterServerQueryOptions, masterStatsQueryOptions } from "@/lib/master-server-query";
 
 type ServerFilter = "active" | "all" | "open";
 
@@ -36,6 +46,74 @@ function occupancy(server: ListedServer): number {
 
 function countLabel(count: number, label: string): string {
   return `${count} ${label}${count === 1 ? "" : "s"}`;
+}
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat("en").format(value);
+}
+
+function HomeStats({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
+  const topFragger = stats.mostFragsLast24Hours;
+  return (
+    <dl className="mb-10 grid gap-3 sm:grid-cols-3">
+      <div className="bg-card/55 p-5">
+        <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          <Users className="size-4 text-primary" /> Players online
+        </dt>
+        <dd className="mt-3 text-2xl font-bold tabular-nums">{formatNumber(stats.playersOnline)}</dd>
+        <p className="mt-2 text-xs text-muted-foreground">Connected across live Q3JS servers.</p>
+      </div>
+
+      <div className="bg-card/55 p-5">
+        <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          <Crosshair className="size-4 text-primary" /> Most frags last 24 hours
+        </dt>
+        <dd className="mt-3 truncate text-lg font-bold">
+          {topFragger ? (
+            <Link href={`/players/${encodeURIComponent(topFragger.playerName)}`} className="hover:text-primary">
+              <Q3ColoredText text={topFragger.playerName} />
+            </Link>
+          ) : "No frags yet"}
+        </dd>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {topFragger ? countLabel(topFragger.frags, "frag") : "No recorded frags in the last 24 hours."}
+        </p>
+      </div>
+
+      <div className="bg-card/55 p-5">
+        <dt className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+          <Skull className="size-4 text-primary" /> Total frags ever
+        </dt>
+        <dd className="mt-3 text-2xl font-bold tabular-nums">{formatNumber(stats.totalFragsEver)}</dd>
+        <p className="mt-2 text-xs text-muted-foreground">Recorded across Q3JS servers.</p>
+      </div>
+    </dl>
+  );
+}
+
+function HomeStatsQuery() {
+  const { data: stats } = useSuspenseQuery(masterStatsQueryOptions());
+  return <HomeStats stats={stats} />;
+}
+
+function HomeStatsPending() {
+  return (
+    <div className="mb-10 grid gap-3 sm:grid-cols-3" aria-label="Loading Q3JS statistics">
+      {["Players online", "Most frags last 24 hours", "Total frags ever"].map((label) => (
+        <div key={label} className="h-[7.75rem] animate-pulse bg-card/55 p-5">
+          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HomeStatsError() {
+  return (
+    <div className="mb-10 bg-card/55 px-5 py-4 text-xs text-muted-foreground">
+      Homepage statistics are temporarily unavailable.
+    </div>
+  );
 }
 
 function pingColor(ping: number): string {
@@ -96,23 +174,23 @@ function ServerCard({ playerName, server }: Readonly<{ playerName: string; serve
         </div>
 
         <div className="mt-5 border-t border-border/50 pt-4">
-          <div className="grid grid-cols-[minmax(0,1fr)_4rem_4rem] pb-2 font-mono text-[9px] uppercase text-muted-foreground">
+          <div className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] px-3 pb-2 font-mono text-[9px] uppercase text-muted-foreground">
             <span>Players</span>
-            <span>Score</span>
-            <span>Ping</span>
+            <span className="text-right">Score</span>
+            <span className="text-right">Ping</span>
           </div>
           {server.users.length ? (
             <div className="divide-y divide-border/40 bg-background/25 font-mono text-xs">
               {server.users.map((player, index) => (
-                <div key={`${player.name}-${index}`} className="grid grid-cols-[minmax(0,1fr)_4rem_4rem] items-center px-2 py-2.5">
+                <div key={`${player.name}-${index}`} className="grid grid-cols-[minmax(0,1fr)_5rem_5rem] items-center px-3 py-2.5">
                   <Link
                     href={`/players/${encodeURIComponent(player.name)}`}
                     className="truncate font-semibold hover:text-primary"
                   >
                     <Q3ColoredText text={player.name} />
                   </Link>
-                  <span className="tabular-nums">{player.score}</span>
-                  <span className="flex items-center gap-1 tabular-nums text-muted-foreground">
+                  <span className="text-right tabular-nums">{player.score}</span>
+                  <span className="flex items-center justify-end gap-1 tabular-nums text-muted-foreground">
                     {player.bot ? <Robot className="size-3" aria-label="Bot" /> : player.ping}
                   </span>
                 </div>
@@ -303,11 +381,19 @@ function ServerBrowserError({ error, reset }: Readonly<{ error: Error; reset: ()
 
 export function ServerBrowser() {
   return (
-    <QueryBoundary
-      pendingFallback={<ServerBrowserPending />}
-      errorFallback={(props) => <ServerBrowserError {...props} />}
-    >
-      <ServerBrowserQuery />
-    </QueryBoundary>
+    <>
+      <QueryBoundary
+        pendingFallback={<HomeStatsPending />}
+        errorFallback={() => <HomeStatsError />}
+      >
+        <HomeStatsQuery />
+      </QueryBoundary>
+      <QueryBoundary
+        pendingFallback={<ServerBrowserPending />}
+        errorFallback={(props) => <ServerBrowserError {...props} />}
+      >
+        <ServerBrowserQuery />
+      </QueryBoundary>
+    </>
   );
 }

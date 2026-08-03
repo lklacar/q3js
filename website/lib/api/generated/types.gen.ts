@@ -118,9 +118,20 @@ export type ServerResponse = {
     info: ServerInfo;
 };
 
+export type SiteStatsResponse = {
+    playersOnline: number;
+    mostFragsLast24Hours: TopFraggerResponse | null;
+    totalFragsEver: number;
+};
+
 export type StatusResponse = {
     service?: string;
     status?: string;
+};
+
+export type TopFraggerResponse = {
+    playerName: string;
+    frags: number;
 };
 
 export type IngestData = {
@@ -264,6 +275,22 @@ export type HeartbeatResponses = {
 };
 
 export type HeartbeatResponse = HeartbeatResponses[keyof HeartbeatResponses];
+
+export type GetStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/stats';
+};
+
+export type GetStatsResponses = {
+    /**
+     * Current players and global frag statistics
+     */
+    200: SiteStatsResponse;
+};
+
+export type GetStatsResponse = GetStatsResponses[keyof GetStatsResponses];
 
 export type StatusData = {
     body?: never;

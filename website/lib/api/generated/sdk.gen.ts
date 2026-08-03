@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetProfileData, GetProfileErrors, GetProfileResponses, HeartbeatData, HeartbeatErrors, HeartbeatResponses, IngestData, IngestErrors, IngestResponses, SearchProfilesData, SearchProfilesErrors, SearchProfilesResponses, ServersData, ServersResponses, StatusData, StatusResponses } from './types.gen';
+import type { GetProfileData, GetProfileErrors, GetProfileResponses, GetStatsData, GetStatsResponses, HeartbeatData, HeartbeatErrors, HeartbeatResponses, IngestData, IngestErrors, IngestResponses, SearchProfilesData, SearchProfilesErrors, SearchProfilesResponses, ServersData, ServersResponses, StatusData, StatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -57,6 +57,11 @@ export const heartbeat = <ThrowOnError extends boolean = true>(options: Options<
         ...options.headers
     }
 });
+
+/**
+ * Get homepage statistics
+ */
+export const getStats = <ThrowOnError extends boolean = true>(options?: Options<GetStatsData, ThrowOnError>): RequestResult<GetStatsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetStatsResponses, unknown, ThrowOnError>({ url: '/api/stats', ...options });
 
 /**
  * Get master server status
