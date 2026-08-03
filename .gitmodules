@@ -1,6 +1,0 @@
-[submodule "emsdk"]
-	path = emsdk
-	url = https://github.com/emscripten-core/emsdk.git
-[submodule "ioq3"]
-	path = ioq3
-	url = https://github.com/lklacar/q3js-ioq3

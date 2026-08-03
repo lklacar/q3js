@@ -1,5 +1,1 @@
-.idea
-build
-
-baseq3/*
-!baseq3/.keep
+.DS_Store
