@@ -58,16 +58,32 @@ public class ServerService {
             .map(this::response)
             .flatMap(Optional::stream)
             .sorted(
-                Comparator.comparing(ServerResponse::official).reversed()
-                    .thenComparing(Comparator.comparingInt(ServerService::realPlayerCount).reversed())
+                Comparator.comparingInt(ServerService::realPlayerCount).reversed()
+                    .thenComparing(Comparator.comparing(ServerResponse::official).reversed())
             )
             .toList();
     }
 
     public int playerCount() {
-        return servers().stream()
-            .mapToInt(server -> Math.max(0, server.info().players()))
-            .sum();
+        return playerCounts().players();
+    }
+
+    public PlayerCounts playerCounts() {
+        int players = 0;
+        int bots = 0;
+        for (ServerResponse server : servers()) {
+            if (server.info().users() == null) {
+                continue;
+            }
+            for (var user : server.info().users()) {
+                if (user.ping() == 0) {
+                    bots++;
+                } else if (user.ping() > 0) {
+                    players++;
+                }
+            }
+        }
+        return new PlayerCounts(players, bots);
     }
 
     @Scheduled(
@@ -132,5 +148,8 @@ public class ServerService {
         return (int) server.info().users().stream()
             .filter(user -> user.ping() > 0)
             .count();
+    }
+
+    public record PlayerCounts(int players, int bots) {
     }
 }

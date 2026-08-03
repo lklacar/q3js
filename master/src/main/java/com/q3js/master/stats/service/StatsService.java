@@ -34,8 +34,10 @@ public class StatsService {
                 return current.stats();
             }
 
+            ServerService.PlayerCounts playerCounts = serverService.playerCounts();
             SiteStats refreshed = new SiteStats(
-                serverService.playerCount(),
+                playerCounts.players(),
+                playerCounts.bots(),
                 repository.findTopFraggerSince(now.minusHours(24)),
                 repository.countTotalFrags()
             );

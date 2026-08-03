@@ -25,6 +25,7 @@ class StatsServiceTest {
 
         assertSame(first, cached);
         assertEquals(5, first.playersOnline());
+        assertEquals(3, first.botsOnline());
         assertEquals("Ranger", first.mostFragsLast24Hours().playerName());
         assertEquals(42, first.mostFragsLast24Hours().frags());
         assertEquals(1_337, first.totalFragsEver());
@@ -83,9 +84,9 @@ class StatsServiceTest {
         }
 
         @Override
-        public int playerCount() {
+        public PlayerCounts playerCounts() {
             calls++;
-            return 5;
+            return new PlayerCounts(5, 3);
         }
     }
 }

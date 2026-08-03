@@ -156,6 +156,7 @@ export type ServerResponse = {
 
 export type SiteStatsResponse = {
     playersOnline: number;
+    botsOnline: number;
     mostFragsLast24Hours: TopFraggerResponse | null;
     totalFragsEver: number;
 };

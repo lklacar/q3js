@@ -11,6 +11,7 @@ public class StatsMapper {
     public SiteStatsResponse response(SiteStats stats) {
         return new SiteStatsResponse(
             stats.playersOnline(),
+            stats.botsOnline(),
             response(stats.mostFragsLast24Hours()),
             stats.totalFragsEver()
         );

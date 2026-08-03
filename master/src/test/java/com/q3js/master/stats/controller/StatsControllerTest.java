@@ -20,6 +20,7 @@ class StatsControllerTest {
     void returnsHomepageStatistics() {
         when(statsService.stats()).thenReturn(new SiteStats(
             7,
+            3,
             new TopFragger("^1Ranger", 42),
             1_337
         ));
@@ -29,6 +30,7 @@ class StatsControllerTest {
             .then()
             .statusCode(200)
             .body("playersOnline", is(7))
+            .body("botsOnline", is(3))
             .body("mostFragsLast24Hours.playerName", is("^1Ranger"))
             .body("mostFragsLast24Hours.frags", is(42))
             .body("totalFragsEver", is(1_337));
