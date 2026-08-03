@@ -1,3 +1,5 @@
+import type { ServerResponse } from "@/lib/api/generated/types.gen";
+
 export interface ListedServer {
   id: string;
   host: string;
@@ -10,18 +12,6 @@ export interface ListedServer {
   players: number;
   capacity: number;
   ping?: number;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function integer(value: unknown, fallback = 0): number {
-  return typeof value === "number" && Number.isInteger(value) ? value : fallback;
-}
-
-function text(value: unknown, fallback: string): string {
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
 }
 
 function stripQuakeColors(value: string): string {
@@ -51,50 +41,30 @@ function gameMode(value: number): string {
   }
 }
 
-function parseServer(value: unknown): ListedServer | undefined {
-  if (!isRecord(value) || !isRecord(value.info)) {
+function mapServer(server: ServerResponse): ListedServer | undefined {
+  const { host, info, proxyPort } = server;
+  if (!host || !info || !proxyPort || proxyPort < 1 || proxyPort > 65535) {
     return undefined;
   }
 
-  const host = text(value.host, "");
-  const proxyPort = integer(value.proxyPort);
-  if (!host || proxyPort < 1 || proxyPort > 65535) {
-    return undefined;
-  }
-
-  const info = value.info;
-  const rawName = text(info.sv_hostname, `${host}:${proxyPort}`);
-  const ping = integer(info.ping);
-  const gamename = text(info.gamename, "q3js").toLowerCase();
+  const fallbackName = `${host}:${proxyPort}`;
+  const rawName = info.sv_hostname?.trim() || fallbackName;
+  const gamename = info.gamename?.trim().toLowerCase() || "q3js";
   return {
     id: `${host}:${proxyPort}`,
     host,
     proxyPort,
-    secure: value.secure === true,
+    secure: server.secure ?? false,
     game: gamename === "cpma" ? "cpma" : "q3js",
-    name: stripQuakeColors(rawName) || `${host}:${proxyPort}`,
-    map: text(info.mapname, "unknown"),
-    mode: gameMode(integer(info.g_gametype)),
-    players: Math.max(0, integer(info.players)),
-    capacity: Math.max(0, integer(info.sv_maxclients)),
-    ...(ping > 0 ? { ping } : {}),
+    name: stripQuakeColors(rawName) || fallbackName,
+    map: info.mapname?.trim() || "unknown",
+    mode: gameMode(info.g_gametype ?? 0),
+    players: Math.max(0, info.players ?? 0),
+    capacity: Math.max(0, info.sv_maxclients ?? 0),
+    ...(info.ping && info.ping > 0 ? { ping: info.ping } : {}),
   };
 }
 
-export async function fetchServers(signal?: AbortSignal): Promise<ListedServer[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_Q3JS_MASTER_URL?.trim() || "http://localhost:8080";
-  const response = await fetch(new URL("/api/servers", baseUrl), {
-    cache: "no-store",
-    headers: { accept: "application/json" },
-    signal,
-  });
-  if (!response.ok) {
-    throw new Error(`Master server returned HTTP ${response.status}`);
-  }
-
-  const payload: unknown = await response.json();
-  if (!Array.isArray(payload)) {
-    throw new Error("Master server returned an invalid server list");
-  }
-  return payload.map(parseServer).filter((server): server is ListedServer => server !== undefined);
+export function mapServers(servers: ReadonlyArray<ServerResponse>): ListedServer[] {
+  return servers.map(mapServer).filter((server): server is ListedServer => server !== undefined);
 }

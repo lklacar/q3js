@@ -1,25 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { fetchServers } from "@/lib/master-server";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { QueryBoundary } from "@/components/query-boundary";
+import { masterStatusQueryOptions } from "@/lib/master-server-query";
 
-type MasterState = "checking" | "online" | "offline";
-
-export function MasterStatus() {
-  const [state, setState] = useState<MasterState>("checking");
-
-  useEffect(() => {
-    const request = new AbortController();
-    fetchServers(request.signal)
-      .then(() => setState("online"))
-      .catch(() => {
-        if (!request.signal.aborted) {
-          setState("offline");
-        }
-      });
-    return () => request.abort();
-  }, []);
-
+function StatusBadge({ state }: Readonly<{ state: "checking" | "offline" | "online" }>) {
   return (
     <span
       className="inline-flex h-7 items-center gap-2 border border-border px-2.5 text-[10px] uppercase text-muted-foreground"
@@ -28,5 +13,21 @@ export function MasterStatus() {
       <span className={`size-1.5 ${state === "online" ? "bg-green-500" : "bg-muted-foreground"}`} />
       Master {state}
     </span>
+  );
+}
+
+function MasterStatusQuery() {
+  const { isError } = useSuspenseQuery(masterStatusQueryOptions());
+  return <StatusBadge state={isError ? "offline" : "online"} />;
+}
+
+export function MasterStatus() {
+  return (
+    <QueryBoundary
+      pendingFallback={<StatusBadge state="checking" />}
+      errorFallback={() => <StatusBadge state="offline" />}
+    >
+      <MasterStatusQuery />
+    </QueryBoundary>
   );
 }

@@ -1,6 +1,6 @@
 package com.q3js.master.server;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
@@ -19,10 +19,11 @@ class ServerResourceTest {
     ServerService serverService;
 
     @Test
-    void returnsRegisteredServers() {
-        var info = JsonNodeFactory.instance.objectNode()
-            .put("sv_hostname", "Q3JS Arena")
-            .put("players", 2);
+    void returnsRegisteredServers() throws Exception {
+        var info = new ObjectMapper().readValue(
+            "{\"sv_hostname\":\"Q3JS Arena\",\"players\":2,\"users\":[]}",
+            ServerInfo.class
+        );
         when(serverService.servers()).thenReturn(List.of(
             new ServerResponse("game.example.com", 27961, 27960, true, info)
         ));

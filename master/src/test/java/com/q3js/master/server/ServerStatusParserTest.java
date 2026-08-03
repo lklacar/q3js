@@ -1,6 +1,5 @@
 package com.q3js.master.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.time.OffsetDateTime;
@@ -9,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ServerStatusParserTest {
-    private final ServerStatusParser parser = new ServerStatusParser(new ObjectMapper());
+    private final ServerStatusParser parser = new ServerStatusParser();
 
     @Test
     void parsesQuakeStatusResponse() {
@@ -29,13 +28,13 @@ class ServerStatusParserTest {
         var parsed = parser.parse(response, server, 18);
 
         assertTrue(parsed.isPresent());
-        assertEquals("Q3JS Arena", parsed.orElseThrow().path("sv_hostname").asText());
-        assertEquals("q3dm17", parsed.orElseThrow().path("mapname").asText());
-        assertEquals(16, parsed.orElseThrow().path("sv_maxclients").asInt());
-        assertEquals(2, parsed.orElseThrow().path("players").asInt());
-        assertEquals(18, parsed.orElseThrow().path("ping").asInt());
-        assertEquals("Player One", parsed.orElseThrow().path("users").get(0).path("name").asText());
-        assertEquals(27961, parsed.orElseThrow().path("proxyPort").asInt());
+        assertEquals("Q3JS Arena", parsed.orElseThrow().sv_hostname());
+        assertEquals("q3dm17", parsed.orElseThrow().mapname());
+        assertEquals(16, parsed.orElseThrow().sv_maxclients());
+        assertEquals(2, parsed.orElseThrow().players());
+        assertEquals(18, parsed.orElseThrow().ping());
+        assertEquals("Player One", parsed.orElseThrow().users().get(0).name());
+        assertEquals(27961, parsed.orElseThrow().proxyPort());
     }
 
     @Test

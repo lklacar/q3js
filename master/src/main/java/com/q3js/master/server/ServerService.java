@@ -1,9 +1,7 @@
 package com.q3js.master.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -90,7 +88,7 @@ public class ServerService {
                 stored.server().proxyPort(),
                 stored.server().targetPort(),
                 stored.server().secure(),
-                objectMapper.readTree(stored.infoJson())
+                objectMapper.readValue(stored.infoJson(), ServerInfo.class)
             ));
         } catch (JsonProcessingException exception) {
             LOG.warnf(
@@ -104,16 +102,11 @@ public class ServerService {
     }
 
     private static int realPlayerCount(ServerResponse server) {
-        JsonNode users = server.info().path("users");
-        if (!users.isArray()) {
+        if (server.info().users() == null) {
             return 0;
         }
-        int count = 0;
-        for (JsonNode user : users) {
-            if (user.path("ping").asInt() > 0) {
-                count++;
-            }
-        }
-        return count;
+        return (int) server.info().users().stream()
+            .filter(user -> user.ping() > 0)
+            .count();
     }
 }

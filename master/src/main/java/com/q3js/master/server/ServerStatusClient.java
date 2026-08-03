@@ -1,6 +1,5 @@
 package com.q3js.master.server;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -40,7 +39,7 @@ public class ServerStatusClient {
             .build();
     }
 
-    public Optional<ObjectNode> query(RegisteredServer server) {
+    public Optional<ServerInfo> query(RegisteredServer server) {
         WebSocket webSocket = null;
         try {
             long startedAt = System.nanoTime();

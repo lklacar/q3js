@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowClockwise, MagnifyingGlass, UsersThree } from "@phosphor-icons/react";
+import { QueryBoundary } from "@/components/query-boundary";
 import { Button } from "@/components/ui/button";
-import { fetchServers, type ListedServer } from "@/lib/master-server";
+import type { ListedServer } from "@/lib/master-server";
+import { masterServerQueryOptions } from "@/lib/master-server-query";
 
 function joinHref(server: ListedServer): string {
   const parameters = new URLSearchParams({
@@ -19,51 +22,14 @@ function joinHref(server: ListedServer): string {
   return `${baseUrl}/play?${parameters.toString()}`;
 }
 
-export function ServerBrowser() {
+function ServerBrowserQuery() {
   const [query, setQuery] = useState("");
-  const [servers, setServers] = useState<ListedServer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>();
-  const requestRef = useRef<AbortController>(undefined);
-
-  const refresh = useCallback(async () => {
-    requestRef.current?.abort();
-    const request = new AbortController();
-    requestRef.current = request;
-    setLoading(true);
-    setError(undefined);
-    try {
-      setServers(await fetchServers(request.signal));
-    } catch (requestError) {
-      if (!request.signal.aborted) {
-        setError(requestError instanceof Error ? requestError.message : "Unable to reach the master server");
-      }
-    } finally {
-      if (requestRef.current === request) {
-        requestRef.current = undefined;
-        setLoading(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const request = new AbortController();
-    requestRef.current = request;
-    fetchServers(request.signal)
-      .then((liveServers) => setServers(liveServers))
-      .catch((requestError: unknown) => {
-        if (!request.signal.aborted) {
-          setError(requestError instanceof Error ? requestError.message : "Unable to reach the master server");
-        }
-      })
-      .finally(() => {
-        if (requestRef.current === request) {
-          requestRef.current = undefined;
-          setLoading(false);
-        }
-      });
-    return () => request.abort();
-  }, []);
+  const {
+    data: servers,
+    error,
+    isFetching,
+    refetch,
+  } = useSuspenseQuery(masterServerQueryOptions());
 
   const normalizedQuery = query.trim().toLowerCase();
   const filteredServers = useMemo(
@@ -106,17 +72,17 @@ export function ServerBrowser() {
             variant="outline"
             size="lg"
             className="h-9 border-border bg-transparent text-xs"
-            disabled={loading}
-            onClick={() => void refresh()}
+            disabled={isFetching}
+            onClick={() => void refetch()}
           >
-            <ArrowClockwise className={loading ? "animate-spin" : undefined} />
+            <ArrowClockwise className={isFetching ? "animate-spin" : undefined} />
             Refresh
           </Button>
         </div>
 
         {error && (
           <p role="alert" className="border-b border-border px-3 py-2 text-[10px] text-primary">
-            {error}. Check that the master server is running, then refresh.
+            {error.message}. Check that the master server is running, then refresh.
           </p>
         )}
 
@@ -153,18 +119,12 @@ export function ServerBrowser() {
                 <UsersThree className="size-5" />
               </span>
               <p className="text-sm font-semibold">
-                {loading && servers.length === 0
-                  ? "Finding live servers"
-                  : servers.length === 0
-                    ? "No servers are live"
-                    : "No servers match your search"}
+                {servers.length === 0 ? "No servers are live" : "No servers match your search"}
               </p>
               <p className="mx-auto mt-2 max-w-sm text-xs leading-5 text-muted-foreground">
-                {loading && servers.length === 0
-                  ? "Asking the Q3JS master server for the current server list."
-                  : servers.length === 0
-                    ? "Start a Q3JS server or wait for one to send its next heartbeat."
-                    : "Try another server name, map, or game mode."}
+                {servers.length === 0
+                  ? "Start a Q3JS server or wait for one to send its next heartbeat."
+                  : "Try another server name, map, or game mode."}
               </p>
               {normalizedQuery && (
                 <Button variant="outline" size="sm" className="mt-4" onClick={() => setQuery("")}>
@@ -176,5 +136,65 @@ export function ServerBrowser() {
         )}
       </div>
     </section>
+  );
+}
+
+function ServerBrowserPending() {
+  return (
+    <section id="servers" aria-labelledby="servers-heading">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <h2 id="servers-heading" className="text-lg font-bold uppercase tracking-tight">
+            Server browser
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">Pick a server to start playing.</p>
+        </div>
+      </div>
+      <div className="grid min-h-80 place-items-center border border-border bg-card/40 p-8 text-center">
+        <div>
+          <ArrowClockwise className="mx-auto mb-4 size-5 animate-spin text-muted-foreground" />
+          <p className="text-sm font-semibold">Finding live servers</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Asking the Q3JS master server for the current server list.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ServerBrowserError({ error, reset }: Readonly<{ error: Error; reset: () => void }>) {
+  return (
+    <section id="servers" aria-labelledby="servers-heading">
+      <div className="mb-4">
+        <h2 id="servers-heading" className="text-lg font-bold uppercase tracking-tight">
+          Server browser
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">Pick a server to start playing.</p>
+      </div>
+      <div className="grid min-h-80 place-items-center border border-border bg-card/40 p-8 text-center">
+        <div>
+          <p role="alert" className="text-sm font-semibold">Master server unavailable</p>
+          <p className="mt-2 max-w-sm text-xs leading-5 text-muted-foreground">
+            {error.message}. Check that the master server is running, then try again.
+          </p>
+          <Button variant="outline" size="sm" className="mt-4" onClick={reset}>
+            <ArrowClockwise />
+            Try again
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function ServerBrowser() {
+  return (
+    <QueryBoundary
+      pendingFallback={<ServerBrowserPending />}
+      errorFallback={(props) => <ServerBrowserError {...props} />}
+    >
+      <ServerBrowserQuery />
+    </QueryBoundary>
   );
 }

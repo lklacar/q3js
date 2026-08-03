@@ -11,6 +11,13 @@ The public API is compatible with the previous Q3JS server registry:
 - `GET /api/servers` returns live servers with their latest status and players.
 - `GET /api/status` reports application status.
 - `GET /q/health` reports Quarkus health checks.
+- `GET /q/openapi` returns the generated OpenAPI document.
+- `GET /q/swagger-ui` opens the interactive Swagger UI.
+
+Swagger UI is included in packaged builds as well as development mode.
+Building the master also writes `target/openapi/openapi.json` and
+`target/openapi/openapi.yaml`; the website uses the JSON document to generate its
+typed API client and TanStack Query options.
 
 ## Development
 
