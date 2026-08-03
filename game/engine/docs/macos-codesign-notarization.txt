@@ -1,0 +1,46 @@
+Code Signing
+
+1. Open Keychain Access
+2. Goto Keychain Access -> Certificate Assistant -> Request a Certificate From
+   a Certificate Authority...
+3. Enter Apple Developer Account email address for User Email Address
+4. Select Request is: Saved to disk
+5. Click Continue and save the CSR to disk
+
+6. Sign in to account at https://developer.apple.com/account
+7. Click Certificates, then the plus icon to add a certificate
+8. Select "Developer ID Application" and click Continue
+9. Upload the previously created CSR, then download the signed certificate
+
+10. Locate it in Finder and double click, importing it into the 'login'
+    keychain
+11. In Keychain Access, click the login keychain, then My Certificates
+12. Find the imported "Developer ID Application" certificate, then right click
+    and select Export
+13. Select to save as .p12, and set a secure password
+14. Open a command line, and run base64 -i <certificate.p12> on the exported
+    certificate
+15. Copy the output to the clipboard
+
+16. On the GitHub repo, go to Settings -> Secrets and variables -> Actions
+17. Click New repository secret and enter APPLE_CERTIFICATE_P12_BASE64 for the
+    Name
+18. Paste the contents of the clipboard for the Secret
+19. Set a secret, APPLE_CERTIFICATE_PASSWORD for the password created above
+20. Set a secret, APPLE_CERTIFICATE_ID that matches the certificate name; under
+    normal circumstances "Developer ID Application" should be sufficient
+
+
+Notarization
+
+1. Sign in to https://account.apple.com/sign-in
+2. Create an App-Specific Password named "Notarization"
+3. Set a secret, APPLE_NOTARIZATION_USERNAME to your Apple ID
+4. Set a secret, APPLE_NOTARIZATION_PASSWORD to the newly created password
+3. Set a secret, APPLE_TEAM_ID to your Apple Developer Account Team ID, which
+   can be found in the Membership Details section at
+   https://developer.apple.com/account
+
+
+Note: GitHub secrets cannot be retrieved in plain text, even by the repository
+owner, so securely store any values you may want to re-enter later

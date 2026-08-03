@@ -1,0 +1,269 @@
+name: Build
+on: [push, pull_request]
+
+jobs:
+  version:
+    name: Extract Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract-version.outputs.result }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: CMake Configure
+      id: extract-version
+      run: |
+        cmake -S . -B build -G Ninja -DBUILD_CLIENT=NO
+        VERSION=$(cat build/version.txt)
+        echo "VERSION: ${VERSION}"
+        echo "result=${VERSION}" >> $GITHUB_OUTPUT
+
+  linux:
+    name: Linux
+    runs-on: ubuntu-22.04
+    needs: version
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libsdl2-dev
+    - name: Compile
+      run: |
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake --build build
+        cpack --config build/CPackConfig.cmake -B build/installer --verbose
+        mv build/installer/*.deb build/Release
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.event.repository.name }}-linux-${{ needs.version.outputs.version }}
+        path: |
+          build/Release/**/*
+  windows-msvc:
+    name: Windows MSVC
+    runs-on: windows-2022
+    needs: version
+    steps:
+    - uses: actions/checkout@v4
+    - name: Compile
+      run: |
+        cmake -S . -B build -G "Visual Studio 17 2022"
+        cmake --build build --config Release
+        cpack --config build/CPackConfig.cmake -B build/installer --verbose
+        Move-Item -Path "build/installer/*.exe" -Destination "build/Release"
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.event.repository.name }}-windows-msvc-${{ needs.version.outputs.version }}
+        path: |
+          build/Release/**/*.dll
+          build/Release/**/*.exe
+          build/Release/**/*.qvm
+  windows-mingw:
+    name: Windows MinGW
+    runs-on: windows-2022
+    needs: version
+    steps:
+    - uses: actions/checkout@v4
+    - name: Compile
+      run: |
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake --build build
+        cpack --config build/CPackConfig.cmake -B build/installer --verbose
+        Move-Item -Path "build/installer/*.exe" -Destination "build/Release"
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.event.repository.name }}-windows-mingw-${{ needs.version.outputs.version }}
+        path: |
+          build/Release/**/*.dll
+          build/Release/**/*.exe
+          build/Release/**/*.qvm
+  macos:
+    name: macOS
+    runs-on: macos-15
+    needs: version
+    steps:
+    - uses: actions/checkout@v4
+    - name: Import Code Signing Certificate
+      if: github.ref_name == 'main'
+      run: |
+        misc/macos/ci-macos-import-codesign-cert.sh
+        echo "APPLE_CERTIFICATE_ID=${{ secrets.APPLE_CERTIFICATE_ID }}" >> $GITHUB_ENV
+      env:
+        APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+        APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+    - name: Compile
+      run: |
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake --build build
+        # DMG creation on macOS occasionally fails, so try multiple times
+        # https://gitlab.kitware.com/cmake/cmake/-/issues/25671
+        success=0
+        max_tries=10
+        for i in $(seq $max_tries); do
+         cpack --config build/CPackConfig.cmake -B build/installer --verbose && success=1
+         if test $success = 1; then
+          break
+         fi
+         echo "Package creation failed. Sleep 1 second and try again."
+         sleep 1
+        done
+        if test $success = 0; then
+         echo "Package creation failed after $max_tries attempts."
+         exit 1
+        fi
+        mv build/installer/*.dmg build/Release
+    - name: Notarize
+      if: github.ref_name == 'main'
+      run: |
+        misc/macos/ci-macos-notarize.sh build/Release/*.dmg
+      env:
+        APPLE_NOTARIZATION_USERNAME: ${{ secrets.APPLE_NOTARIZATION_USERNAME }}
+        APPLE_NOTARIZATION_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PASSWORD }}
+        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.event.repository.name }}-macOS-${{ needs.version.outputs.version }}
+        path: |
+          build/Release/**/*
+  emscripten:
+    name: Emscripten
+    runs-on: ubuntu-22.04
+    needs: version
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install emsdk
+      uses: mymindstorm/setup-emsdk@v13
+      with:
+        version: 3.1.58
+    - name: Compile
+      run: |
+        emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        cmake --build build
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.event.repository.name }}-emscripten-${{ needs.version.outputs.version }}
+        path: |
+          build/Release/**/*
+  linux-external-libraries:
+    name: Linux (USE_INTERNAL_LIBS OFF)
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libsdl2-dev zlib1g-dev libjpeg-dev libopenal-dev \
+          libogg-dev libvorbis-dev libopus-dev libopusfile-dev libcurl4-openssl-dev
+    - name: Compile
+      run: |
+        cmake -S . -B build -G Ninja -DUSE_INTERNAL_LIBS=OFF -DCMAKE_BUILD_TYPE=Release
+        cmake --build build
+  linux-32bit:
+    name: Linux 32-bit
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Dependencies
+      run: |
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
+        sudo apt-get install gcc-multilib libsdl2-dev:i386
+    - name: Compile
+      run: |
+        cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-m32 -msse -msse2"
+        cmake --build build
+  freebsd:
+    name: FreeBSD
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Compile
+      uses: vmactions/freebsd-vm@v1
+      with:
+        prepare: |
+          pkg install -y cmake ninja devel/sdl20
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+  openbsd:
+    name: OpenBSD
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Compile
+      uses: vmactions/openbsd-vm@v1
+      with:
+        prepare: |
+          pkg_add cmake ninja sdl2
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+  check-is-release:
+    if: github.event_name != 'pull_request'
+    name: Check For Release Tag
+    runs-on: ubuntu-latest
+    needs: version
+    outputs:
+      is-release: ${{ steps.is-release-test.outputs.result }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check Release Tag
+      id: is-release-test
+      run: |
+        GIT_TAG=$(git describe --exact-match --tags || true)
+        if [[ -z "${GIT_TAG}" || "${{ github.ref_type }}" != 'tag' ]]
+        then
+          echo "Not tagged"
+          echo "result=false" >> $GITHUB_OUTPUT
+        else
+          echo "GIT_TAG: ${GIT_TAG}""
+          echo "needs.version.outputs.version: ${{ needs.version.outputs.version }}""
+          if [[ "${GIT_TAG}" = "${{ needs.version.outputs.version }}" ]]
+          then
+            echo "'${GIT_TAG}' is a release"
+            echo "result=true" >> $GITHUB_OUTPUT
+          else
+            echo "'${GIT_TAG}' is not a release"
+            echo "result=false" >> $GITHUB_OUTPUT
+          fi
+        fi
+
+  release:
+    name: Release
+    if: github.event_name != 'pull_request' && needs.check-is-release.outputs.is-release == 'true'
+    runs-on: ubuntu-latest
+    needs:
+      - version
+      - check-is-release
+      - windows-msvc
+      - macos
+      - linux
+      - emscripten
+    steps:
+    - uses: actions/download-artifact@v4
+    - name: Prepare Release Artifacts
+      run: |
+        mkdir release-artifacts
+        mv ${{ github.event.repository.name }}-linux-${{ needs.version.outputs.version }}/${{ github.event.repository.name }}-${{ needs.version.outputs.version }}.deb \
+          release-artifacts
+        zip -r9 release-artifacts/${{ github.event.repository.name }}-linux-${{ needs.version.outputs.version }}.zip \
+          ${{ github.event.repository.name }}-linux-${{ needs.version.outputs.version }}
+        mv ${{ github.event.repository.name }}-windows-msvc-${{ needs.version.outputs.version }}/${{ github.event.repository.name }}-${{ needs.version.outputs.version }}.exe \
+          release-artifacts
+        mv ${{ github.event.repository.name }}-macOS-${{ needs.version.outputs.version }}/${{ github.event.repository.name }}-${{ needs.version.outputs.version }}.dmg \
+          release-artifacts
+        zip -r9 release-artifacts/${{ github.event.repository.name }}-emscripten-${{ needs.version.outputs.version }}.zip \
+          ${{ github.event.repository.name }}-emscripten-${{ needs.version.outputs.version }}
+    - name: Publish Release Artifacts
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        name: Release ${{ needs.version.outputs.version }}
+        files: release-artifacts/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

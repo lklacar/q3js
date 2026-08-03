@@ -1,0 +1,12 @@
+[Unit]
+Description=This service spawns an ioquake3 Internet server
+# A map will need to be loaded for players to be able to join.
+# For additional settings see https://ioquake3.org/help/sys-admin-guide/
+
+[Service]
+User=q3a
+ExecStart=/usr/local/games/quake3/ioq3ded +set dedicated 2
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
