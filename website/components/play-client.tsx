@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameCanvas } from "@/components/game-canvas";
 import { Button } from "@/components/ui/button";
 import { usePlayerName } from "@/hooks/use-player-name";
+import { getRequesterCountry } from "@/lib/api/generated/sdk.gen";
+import { client } from "@/lib/api/client";
 
 const BASE_ASSETS = Array.from({ length: 9 }, (_, index) => ({
   url: `/baseq3/pak${index}.pk3`,
@@ -14,9 +16,23 @@ const BASE_ASSETS = Array.from({ length: 9 }, (_, index) => ({
 
 interface Session {
   playerName: string;
+  countryCode?: string;
   websocketUrl: string;
   address: string;
   game: string;
+}
+
+async function requesterCountryCode(): Promise<string | undefined> {
+  try {
+    const { data: country } = await getRequesterCountry({
+      client,
+      signal: AbortSignal.timeout(2_000),
+    });
+    const countryCode = country.countryCode?.trim().toUpperCase();
+    return countryCode && /^[A-Z]{2}$/.test(countryCode) ? countryCode : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export interface SelectedServer {
@@ -112,7 +128,10 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         baseGame: "baseq3",
         game: session.game,
       },
-      player: { name: session.playerName },
+      player: {
+        name: session.playerName,
+        countryCode: session.countryCode,
+      },
       assets: BASE_ASSETS,
       onProgress: setProgress,
       onConsole: (_level, message) => console.info(`[Q3JS] ${message}`),
@@ -120,9 +139,10 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
     };
   }, [session]);
 
-  const start = () => {
+  const start = async () => {
     setError(undefined);
     setProgress(undefined);
+    const countryCode = await requesterCountryCode();
 
     if (selectedServer) {
       const host = selectedServer.host.includes(":") && !selectedServer.host.startsWith("[")
@@ -131,6 +151,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
       const websocketProtocol = selectedServer.secure ? "wss:" : "ws:";
       setSession({
         playerName: playerName.trim() || "Player",
+        countryCode,
         websocketUrl: `${websocketProtocol}//${host}:${selectedServer.proxyPort}/ws`,
         address: `${host}:${selectedServer.proxyPort}`,
         game: selectedServer.game,
@@ -142,6 +163,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
     const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     setSession({
       playerName: playerName.trim() || "Player",
+      countryCode,
       websocketUrl:
         process.env.NEXT_PUBLIC_Q3JS_WEBSOCKET_URL
         ?? `${websocketProtocol}//${host}:27961/ws`,
@@ -189,14 +211,14 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
               onChange={(event) => setPlayerName(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
-                  start();
+                  void start();
                 }
               }}
               className="mt-2 h-10 w-full border border-border bg-input px-3 text-sm text-foreground focus:border-ring focus:outline-none"
             />
           </label>
 
-          <Button size="lg" className="mt-4" onClick={start}>
+          <Button size="lg" className="mt-4" onClick={() => void start()}>
             <Play weight="fill" />
             Start game
           </Button>

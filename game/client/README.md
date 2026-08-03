@@ -21,8 +21,16 @@ const client = await createQ3Client({
     websocketUrl: "wss://example.test:27960",
     address: "example.test:27960",
   },
+  player: {
+    name: "Ranger",
+    countryCode: "RS",
+  },
   assets: [
     { url: "/baseq3/pak0.pk3", path: "/baseq3/pak0.pk3" },
   ],
 });
 ```
+
+`player.countryCode` is normalized as a two-letter ISO code and sent through
+Quake userinfo as `country`, allowing compatible game VMs to show it on the
+in-game scoreboard.

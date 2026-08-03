@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetProfileData, GetProfileErrors, GetProfileResponses, GetScoreboardData, GetScoreboardDistributionData, GetScoreboardDistributionErrors, GetScoreboardDistributionResponses, GetScoreboardErrors, GetScoreboardResponses, GetStatsData, GetStatsResponses, HeartbeatData, HeartbeatErrors, HeartbeatResponses, IngestData, IngestErrors, IngestResponses, SearchProfilesData, SearchProfilesErrors, SearchProfilesResponses, ServersData, ServersResponses, StatusData, StatusResponses } from './types.gen';
+import type { GetProfileData, GetProfileErrors, GetProfileResponses, GetRequesterCountryData, GetRequesterCountryResponses, GetScoreboardData, GetScoreboardDistributionData, GetScoreboardDistributionErrors, GetScoreboardDistributionResponses, GetScoreboardErrors, GetScoreboardResponses, GetStatsData, GetStatsResponses, HeartbeatData, HeartbeatErrors, HeartbeatResponses, IngestData, IngestErrors, IngestResponses, SearchProfilesData, SearchProfilesErrors, SearchProfilesResponses, ServersData, ServersResponses, StatusData, StatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,11 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * Get the requester's country
+ */
+export const getRequesterCountry = <ThrowOnError extends boolean = true>(options?: Options<GetRequesterCountryData, ThrowOnError>): RequestResult<GetRequesterCountryResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetRequesterCountryResponses, unknown, ThrowOnError>({ url: '/api/country', ...options });
 
 /**
  * Ingest a game event

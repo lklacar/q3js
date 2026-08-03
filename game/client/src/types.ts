@@ -30,6 +30,8 @@ export interface Q3GameOptions {
 
 export interface Q3PlayerOptions {
   name?: string;
+  /** Two-letter ISO country code exposed to the game through userinfo. */
+  countryCode?: string;
 }
 
 export interface Q3ServerOptions {

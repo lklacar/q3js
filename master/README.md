@@ -18,6 +18,8 @@ The public API is compatible with the previous Q3JS server registry:
 - `GET /api/scoreboard/distribution` returns hourly or daily frag activity.
 - `GET /api/stats` returns players online, the top fragger from the rolling last
   24 hours, and the all-time recorded frag count.
+- `GET /api/country` resolves the requester's public IP address to a country so
+  browser clients can include it in their Quake userinfo.
 - `GET /q/health` reports Quarkus health checks.
 - `GET /q/openapi` returns the generated OpenAPI document.
 - `GET /q/swagger-ui` opens the interactive Swagger UI.
@@ -90,6 +92,18 @@ when needed with:
 
 The local defaults are `postgres` for the database, user, and password. Override
 them with `Q3JS_DB_URL`, `Q3JS_DB_USER`, and `Q3JS_DB_PASSWORD`.
+
+## GeoIP country lookup
+
+The master bundles the DB-IP Country Lite database used by `GET /api/country`.
+Override it with `Q3JS_COUNTRY_DB_PATH`, or change the fallback classpath resource
+with `Q3JS_COUNTRY_DB_RESOURCE`. DB-IP Lite is licensed under CC BY 4.0 and
+requires attribution: <https://db-ip.com>.
+
+Loopback addresses cannot be geolocated. In development and tests they use `RS`
+so local clients exercise the complete scoreboard path; override that with the
+two-letter `Q3JS_DEV_COUNTRY_CODE` environment variable. Packaged deployments do
+not use a fallback and only return countries resolved from the requester's IP.
 
 ## Build
 

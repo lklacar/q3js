@@ -36,6 +36,21 @@ function addSet(arguments_: string[], name: string, value: Q3CvarValue | undefin
   arguments_.push("+set", name, safeValue(value));
 }
 
+function addUserinfo(arguments_: string[], name: string, value: Q3CvarValue | undefined): void {
+  if (value === undefined) {
+    return;
+  }
+  if (!/^[A-Za-z0-9_]+$/.test(name)) {
+    throw new Error(`Invalid userinfo name: ${name}`);
+  }
+  arguments_.push("+setu", name, safeValue(value));
+}
+
+function normalizeCountryCode(value: string | undefined): string | undefined {
+  const countryCode = value?.trim().toUpperCase();
+  return countryCode && /^[A-Z]{2}$/.test(countryCode) ? countryCode : undefined;
+}
+
 interface RenderSize {
   width: number;
   height: number;
@@ -59,6 +74,7 @@ export function buildQ3Arguments(
   addSet(arguments_, "fs_basegame", baseGame);
   addSet(arguments_, "fs_game", options.game?.game);
   addSet(arguments_, "name", options.player?.name ?? "Player");
+  addUserinfo(arguments_, "country", normalizeCountryCode(options.player?.countryCode));
   addSet(arguments_, "cl_allowDownload", 1);
 
   const homeRoot = homePath.replace(/\/$/, "");

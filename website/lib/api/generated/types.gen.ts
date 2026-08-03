@@ -4,6 +4,14 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:8080' | 'http://0.0.0.0:8080' | (string & {});
 };
 
+export type CountryResponse = {
+    ip: string;
+    countryCode?: string | null;
+    countryName?: string | null;
+    attribution: string;
+    attributionUrl: string;
+};
+
 export type EventPlayer = {
     clientNum: number;
     name: string;
@@ -158,6 +166,22 @@ export type TopFraggerResponse = {
     playerName: string;
     frags: number;
 };
+
+export type GetRequesterCountryData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/country';
+};
+
+export type GetRequesterCountryResponses = {
+    /**
+     * Country resolved from the requester's public IP address
+     */
+    200: CountryResponse;
+};
+
+export type GetRequesterCountryResponse = GetRequesterCountryResponses[keyof GetRequesterCountryResponses];
 
 export type IngestData = {
     body: EventRequest;

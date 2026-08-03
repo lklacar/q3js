@@ -3,8 +3,59 @@
 import { type DefaultError, type InfiniteData, infiniteQueryOptions, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { getProfile, getScoreboard, getScoreboardDistribution, getStats, heartbeat, ingest, type Options, searchProfiles, servers, status } from '../sdk.gen';
-import type { GetProfileData, GetProfileResponse, GetScoreboardData, GetScoreboardDistributionData, GetScoreboardDistributionResponse, GetScoreboardResponse, GetStatsData, GetStatsResponse, HeartbeatData, HeartbeatResponse, IngestData, IngestResponse, SearchProfilesData, SearchProfilesResponse, ServersData, ServersResponse, StatusData, StatusResponse2 } from '../types.gen';
+import { getProfile, getRequesterCountry, getScoreboard, getScoreboardDistribution, getStats, heartbeat, ingest, type Options, searchProfiles, servers, status } from '../sdk.gen';
+import type { GetProfileData, GetProfileResponse, GetRequesterCountryData, GetRequesterCountryResponse, GetScoreboardData, GetScoreboardDistributionData, GetScoreboardDistributionResponse, GetScoreboardResponse, GetStatsData, GetStatsResponse, HeartbeatData, HeartbeatResponse, IngestData, IngestResponse, SearchProfilesData, SearchProfilesResponse, ServersData, ServersResponse, StatusData, StatusResponse2 } from '../types.gen';
+
+export type QueryKey<TOptions extends Options> = [
+    Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
+        _id: string;
+        _infinite?: boolean;
+        tags?: ReadonlyArray<string>;
+    }
+];
+
+const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions, infinite?: boolean, tags?: ReadonlyArray<string>): [
+    QueryKey<TOptions>[0]
+] => {
+    const params: QueryKey<TOptions>[0] = { _id: id, baseUrl: options?.baseUrl || (options?.client ?? client).getConfig().baseUrl } as QueryKey<TOptions>[0];
+    if (infinite) {
+        params._infinite = infinite;
+    }
+    if (tags) {
+        params.tags = tags;
+    }
+    if (options?.body) {
+        params.body = options.body;
+    }
+    if (options?.headers) {
+        params.headers = options.headers;
+    }
+    if (options?.path) {
+        params.path = options.path;
+    }
+    if (options?.query) {
+        params.query = options.query;
+    }
+    return [params];
+};
+
+export const getRequesterCountryQueryKey = (options?: Options<GetRequesterCountryData>) => createQueryKey('getRequesterCountry', options, false, ['Country']);
+
+/**
+ * Get the requester's country
+ */
+export const getRequesterCountryOptions = (options?: Options<GetRequesterCountryData>) => queryOptions<GetRequesterCountryResponse, DefaultError, GetRequesterCountryResponse, ReturnType<typeof getRequesterCountryQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getRequesterCountry({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getRequesterCountryQueryKey(options)
+});
 
 export type MutationKey<TOptions extends Partial<Options>> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -53,39 +104,6 @@ export const ingestMutation = (options?: Partial<Options<IngestData>>): UseMutat
         mutationKey: ingestMutationKey(options)
     };
     return mutationOptions;
-};
-
-export type QueryKey<TOptions extends Options> = [
-    Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
-        _id: string;
-        _infinite?: boolean;
-        tags?: ReadonlyArray<string>;
-    }
-];
-
-const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions, infinite?: boolean, tags?: ReadonlyArray<string>): [
-    QueryKey<TOptions>[0]
-] => {
-    const params: QueryKey<TOptions>[0] = { _id: id, baseUrl: options?.baseUrl || (options?.client ?? client).getConfig().baseUrl } as QueryKey<TOptions>[0];
-    if (infinite) {
-        params._infinite = infinite;
-    }
-    if (tags) {
-        params.tags = tags;
-    }
-    if (options?.body) {
-        params.body = options.body;
-    }
-    if (options?.headers) {
-        params.headers = options.headers;
-    }
-    if (options?.path) {
-        params.path = options.path;
-    }
-    if (options?.query) {
-        params.query = options.query;
-    }
-    return [params];
 };
 
 export const searchProfilesQueryKey = (options?: Options<SearchProfilesData>) => createQueryKey('searchProfiles', options, false, ['Profiles']);

@@ -15,6 +15,7 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.38.0</quarkus.platform.version>
         <jooq.version>3.19.36</jooq.version>
+        <geoip2.version>5.0.2</geoip2.version>
         <postgresql.version>42.7.13</postgresql.version>
         <jooq.codegen.jdbc.url>jdbc:postgresql://localhost:5432/postgres</jooq.codegen.jdbc.url>
         <jooq.codegen.jdbc.user>postgres</jooq.codegen.jdbc.user>
@@ -94,6 +95,11 @@
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.maxmind.geoip2</groupId>
+            <artifactId>geoip2</artifactId>
+            <version>${geoip2.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
