@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { HeartbeatData, HeartbeatErrors, HeartbeatResponses, IngestData, IngestErrors, IngestResponses, ServersData, ServersResponses, StatusData, StatusResponses } from './types.gen';
+import type { GetProfileData, GetProfileErrors, GetProfileResponses, HeartbeatData, HeartbeatErrors, HeartbeatResponses, IngestData, IngestErrors, IngestResponses, SearchProfilesData, SearchProfilesErrors, SearchProfilesResponses, ServersData, ServersResponses, StatusData, StatusResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -30,6 +30,16 @@ export const ingest = <ThrowOnError extends boolean = true>(options: Options<Ing
         ...options.headers
     }
 });
+
+/**
+ * Search player profiles
+ */
+export const searchProfiles = <ThrowOnError extends boolean = true>(options?: Options<SearchProfilesData, ThrowOnError>): RequestResult<SearchProfilesResponses, SearchProfilesErrors, ThrowOnError> => (options?.client ?? client).get<SearchProfilesResponses, SearchProfilesErrors, ThrowOnError>({ url: '/api/players', ...options });
+
+/**
+ * Get a player profile
+ */
+export const getProfile = <ThrowOnError extends boolean = true>(options: Options<GetProfileData, ThrowOnError>): RequestResult<GetProfileResponses, GetProfileErrors, ThrowOnError> => (options.client ?? client).get<GetProfileResponses, GetProfileErrors, ThrowOnError>({ url: '/api/players/{playerName}', ...options });
 
 /**
  * List live game servers

@@ -12,6 +12,8 @@ The public API is compatible with the previous Q3JS server registry:
 - `GET /api/status` reports application status.
 - `POST /api/events` accepts authenticated join, leave, and kill events from
   packaged game servers.
+- `GET /api/players` searches player profiles by Quake handle.
+- `GET /api/players/{playerName}` returns detailed player statistics.
 - `GET /q/health` reports Quarkus health checks.
 - `GET /q/openapi` returns the generated OpenAPI document.
 - `GET /q/swagger-ui` opens the interactive Swagger UI.
@@ -20,6 +22,10 @@ Swagger UI is included in packaged builds as well as development mode.
 Building the master also writes `target/openapi/openapi.json` and
 `target/openapi/openapi.yaml`; the website uses the JSON document to generate its
 typed API client and TanStack Query options.
+
+Profile statistics can be filtered with `period=daily|weekly|monthly|all-time`.
+Weekly and monthly boundaries use the optional IANA `timeZone` query parameter;
+UTC is used by default.
 
 ## Development
 

@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { heartbeat, ingest, type Options, servers, status } from '../sdk.gen';
-import type { HeartbeatData, HeartbeatResponse, IngestData, IngestResponse, ServersData, ServersResponse, StatusData, StatusResponse2 } from '../types.gen';
+import { getProfile, heartbeat, ingest, type Options, searchProfiles, servers, status } from '../sdk.gen';
+import type { GetProfileData, GetProfileResponse, HeartbeatData, HeartbeatResponse, IngestData, IngestResponse, SearchProfilesData, SearchProfilesResponse, ServersData, ServersResponse, StatusData, StatusResponse2 } from '../types.gen';
 
 export type MutationKey<TOptions extends Partial<Options>> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -87,6 +87,42 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
     }
     return [params];
 };
+
+export const searchProfilesQueryKey = (options?: Options<SearchProfilesData>) => createQueryKey('searchProfiles', options, false, ['Profiles']);
+
+/**
+ * Search player profiles
+ */
+export const searchProfilesOptions = (options?: Options<SearchProfilesData>) => queryOptions<SearchProfilesResponse, DefaultError, SearchProfilesResponse, ReturnType<typeof searchProfilesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await searchProfiles({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: searchProfilesQueryKey(options)
+});
+
+export const getProfileQueryKey = (options: Options<GetProfileData>) => createQueryKey('getProfile', options, false, ['Profiles']);
+
+/**
+ * Get a player profile
+ */
+export const getProfileOptions = (options: Options<GetProfileData>) => queryOptions<GetProfileResponse, DefaultError, GetProfileResponse, ReturnType<typeof getProfileQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getProfile({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getProfileQueryKey(options)
+});
 
 export const serversQueryKey = (options?: Options<ServersData>) => createQueryKey('servers', options, false, ['Servers']);
 

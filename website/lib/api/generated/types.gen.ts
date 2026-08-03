@@ -27,6 +27,46 @@ export type HeartbeatRequest = {
     secure: boolean;
 };
 
+export type OffsetDateTime = string;
+
+export type ProfileMapResponse = {
+    mapName: string;
+    kills: number;
+};
+
+export type ProfilePeriod = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'ALL_TIME';
+
+export type ProfileResponse = {
+    playerName: string;
+    period: ProfilePeriod;
+    playtimeSeconds: number;
+    lastOnline: OffsetDateTime | null;
+    rank: number | null;
+    kills: number;
+    deaths: number;
+    killDeathRatio: number | null;
+    favoriteMap: ProfileMapResponse | null;
+    favoriteWeapon: ProfileWeaponResponse | null;
+    weaponBreakdown: Array<ProfileWeaponResponse>;
+    topVictims: Array<ProfileRivalResponse>;
+    topNemeses: Array<ProfileRivalResponse>;
+};
+
+export type ProfileRivalResponse = {
+    playerName: string;
+    kills: number;
+};
+
+export type ProfileSummaryResponse = {
+    playerName: string;
+};
+
+export type ProfileWeaponResponse = {
+    meansOfDeath: number;
+    weaponName: string;
+    kills: number;
+};
+
 export type ServerInfo = {
     id: string;
     sv_hostname: string;
@@ -115,6 +155,76 @@ export type IngestResponses = {
 };
 
 export type IngestResponse = IngestResponses[keyof IngestResponses];
+
+export type SearchProfilesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Maximum number of results, from 1 to 100
+         */
+        limit?: number;
+        /**
+         * Player name, with Quake color codes ignored
+         */
+        search?: string;
+    };
+    url: '/api/players';
+};
+
+export type SearchProfilesErrors = {
+    /**
+     * Search parameters are invalid
+     */
+    400: unknown;
+};
+
+export type SearchProfilesResponses = {
+    /**
+     * Matching player profiles
+     */
+    200: Array<ProfileSummaryResponse>;
+};
+
+export type SearchProfilesResponse = SearchProfilesResponses[keyof SearchProfilesResponses];
+
+export type GetProfileData = {
+    body?: never;
+    path: {
+        playerName: string;
+    };
+    query?: {
+        /**
+         * daily, weekly, monthly, or all-time
+         */
+        period?: string;
+        /**
+         * IANA time zone used for calendar periods
+         */
+        timeZone?: string;
+    };
+    url: '/api/players/{playerName}';
+};
+
+export type GetProfileErrors = {
+    /**
+     * Profile parameters are invalid
+     */
+    400: unknown;
+    /**
+     * Player profile was not found
+     */
+    404: unknown;
+};
+
+export type GetProfileResponses = {
+    /**
+     * Player profile statistics
+     */
+    200: ProfileResponse;
+};
+
+export type GetProfileResponse = GetProfileResponses[keyof GetProfileResponses];
 
 export type ServersData = {
     body?: never;

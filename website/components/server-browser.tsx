@@ -105,7 +105,12 @@ function ServerCard({ playerName, server }: Readonly<{ playerName: string; serve
             <div className="divide-y divide-border/40 bg-background/25 font-mono text-xs">
               {server.users.map((player, index) => (
                 <div key={`${player.name}-${index}`} className="grid grid-cols-[minmax(0,1fr)_4rem_4rem] items-center px-2 py-2.5">
-                  <Q3ColoredText className="truncate font-semibold" text={player.name} />
+                  <Link
+                    href={`/players/${encodeURIComponent(player.name)}`}
+                    className="truncate font-semibold hover:text-primary"
+                  >
+                    <Q3ColoredText text={player.name} />
+                  </Link>
                   <span className="tabular-nums">{player.score}</span>
                   <span className="flex items-center gap-1 tabular-nums text-muted-foreground">
                     {player.bot ? <Robot className="size-3" aria-label="Bot" /> : player.ping}
