@@ -43,9 +43,7 @@ ARG NEXT_PUBLIC_GA_MEASUREMENT_ID=G-X7L740SND7
 ARG GOOGLE_SITE_VERIFICATION=
 
 RUN groupadd --gid 10001 q3js \
-    && useradd --uid 10001 --gid q3js --no-create-home --home-dir /opt/q3js q3js \
-    && mkdir -p /data/baseq3 \
-    && chown q3js:q3js /data
+    && useradd --uid 10001 --gid q3js --no-create-home --home-dir /opt/q3js q3js
 
 WORKDIR /opt/q3js/website
 
@@ -56,7 +54,6 @@ COPY --from=builder --chown=q3js:q3js /workspace/website/public ./website/public
 ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0 \
     PORT=3000 \
-    Q3JS_BASEPATH=/data \
     Q3JS_MASTER_URL=http://localhost:8080 \
     NEXT_PUBLIC_Q3JS_MASTER_URL=${NEXT_PUBLIC_Q3JS_MASTER_URL} \
     NEXT_PUBLIC_Q3JS_SITE_URL=${NEXT_PUBLIC_Q3JS_SITE_URL} \
@@ -64,7 +61,6 @@ ENV NODE_ENV=production \
     NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID} \
     GOOGLE_SITE_VERIFICATION=${GOOGLE_SITE_VERIFICATION}
 
-VOLUME ["/data/baseq3"]
 EXPOSE 3000
 
 USER q3js
