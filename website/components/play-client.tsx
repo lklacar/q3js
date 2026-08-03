@@ -5,6 +5,7 @@ import { ArrowsOut, ArrowClockwise, Play, X } from "@phosphor-icons/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameCanvas } from "@/components/game-canvas";
 import { Button } from "@/components/ui/button";
+import { usePlayerName } from "@/hooks/use-player-name";
 
 const BASE_ASSETS = Array.from({ length: 9 }, (_, index) => ({
   url: `/baseq3/pak${index}.pk3`,
@@ -57,7 +58,7 @@ function progressLabel(progress: Q3ClientProgress | undefined): string {
 }
 
 export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProps) {
-  const [playerName, setPlayerName] = useState(initialPlayerName?.trim() || "Player");
+  const { playerName, setPlayerName } = usePlayerName(initialPlayerName);
   const [session, setSession] = useState<Session>();
   const [progress, setProgress] = useState<Q3ClientProgress>();
   const [error, setError] = useState<string>();
