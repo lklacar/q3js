@@ -35,7 +35,7 @@ RUN mkdir -p /workspace/game-data/baseq3 \
 FROM node:24-bookworm-slim AS runtime
 
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends libcurl4 \
+    && apt-get install --yes --no-install-recommends ca-certificates libcurl4 \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 10001 q3js \
     && useradd --uid 10001 --gid q3js --no-create-home --home-dir /opt/q3js q3js \
