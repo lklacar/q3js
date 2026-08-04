@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CaretLeft, CaretRight, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
+import { CaretLeft, CaretRight, ChartBar, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 import { JsonLd } from "@/components/json-ld";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,12 @@ function scoreboardHref({ page = 1, period, search, timeZone }: ScoreboardHrefOp
   if (search) parameters.set("search", search);
   if (timeZone !== "UTC") parameters.set("timeZone", timeZone);
   return `/scoreboard?${parameters.toString()}`;
+}
+
+function distributionHref(period: string, timeZone: string): string {
+  const parameters = new URLSearchParams({ period });
+  if (timeZone !== "UTC") parameters.set("timeZone", timeZone);
+  return `/scoreboard/distribution?${parameters.toString()}`;
 }
 
 function formatNumber(value: number): string {
@@ -97,21 +103,29 @@ export function ScoreboardPage({
           </p>
         </div>
 
-        <nav aria-label="Scoreboard period" className="flex flex-wrap gap-1 border border-border/60 bg-card/45 p-1">
-          {periods.map((period) => (
-            <Link
-              key={period.value}
-              href={scoreboardHref({ period: period.value, search, timeZone })}
-              aria-current={scoreboard.period === period.response ? "page" : undefined}
-              className={cn(
-                "px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground",
-                scoreboard.period === period.response && "bg-secondary text-foreground",
-              )}
-            >
-              {period.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="flex flex-col items-start gap-2 md:items-end">
+          <nav aria-label="Scoreboard period" className="flex flex-wrap gap-1 border border-border/60 bg-card/45 p-1">
+            {periods.map((period) => (
+              <Link
+                key={period.value}
+                href={scoreboardHref({ period: period.value, search, timeZone })}
+                aria-current={scoreboard.period === period.response ? "page" : undefined}
+                className={cn(
+                  "px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground",
+                  scoreboard.period === period.response && "bg-secondary text-foreground",
+                )}
+              >
+                {period.label}
+              </Link>
+            ))}
+          </nav>
+          <Link
+            href={distributionHref(activePeriod.value, timeZone)}
+            className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.06em] text-muted-foreground hover:text-primary"
+          >
+            <ChartBar className="size-4" /> View frag activity
+          </Link>
+        </div>
       </header>
 
       <dl className="mt-8 grid grid-cols-2 border border-border/60 bg-card/55 sm:grid-cols-3">

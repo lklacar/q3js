@@ -21,6 +21,12 @@ function staticEntries(lastModified: Date): MetadataRoute.Sitemap {
       lastModified,
     },
     {
+      url: absoluteUrl("/scoreboard/distribution"),
+      changeFrequency: "hourly",
+      priority: 0.8,
+      lastModified,
+    },
+    {
       url: absoluteUrl("/guide"),
       changeFrequency: "weekly",
       priority: 0.8,
