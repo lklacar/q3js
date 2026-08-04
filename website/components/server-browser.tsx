@@ -194,32 +194,30 @@ function ServerCard({ onJoin, server }: Readonly<{
             <span className="font-semibold text-foreground">Players ({server.users.length})</span>
           </div>
           <ScrollArea className="h-40 overflow-y-auto rounded-md border border-border/40 bg-background/40">
+            <div className="grid grid-cols-[4rem_4rem_minmax(0,1fr)] border-b border-border/40 px-3 py-2 font-mono text-[11px] text-muted-foreground">
+              <span>Score</span>
+              <span>Ping</span>
+              <span>Name</span>
+            </div>
             {server.users.length ? (
-              <>
-                <div className="grid grid-cols-[4rem_4rem_minmax(0,1fr)] border-b border-border/40 px-3 py-2 font-mono text-[11px] text-muted-foreground">
-                  <span>Score</span>
-                  <span>Ping</span>
-                  <span>Name</span>
-                </div>
-                {server.users.map((player, index) => (
-                  <div
-                    key={`${player.name}-${index}`}
-                    className="grid grid-cols-[4rem_4rem_minmax(0,1fr)] px-3 py-1.5 font-mono text-[11px] text-foreground odd:bg-background/40"
+              server.users.map((player, index) => (
+                <div
+                  key={`${player.name}-${index}`}
+                  className="grid grid-cols-[4rem_4rem_minmax(0,1fr)] px-3 py-1.5 font-mono text-[11px] text-foreground odd:bg-background/40"
+                >
+                  <span className="tabular-nums">{player.score}</span>
+                  <span className="tabular-nums">{player.ping}</span>
+                  <Link
+                    href={`/players/${encodeURIComponent(player.name)}`}
+                    className="min-w-0 truncate transition-opacity hover:opacity-80"
                   >
-                    <span className="tabular-nums">{player.score}</span>
-                    <span className="tabular-nums">{player.ping}</span>
-                    <Link
-                      href={`/players/${encodeURIComponent(player.name)}`}
-                      className="min-w-0 truncate transition-opacity hover:opacity-80"
-                    >
-                      <Q3ColoredText text={player.name} className="block truncate" />
-                    </Link>
-                  </div>
-                ))}
-              </>
+                    <Q3ColoredText text={player.name} className="block truncate" />
+                  </Link>
+                </div>
+              ))
             ) : (
-              <p className="flex h-full items-center justify-center px-3 text-xs italic text-muted-foreground">
-                No players online.
+              <p className="flex h-28 items-center justify-center px-3 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+                Waiting for players
               </p>
             )}
           </ScrollArea>
