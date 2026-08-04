@@ -7,6 +7,7 @@ export interface MasterHeartbeatOptions {
   proxyPort: number;
   targetPort: number;
   secure: boolean;
+  transport: "websocket" | "webtransport";
 }
 
 export class MasterHeartbeat {
@@ -61,6 +62,7 @@ export class MasterHeartbeat {
           proxyPort: this.#options.proxyPort,
           targetPort: this.#options.targetPort,
           secure: this.#options.secure,
+          transport: this.#options.transport,
         }),
         signal: controller.signal,
       });

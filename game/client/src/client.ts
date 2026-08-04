@@ -222,15 +222,22 @@ export async function createQ3Client(options: Q3ClientOptions): Promise<Q3Client
     };
 
     if (options.server) {
-      engineOptions.webtransport = {
-        url: options.server.webtransportUrl,
-        ...(options.server.serverCertificateHashes
-          ? { serverCertificateHashes: options.server.serverCertificateHashes }
-          : {}),
-        ...(options.server.maxDatagramBytes
-          ? { maxDatagramBytes: options.server.maxDatagramBytes }
-          : {}),
-      };
+      if (options.server.transport === "webtransport") {
+        engineOptions.webtransport = {
+          url: options.server.webtransportUrl,
+          ...(options.server.serverCertificateHashes
+            ? { serverCertificateHashes: options.server.serverCertificateHashes }
+            : {}),
+          ...(options.server.maxDatagramBytes
+            ? { maxDatagramBytes: options.server.maxDatagramBytes }
+            : {}),
+        };
+      } else {
+        engineOptions.websocket = {
+          url: options.server.websocketUrl,
+          subprotocol: options.server.subprotocol ?? "binary",
+        };
+      }
     }
     if (options.wasmUrl) {
       const wasmUrl = resolveUrl(options.wasmUrl);

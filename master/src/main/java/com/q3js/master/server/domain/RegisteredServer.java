@@ -7,6 +7,7 @@ public record RegisteredServer(
     int proxyPort,
     int targetPort,
     boolean secure,
+    String transport,
     boolean official,
     OffsetDateTime lastHeartbeat
 ) {

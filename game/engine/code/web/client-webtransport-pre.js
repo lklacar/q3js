@@ -120,13 +120,18 @@
 
   const preRun = Module.preRun || (Module.preRun = []);
   preRun.push(function() {
+    const configured = Module.webtransport;
+    // Keep Emscripten's built-in WebSocket SOCKFS backend for legacy servers.
+    // Supplying Module.webtransport is the explicit opt-in to this adapter.
+    if (!configured) {
+      return;
+    }
     if (typeof SOCKFS === "undefined" || !SOCKFS.websocket_sock_ops) {
       throw new Error("Q3JS WebTransport requires Emscripten SOCKFS");
     }
     if (typeof WebTransport === "undefined") {
       throw new Error("This browser does not support WebTransport");
     }
-    const configured = Module.webtransport || {};
     if (!configured.url || !String(configured.url).startsWith("https://")) {
       throw new Error("Q3JS WebTransport URL must use https://");
     }

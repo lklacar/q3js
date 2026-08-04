@@ -19,6 +19,7 @@ class ServerStatusParserTest {
             27961,
             27960,
             true,
+            "webtransport",
             false,
             OffsetDateTime.now()
         );
@@ -51,6 +52,7 @@ class ServerStatusParserTest {
             443,
             27960,
             true,
+            "websocket",
             false,
             OffsetDateTime.now()
         );
@@ -72,6 +74,7 @@ class ServerStatusParserTest {
             27961,
             27960,
             false,
+            "websocket",
             false,
             OffsetDateTime.now()
         );

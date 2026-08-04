@@ -94,6 +94,11 @@ public class Servers extends TableImpl<ServersRecord> {
      */
     public final TableField<ServersRecord, Boolean> OFFICIAL = createField(DSL.name("official"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
+    /**
+     * The column <code>servers.transport</code>.
+     */
+    public final TableField<ServersRecord, String> TRANSPORT = createField(DSL.name("transport"), SQLDataType.CLOB.nullable(false).defaultValue(DSL.field(DSL.raw("'websocket'::text"), SQLDataType.CLOB)), this, "");
+
     private Servers(Name alias, Table<ServersRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

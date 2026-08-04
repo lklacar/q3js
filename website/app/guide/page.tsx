@@ -115,6 +115,8 @@ export default function GuidePage() {
             Q3JS can list and connect to standard Quake III dedicated servers. The simplest setup uses
             the official Docker image, which starts an <code className="font-mono text-sm text-foreground">ioq3ded</code>-compatible
             server with HTTP/3 WebTransport built directly into the engine for browser players.
+            Existing community servers can continue declaring their WebSocket gateways; entries
+            without a transport declaration are treated as WebSocket servers.
           </p>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-3">

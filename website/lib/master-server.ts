@@ -13,6 +13,7 @@ export interface ListedServer {
   proxyPort: number;
   targetPort: number;
   secure: boolean;
+  transport: "websocket" | "webtransport";
   official: boolean;
   baseGame: string;
   fsGame: string | undefined;
@@ -118,6 +119,9 @@ function mapServer(server: ServerResponse): ListedServer | undefined {
     proxyPort,
     targetPort: server.targetPort,
     secure: server.secure ?? false,
+    // Old master servers do not include this field. Preserve their historical
+    // WebSocket behavior unless WebTransport is declared explicitly.
+    transport: server.transport === "webtransport" ? "webtransport" : "websocket",
     official: server.official ?? false,
     baseGame,
     fsGame,

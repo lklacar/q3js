@@ -132,6 +132,20 @@ public class ServersRecord extends UpdatableRecordImpl<ServersRecord> {
         return (Boolean) get(7);
     }
 
+    /**
+     * Setter for <code>servers.transport</code>.
+     */
+    public void setTransport(String value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>servers.transport</code>.
+     */
+    public String getTransport() {
+        return (String) get(8);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -155,7 +169,7 @@ public class ServersRecord extends UpdatableRecordImpl<ServersRecord> {
     /**
      * Create a detached, initialised ServersRecord
      */
-    public ServersRecord(String host, Integer proxyPort, Integer targetPort, Boolean secure, OffsetDateTime lastHeartbeat, String lastInfoJson, OffsetDateTime lastInfoFetchedAt, Boolean official) {
+    public ServersRecord(String host, Integer proxyPort, Integer targetPort, Boolean secure, OffsetDateTime lastHeartbeat, String lastInfoJson, OffsetDateTime lastInfoFetchedAt, Boolean official, String transport) {
         super(Servers.SERVERS);
 
         setHost(host);
@@ -166,6 +180,7 @@ public class ServersRecord extends UpdatableRecordImpl<ServersRecord> {
         setLastInfoJson(lastInfoJson);
         setLastInfoFetchedAt(lastInfoFetchedAt);
         setOfficial(official);
+        setTransport(transport);
         resetChangedOnNotNull();
     }
 
@@ -184,6 +199,7 @@ public class ServersRecord extends UpdatableRecordImpl<ServersRecord> {
             setLastInfoJson(value.getLastInfoJson());
             setLastInfoFetchedAt(value.getLastInfoFetchedAt());
             setOfficial(value.getOfficial());
+            setTransport(value.getTransport());
             resetChangedOnNotNull();
         }
     }

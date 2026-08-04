@@ -1,8 +1,9 @@
 # Q3JS website
 
 The Next.js website discovers live game servers through the Q3JS master server
-and launches the browser client against each server's direct HTTP/3
-WebTransport endpoint. TanStack Query owns browser-side server state, caching,
+and launches the browser client with each server's declared WebTransport or
+WebSocket transport. Missing declarations use WebSocket for compatibility with
+older community servers. TanStack Query owns browser-side server state, caching,
 request cancellation, and background refreshes.
 
 ## Development

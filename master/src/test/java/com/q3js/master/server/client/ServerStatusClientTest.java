@@ -19,6 +19,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ServerStatusClientTest {
     @Test
+    void usesTheLegacyWebSocketEndpointWhenWebTransportIsNotDeclared() {
+        var server = new RegisteredServer(
+            "2001:db8::1",
+            443,
+            0,
+            true,
+            "websocket",
+            false,
+            OffsetDateTime.now()
+        );
+
+        assertEquals("wss://[2001:db8::1]:443/ws", ServerStatusClient.webSocketUri(server).toString());
+    }
+
+    @Test
     void queriesTheNativeQuakeUdpPort() throws Exception {
         InetAddress loopback = InetAddress.getLoopbackAddress();
         try (var serverSocket = new DatagramSocket(0, loopback)) {
@@ -55,6 +70,7 @@ class ServerStatusClientTest {
                 27961,
                 serverSocket.getLocalPort(),
                 true,
+                "webtransport",
                 false,
                 OffsetDateTime.now()
             );
