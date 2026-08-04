@@ -69,4 +69,6 @@ docker run --rm -p 3000:3000 \
 
 The website image never downloads, contains, or serves proprietary Quake III
 data. Build `static/Dockerfile`, mount the PK3 volume into that container, and
-route `/baseq3` to it.
+route `/baseq3` to it. To support CPMA servers, also mount the CPMA directory at
+`/data/cpma` and route `/cpma`; the static container exposes a generated CPMA
+asset manifest for the browser client.

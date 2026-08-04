@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/play", "/baseq3/"],
+      disallow: ["/play", "/baseq3/", "/cpma/"],
     },
     host: siteConfig.url,
     sitemap: absoluteUrl("/sitemap.xml"),

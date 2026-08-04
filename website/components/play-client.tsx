@@ -1,6 +1,6 @@
 "use client";
 
-import type { Q3ClientOptions, Q3ClientProgress } from "@q3js/client";
+import type { Q3Asset, Q3ClientOptions, Q3ClientProgress } from "@q3js/client";
 import { ArrowClockwise, Play } from "@phosphor-icons/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameCanvas } from "@/components/game-canvas";
@@ -13,6 +13,35 @@ const BASE_ASSETS = Array.from({ length: 9 }, (_, index) => ({
   url: `/baseq3/pak${index}.pk3`,
   path: `/baseq3/pak${index}.pk3`,
 }));
+const CPMA_FILE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*\.pk3$/;
+
+async function assetsForGame(game: string): Promise<readonly Q3Asset[]> {
+  if (game !== "cpma") {
+    return BASE_ASSETS;
+  }
+
+  const response = await fetch("/cpma/manifest.json", { cache: "no-cache" });
+  if (!response.ok) {
+    throw new Error(`Unable to load the CPMA asset manifest (HTTP ${response.status}).`);
+  }
+
+  const manifest: unknown = await response.json();
+  const files = typeof manifest === "object" && manifest !== null && "files" in manifest
+    ? (manifest as { files?: unknown }).files
+    : undefined;
+  if (!Array.isArray(files) || !files.every((file) => typeof file === "string" && CPMA_FILE_PATTERN.test(file))) {
+    throw new Error("The CPMA asset manifest is invalid.");
+  }
+  if (files.length === 0) {
+    throw new Error("No CPMA PK3 files are available on the static server.");
+  }
+
+  const cpmaAssets = [...new Set(files)].map((filename) => ({
+    url: `/cpma/${filename}`,
+    path: `/cpma/${filename}`,
+  }));
+  return [...BASE_ASSETS, ...cpmaAssets];
+}
 
 interface Session {
   playerName: string;
@@ -20,6 +49,7 @@ interface Session {
   websocketUrl: string;
   address: string;
   game: string;
+  assets: readonly Q3Asset[];
 }
 
 async function requesterCountryCode(): Promise<string | undefined> {
@@ -133,7 +163,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         name: session.playerName,
         countryCode: session.countryCode,
       },
-      assets: BASE_ASSETS,
+      assets: session.assets,
       onProgress: setProgress,
       onConsole: (_level, message) => console.info(`[Q3JS] ${message}`),
       onError: (clientError) => setError(clientError.message),
@@ -143,7 +173,19 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
   const start = useCallback(async () => {
     setError(undefined);
     setProgress(undefined);
-    const countryCode = await requesterCountryCode();
+    const game = selectedServer?.game ?? "q3js";
+
+    let countryCode: string | undefined;
+    let assets: readonly Q3Asset[];
+    try {
+      [countryCode, assets] = await Promise.all([
+        requesterCountryCode(),
+        assetsForGame(game),
+      ]);
+    } catch (startError) {
+      setError(startError instanceof Error ? startError.message : String(startError));
+      return;
+    }
 
     if (selectedServer) {
       const host = selectedServer.host.includes(":") && !selectedServer.host.startsWith("[")
@@ -155,7 +197,8 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         countryCode,
         websocketUrl: `${websocketProtocol}//${host}:${selectedServer.proxyPort}/ws`,
         address: `${host}:${selectedServer.proxyPort}`,
-        game: selectedServer.game,
+        game,
+        assets,
       });
       return;
     }
@@ -169,7 +212,8 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         process.env.NEXT_PUBLIC_Q3JS_WEBSOCKET_URL
         ?? `${websocketProtocol}//${host}:27961/ws`,
       address: process.env.NEXT_PUBLIC_Q3JS_SERVER_ADDRESS ?? `${host}:27961`,
-      game: "q3js",
+      game,
+      assets,
     });
   }, [playerName, selectedServer]);
 
@@ -195,7 +239,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
   };
 
   if (!session || !options) {
-    if (shouldAutoStart) {
+    if (shouldAutoStart && !error) {
       return (
         <section className="grid size-full place-items-center bg-background p-4 text-center">
           <div>
@@ -216,12 +260,19 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
             {selectedServer ? selectedServer.name : "Launch Q3JS"}
           </h1>
           <p className="mt-3 text-sm leading-5 text-muted-foreground">
-            The first launch downloads the base game data into browser storage. Later launches
-            reuse the local copy. The Q3JS game package comes directly from the connected server.
+            {selectedServer?.game === "cpma"
+              ? "The first CPMA launch downloads the base game and CPMA packages into browser storage. Later launches reuse the local copy."
+              : "The first launch downloads the base game data into browser storage. Later launches reuse the local copy. The Q3JS game package comes directly from the connected server."}
           </p>
           {selectedServer && (
             <p className="mt-3 text-xs uppercase text-muted-foreground">
               {selectedServer.secure ? "wss" : "ws"}://{selectedServer.host}:{selectedServer.proxyPort}/ws
+            </p>
+          )}
+
+          {error && (
+            <p role="alert" className="mt-4 border-l-2 border-primary pl-3 text-sm leading-5 text-primary">
+              {error}
             </p>
           )}
 

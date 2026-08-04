@@ -1,12 +1,13 @@
 FROM nginx:1.28-alpine
 
 COPY static/nginx.conf /etc/nginx/nginx.conf
+COPY --chmod=755 static/generate-cpma-manifest.sh /docker-entrypoint.d/40-generate-cpma-manifest.sh
 
 RUN rm -rf /usr/share/nginx/html \
-    && mkdir -p /data/baseq3 \
+    && mkdir -p /data/baseq3 /data/cpma \
     && chown -R nginx:nginx /data /var/cache/nginx
 
-VOLUME ["/data/baseq3"]
+VOLUME ["/data/baseq3", "/data/cpma"]
 EXPOSE 8080
 
 USER nginx

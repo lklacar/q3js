@@ -79,7 +79,9 @@ function mapServer(server: ServerResponse): ListedServer | undefined {
 
   const fallbackName = `${host}:${proxyPort}`;
   const rawName = info.sv_hostname?.trim() || fallbackName;
-  const gamename = info.gamename?.trim().toLowerCase() || "q3js";
+  const gameNames = [info.fsGame, info.gamename, info.com_gamename]
+    .map((value) => value?.trim().toLowerCase())
+    .filter(Boolean);
   const users = [...(info.users ?? [])]
     .sort((left, right) => right.score - left.score)
     .map((user) => ({
@@ -95,7 +97,7 @@ function mapServer(server: ServerResponse): ListedServer | undefined {
     targetPort: server.targetPort,
     secure: server.secure ?? false,
     official: server.official ?? false,
-    game: gamename === "cpma" ? "cpma" : "q3js",
+    game: gameNames.includes("cpma") ? "cpma" : "q3js",
     name: stripQuakeColors(rawName) || fallbackName,
     coloredName: rawName,
     map: info.mapname?.trim() || "unknown",
