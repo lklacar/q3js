@@ -33,11 +33,14 @@ export function GameCanvas({
     let client: Q3Client | undefined;
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
+      const scale = Number.isFinite(window.devicePixelRatio) && window.devicePixelRatio > 0
+        ? window.devicePixelRatio
+        : 1;
       if (client) {
-        client.resize(bounds.width, bounds.height);
+        client.resize(bounds.width, bounds.height, scale);
       } else {
-        canvas.width = Math.max(1, Math.round(bounds.width));
-        canvas.height = Math.max(1, Math.round(bounds.height));
+        canvas.width = Math.max(1, Math.round(bounds.width * scale));
+        canvas.height = Math.max(1, Math.round(bounds.height * scale));
       }
     };
     const resizeObserver = new ResizeObserver(resize);

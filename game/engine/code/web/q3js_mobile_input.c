@@ -77,3 +77,23 @@ EMSCRIPTEN_KEEPALIVE void Q3JS_RequestQuit( void )
 {
 	Cbuf_ExecuteText( EXEC_APPEND, "quit\n" );
 }
+
+EMSCRIPTEN_KEEPALIVE void Q3JS_Resize( int width, int height )
+{
+	if( width < 1 || height < 1 )
+	{
+		return;
+	}
+
+	if( Cvar_VariableIntegerValue( "r_mode" ) == -1 &&
+		Cvar_VariableIntegerValue( "r_customwidth" ) == width &&
+		Cvar_VariableIntegerValue( "r_customheight" ) == height )
+	{
+		return;
+	}
+
+	Cvar_SetValue( "r_customwidth", width );
+	Cvar_SetValue( "r_customheight", height );
+	Cvar_Set( "r_mode", "-1" );
+	Cbuf_ExecuteText( EXEC_APPEND, "vid_restart\n" );
+}

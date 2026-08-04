@@ -56,6 +56,8 @@ interface RenderSize {
   height: number;
 }
 
+const RESIZE_DEBOUNCE_MS = 250;
+
 export function buildQ3Arguments(
   options: Omit<Q3ClientOptions, "canvas">,
   renderSize?: RenderSize,
@@ -107,12 +109,21 @@ export class Q3Client {
   readonly #runtime: Q3EngineModule;
   #disposed = false;
   #mobileInitialized = false;
+  #renderSize: RenderSize;
+  #pendingRenderSize: RenderSize | undefined;
+  #resizeTimer: number | undefined;
 
-  constructor(runtime: Q3EngineModule, canvas: HTMLCanvasElement, persistent: boolean) {
+  constructor(
+    runtime: Q3EngineModule,
+    canvas: HTMLCanvasElement,
+    persistent: boolean,
+    renderSize: RenderSize,
+  ) {
     this.#runtime = runtime;
     this.filesystem = runtime.FS;
     this.canvas = canvas;
     this.persistent = persistent;
+    this.#renderSize = renderSize;
   }
 
   resize(width: number, height: number, scale = 1): void {
@@ -124,6 +135,30 @@ export class Q3Client {
     if (this.canvas.height !== nextHeight) {
       this.canvas.height = nextHeight;
     }
+
+    if (
+      this.#disposed
+      || (this.#renderSize.width === nextWidth && this.#renderSize.height === nextHeight)
+      || (this.#pendingRenderSize?.width === nextWidth && this.#pendingRenderSize.height === nextHeight)
+    ) {
+      return;
+    }
+
+    this.#pendingRenderSize = { width: nextWidth, height: nextHeight };
+    if (this.#resizeTimer !== undefined) {
+      window.clearTimeout(this.#resizeTimer);
+    }
+    this.#resizeTimer = window.setTimeout(() => {
+      this.#resizeTimer = undefined;
+      const pendingRenderSize = this.#pendingRenderSize;
+      this.#pendingRenderSize = undefined;
+      if (!pendingRenderSize || this.#disposed) {
+        return;
+      }
+
+      this.#runtime._Q3JS_Resize?.(pendingRenderSize.width, pendingRenderSize.height);
+      this.#renderSize = pendingRenderSize;
+    }, RESIZE_DEBOUNCE_MS);
   }
 
   mobileKey(key: number, down: boolean): void {
@@ -155,6 +190,11 @@ export class Q3Client {
       await this.sync();
     } finally {
       this.#disposed = true;
+      if (this.#resizeTimer !== undefined) {
+        window.clearTimeout(this.#resizeTimer);
+        this.#resizeTimer = undefined;
+      }
+      this.#pendingRenderSize = undefined;
       this.#runtime._Q3JS_RequestQuit?.();
     }
   }
@@ -212,12 +252,12 @@ export async function createQ3Client(options: Q3ClientOptions): Promise<Q3Client
     }
 
     report({ phase: "starting", loadedBytes: 0, totalBytes: 0 });
-    const client = new Q3Client(runtime, options.canvas, persistent);
     const bounds = options.canvas.getBoundingClientRect();
     const renderSize = {
-      width: Math.max(1, Math.round(bounds.width || window.innerWidth)),
-      height: Math.max(1, Math.round(bounds.height || window.innerHeight)),
+      width: Math.max(1, options.canvas.width || Math.round(bounds.width || window.innerWidth)),
+      height: Math.max(1, options.canvas.height || Math.round(bounds.height || window.innerHeight)),
     };
+    const client = new Q3Client(runtime, options.canvas, persistent, renderSize);
     runtime.callMain(buildQ3Arguments(options, renderSize));
     report({ phase: "ready", loadedBytes: 0, totalBytes: 0 });
     options.onReady?.(client);

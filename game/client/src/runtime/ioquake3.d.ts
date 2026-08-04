@@ -9,6 +9,7 @@ export interface Q3EngineModule {
   _Q3JS_MobileKeyEvent?: (key: number, down: number) => void;
   _Q3JS_MobileMouseMove?: (deltaX: number, deltaY: number) => void;
   _Q3JS_RequestQuit?: () => void;
+  _Q3JS_Resize?: (width: number, height: number) => void;
 }
 
 export interface Q3EngineModuleOptions {
