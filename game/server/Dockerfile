@@ -23,7 +23,7 @@ COPY game/server game/server
 RUN ./game/server/build.sh
 RUN pnpm --filter @q3js/server deploy --legacy --prod /workspace/server-runtime
 
-FROM node:24-bookworm-slim AS runtime
+FROM node:24-trixie-slim AS runtime
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates libcurl4 \
