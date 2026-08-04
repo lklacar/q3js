@@ -35,7 +35,7 @@ function joinHref(server: ListedServer, playerName: string): string {
     host: server.host,
     proxyPort: String(server.proxyPort),
     secure: server.secure ? "1" : "0",
-    clientProfile: server.clientProfile,
+    baseGame: server.baseGame,
     comGameName: server.comGameName,
     serverName: server.name,
     name: playerName.trim() || "Player",

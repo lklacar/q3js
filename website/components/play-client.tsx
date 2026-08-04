@@ -8,22 +8,13 @@ import { Button } from "@/components/ui/button";
 import { usePlayerName } from "@/hooks/use-player-name";
 import { getRequesterCountry } from "@/lib/api/generated/sdk.gen";
 import { client } from "@/lib/api/client";
-import type { ClientProfile } from "@/lib/master-server";
 
-const BASE_ASSETS = Array.from({ length: 9 }, (_, index) => ({
-  url: `/baseq3/pak${index}.pk3`,
-  path: `/baseq3/pak${index}.pk3`,
-}));
 const PK3_FILE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*\.pk3$/;
 
-async function assetsForClientProfile(clientProfile: ClientProfile): Promise<readonly Q3Asset[]> {
-  if (clientProfile === "baseq3") {
-    return BASE_ASSETS;
-  }
-
-  const response = await fetch(`/${encodeURIComponent(clientProfile)}/manifest.json`, { cache: "no-cache" });
+async function assetsForDirectory(gameDirectory: string): Promise<readonly Q3Asset[]> {
+  const response = await fetch(`/${encodeURIComponent(gameDirectory)}/manifest.json`, { cache: "no-cache" });
   if (!response.ok) {
-    throw new Error(`Unable to load the ${clientProfile} asset manifest (HTTP ${response.status}).`);
+    throw new Error(`Unable to load the ${gameDirectory} asset manifest (HTTP ${response.status}).`);
   }
 
   const manifest: unknown = await response.json();
@@ -31,17 +22,24 @@ async function assetsForClientProfile(clientProfile: ClientProfile): Promise<rea
     ? (manifest as { files?: unknown }).files
     : undefined;
   if (!Array.isArray(files) || !files.every((file) => typeof file === "string" && PK3_FILE_PATTERN.test(file))) {
-    throw new Error(`The ${clientProfile} asset manifest is invalid.`);
+    throw new Error(`The ${gameDirectory} asset manifest is invalid.`);
   }
   if (files.length === 0) {
-    throw new Error(`No ${clientProfile} PK3 files are available on the static server.`);
+    throw new Error(`No ${gameDirectory} PK3 files are available on the static server.`);
   }
 
-  const modAssets = [...new Set(files)].map((filename) => ({
-    url: `/${clientProfile}/${filename}`,
-    path: `/${clientProfile}/${filename}`,
+  return [...new Set(files)].map((filename) => ({
+    url: `/${gameDirectory}/${filename}`,
+    path: `/${gameDirectory}/${filename}`,
   }));
-  return [...BASE_ASSETS, ...modAssets];
+}
+
+async function assetsForGame(baseGame: string, fsGame: string | undefined): Promise<readonly Q3Asset[]> {
+  const directories = [baseGame];
+  if (fsGame && fsGame.toLowerCase() !== "q3js" && fsGame !== baseGame) {
+    directories.push(fsGame);
+  }
+  return (await Promise.all(directories.map(assetsForDirectory))).flat();
 }
 
 interface Session {
@@ -49,7 +47,7 @@ interface Session {
   countryCode?: string;
   websocketUrl: string;
   address: string;
-  clientProfile: ClientProfile;
+  baseGame: string;
   fsGame?: string;
   comGameName: string;
   assets: readonly Q3Asset[];
@@ -72,7 +70,7 @@ export interface SelectedServer {
   host: string;
   proxyPort: number;
   secure: boolean;
-  clientProfile: ClientProfile;
+  baseGame: string;
   fsGame?: string;
   comGameName: string;
   name: string;
@@ -161,8 +159,8 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         address: session.address,
       },
       game: {
-        comBaseGame: "baseq3",
-        fsBaseGame: "baseq3",
+        comBaseGame: session.baseGame,
+        fsBaseGame: session.baseGame,
         ...(session.fsGame ? { fsGame: session.fsGame } : {}),
         comGameName: session.comGameName,
       },
@@ -180,7 +178,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
   const start = useCallback(async () => {
     setError(undefined);
     setProgress(undefined);
-    const clientProfile = selectedServer?.clientProfile ?? "baseq3";
+    const baseGame = selectedServer?.baseGame ?? "baseq3";
     const fsGame = selectedServer?.fsGame ?? (selectedServer ? undefined : "q3js");
     const comGameName = selectedServer?.comGameName ?? "Quake3Arena";
 
@@ -189,7 +187,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
     try {
       [countryCode, assets] = await Promise.all([
         requesterCountryCode(),
-        assetsForClientProfile(clientProfile),
+        assetsForGame(baseGame, fsGame),
       ]);
     } catch (startError) {
       setError(startError instanceof Error ? startError.message : String(startError));
@@ -206,7 +204,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         countryCode,
         websocketUrl: `${websocketProtocol}//${host}:${selectedServer.proxyPort}/ws`,
         address: `${host}:${selectedServer.proxyPort}`,
-        clientProfile,
+        baseGame,
         ...(fsGame ? { fsGame } : {}),
         comGameName,
         assets,
@@ -223,7 +221,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         process.env.NEXT_PUBLIC_Q3JS_WEBSOCKET_URL
         ?? `${websocketProtocol}//${host}:27961/ws`,
       address: process.env.NEXT_PUBLIC_Q3JS_SERVER_ADDRESS ?? `${host}:27961`,
-      clientProfile,
+      baseGame,
       ...(fsGame ? { fsGame } : {}),
       comGameName,
       assets,
@@ -273,9 +271,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
             {selectedServer ? selectedServer.name : "Launch Q3JS"}
           </h1>
           <p className="mt-3 text-sm leading-5 text-muted-foreground">
-            {selectedServer?.clientProfile !== "baseq3"
-              ? `The first launch downloads the base game and ${selectedServer?.clientProfile} packages into browser storage. Later launches reuse the local copy.`
-              : "The first launch downloads the base game data into browser storage. Later launches reuse the local copy. The Q3JS game package comes directly from the connected server."}
+            The first launch downloads the required game packages into browser storage. Later launches reuse the local copy.
           </p>
           {selectedServer && (
             <p className="mt-3 text-xs uppercase text-muted-foreground">

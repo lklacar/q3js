@@ -7,8 +7,6 @@ export interface ListedPlayer {
   bot: boolean;
 }
 
-export type ClientProfile = string;
-
 export interface ListedServer {
   id: string;
   host: string;
@@ -16,7 +14,7 @@ export interface ListedServer {
   targetPort: number;
   secure: boolean;
   official: boolean;
-  clientProfile: ClientProfile;
+  baseGame: string;
   fsGame: string | undefined;
   comGameName: string;
   name: string;
@@ -36,6 +34,11 @@ export interface ListedServer {
 
 function stripQuakeColors(value: string): string {
   return value.replace(/\^(?:[0-9]|x[0-9a-f]{6})/gi, "").trim();
+}
+
+function gameDirectory(value: string | undefined): string | undefined {
+  const normalized = value?.trim();
+  return normalized && /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(normalized) ? normalized : undefined;
 }
 
 function gameMode(value: number): string {
@@ -83,16 +86,17 @@ function mapServer(server: ServerResponse): ListedServer | undefined {
 
   const fallbackName = `${host}:${proxyPort}`;
   const rawName = info.sv_hostname?.trim() || fallbackName;
-  const fsGame = info.fs_game?.trim() || undefined;
-  const gameNames = [fsGame, info.gamename, info.com_gamename]
-    .map((value) => value?.trim().toLowerCase())
-    .filter(Boolean);
-  const advertisedProfile = gameNames.includes("cpma") ? "cpma" : fsGame;
-  const clientProfile = advertisedProfile
-    && !["baseq3", "q3js"].includes(advertisedProfile.toLowerCase())
-    && /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(advertisedProfile)
-    ? advertisedProfile
-    : "baseq3";
+  const advertisedFsGame = gameDirectory(info.fs_game);
+  const gameVmName = gameDirectory(info.gamename);
+  const comGameName = gameDirectory(info.com_gamename) ?? "Quake3Arena";
+  const standaloneGame = comGameName.toLowerCase() !== "quake3arena";
+  const baseGame = standaloneGame && gameVmName ? gameVmName : "baseq3";
+  const inferredFsGame = !standaloneGame
+    && gameVmName
+    && !["baseq3", "q3js"].includes(gameVmName.toLowerCase())
+    ? gameVmName
+    : undefined;
+  const fsGame = advertisedFsGame ?? inferredFsGame;
   const users = [...(info.users ?? [])]
     .sort((left, right) => right.score - left.score)
     .map((user) => ({
@@ -108,9 +112,9 @@ function mapServer(server: ServerResponse): ListedServer | undefined {
     targetPort: server.targetPort,
     secure: server.secure ?? false,
     official: server.official ?? false,
-    clientProfile,
+    baseGame,
     fsGame,
-    comGameName: info.com_gamename?.trim() || "Quake3Arena",
+    comGameName,
     name: stripQuakeColors(rawName) || fallbackName,
     coloredName: rawName,
     map: info.mapname?.trim() || "unknown",

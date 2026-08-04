@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { PlayClient, type SelectedServer } from "@/components/play-client";
-import type { ClientProfile } from "@/lib/master-server";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -31,10 +30,6 @@ function identifier(value: string | undefined): string | undefined {
   return normalized && /^[A-Za-z0-9_-]+$/.test(normalized) ? normalized : undefined;
 }
 
-function clientProfile(value: string | undefined): ClientProfile {
-  return identifier(value) ?? "baseq3";
-}
-
 function selectedServer(parameters: SearchParameters): SelectedServer | undefined {
   const host = parameter(parameters, "host")?.trim();
   const proxyPort = Number.parseInt(parameter(parameters, "proxyPort") ?? "", 10);
@@ -42,8 +37,7 @@ function selectedServer(parameters: SearchParameters): SelectedServer | undefine
     return undefined;
   }
 
-  const requestedProfile = identifier(parameter(parameters, "clientProfile"));
-  const profile = clientProfile(requestedProfile);
+  const baseGame = identifier(parameter(parameters, "baseGame")) ?? "baseq3";
   const fsGame = identifier(parameter(parameters, "fsGame"));
   const comGameName = identifier(parameter(parameters, "comGameName"))
     ?? "Quake3Arena";
@@ -51,7 +45,7 @@ function selectedServer(parameters: SearchParameters): SelectedServer | undefine
     host,
     proxyPort,
     secure: parameter(parameters, "secure") === "1",
-    clientProfile: profile,
+    baseGame,
     fsGame,
     comGameName,
     name: parameter(parameters, "serverName")?.trim() || `${host}:${proxyPort}`,
