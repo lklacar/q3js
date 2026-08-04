@@ -28,7 +28,7 @@ import { usePlayerName } from "@/hooks/use-player-name";
 import type { ListedServer } from "@/lib/master-server";
 import { masterServerQueryOptions } from "@/lib/master-server-query";
 
-type ServerFilter = "active" | "all" | "open";
+type ServerFilter = "featured" | "active" | "all" | "open";
 
 function joinHref(server: ListedServer, playerName: string): string {
   const parameters = new URLSearchParams({
@@ -47,6 +47,14 @@ function joinHref(server: ListedServer, playerName: string): string {
 
 function isOpen(server: ListedServer): boolean {
   return server.capacity === 0 || server.players < server.capacity;
+}
+
+function humanPlayerCount(server: ListedServer): number {
+  return server.users.filter((player) => !player.bot).length;
+}
+
+function isFeatured(server: ListedServer): boolean {
+  return server.official || humanPlayerCount(server) > 0;
 }
 
 function occupancy(server: ListedServer): number {
@@ -279,7 +287,7 @@ function BrowserHeading({ serverCount, playerCount, pending = false }: Readonly<
 
 function ServerBrowserQuery() {
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<ServerFilter>("all");
+  const [filter, setFilter] = useState<ServerFilter>("featured");
   const [selectedServer, setSelectedServer] = useState<ListedServer>();
   const { data: servers, error, isFetching, refetch } = useSuspenseQuery(masterServerQueryOptions());
   // Keep the first meaningful order within each official/community group for
@@ -305,6 +313,7 @@ function ServerBrowserQuery() {
   const normalizedQuery = query.trim().toLowerCase();
   const filteredServers = useMemo(
     () => orderedServers.filter((server) => {
+      if (filter === "featured" && !isFeatured(server)) return false;
       if (filter === "active" && server.players === 0) return false;
       if (filter === "open" && !isOpen(server)) return false;
       if (!normalizedQuery) return true;
@@ -315,7 +324,9 @@ function ServerBrowserQuery() {
     [filter, normalizedQuery, orderedServers],
   );
   const playerCount = servers.reduce((total, server) => total + server.players, 0);
-  const openServer = servers.find(isOpen);
+  const openServer = orderedServers.find(
+    (server) => isOpen(server) && (filter !== "featured" || isFeatured(server)),
+  );
 
   return (
     <section id="servers" aria-labelledby="servers-heading" className="scroll-mt-20">
@@ -354,6 +365,7 @@ function ServerBrowserQuery() {
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-1">
+          <FilterButton active={filter === "featured"} onClick={() => setFilter("featured")}>Featured</FilterButton>
           <FilterButton active={filter === "all"} onClick={() => setFilter("all")}>All</FilterButton>
           <FilterButton active={filter === "active"} onClick={() => setFilter("active")}>With players</FilterButton>
           <FilterButton active={filter === "open"} onClick={() => setFilter("open")}>Open slots</FilterButton>
@@ -384,8 +396,8 @@ function ServerBrowserQuery() {
           <p className="mt-2 text-sm text-muted-foreground">
             {servers.length === 0 ? "Refresh the list or run your own server." : "Change the search or filter and try again."}
           </p>
-          {(normalizedQuery || filter !== "all") && (
-            <Button variant="outline" size="sm" className="mt-4" onClick={() => { setQuery(""); setFilter("all"); }}>
+          {(normalizedQuery || filter !== "featured") && (
+            <Button variant="outline" size="sm" className="mt-4" onClick={() => { setQuery(""); setFilter("featured"); }}>
               Clear filters
             </Button>
           )}
@@ -423,7 +435,8 @@ function ServerBrowserPending() {
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-1">
-          <Button variant="secondary" size="sm" disabled>All</Button>
+          <Button variant="secondary" size="sm" disabled>Featured</Button>
+          <Button variant="ghost" size="sm" disabled>All</Button>
           <Button variant="ghost" size="sm" disabled>With players</Button>
           <Button variant="ghost" size="sm" disabled>Open slots</Button>
           <span className="ml-auto flex items-center gap-2 font-mono text-xs text-muted-foreground">
