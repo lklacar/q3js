@@ -23,6 +23,8 @@ import java.util.Optional;
 @ApplicationScoped
 public class ServerService {
     private static final Logger LOG = Logger.getLogger(ServerService.class);
+    private static final String PIETER_HOST = "q3.pieter.com";
+    private static final int DEFAULT_SECURE_PROXY_PORT = 443;
 
     private final ServerRepository repository;
     private final ServerStatusClient statusClient;
@@ -91,6 +93,8 @@ public class ServerService {
         concurrentExecution = Scheduled.ConcurrentExecution.SKIP
     )
     void refreshServers() {
+        addIfMissing(PIETER_HOST, DEFAULT_SECURE_PROXY_PORT, true);
+
         for (StoredServer stored : repository.findAll()) {
             refresh(stored.server());
         }
@@ -104,6 +108,20 @@ public class ServerService {
         int deleted = repository.deleteOlderThan(OffsetDateTime.now().minus(heartbeatTtl));
         if (deleted > 0) {
             LOG.infof("Pruned %d stale Q3JS server(s)", deleted);
+        }
+    }
+
+    private void addIfMissing(String host, int proxyPort, boolean secure) {
+        var server = new RegisteredServer(
+            host,
+            proxyPort,
+            0,
+            secure,
+            false,
+            OffsetDateTime.now()
+        );
+        if (repository.insertIfMissing(server)) {
+            LOG.infof("Adding static server %s:%d", host, proxyPort);
         }
     }
 

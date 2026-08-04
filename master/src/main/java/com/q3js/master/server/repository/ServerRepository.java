@@ -48,6 +48,29 @@ public class ServerRepository {
         return server;
     }
 
+    public boolean insertIfMissing(RegisteredServer server) {
+        return dsl.insertInto(
+                SERVERS,
+                SERVERS.HOST,
+                SERVERS.PROXY_PORT,
+                SERVERS.TARGET_PORT,
+                SERVERS.SECURE,
+                SERVERS.OFFICIAL,
+                SERVERS.LAST_HEARTBEAT
+            )
+            .values(
+                server.host(),
+                server.proxyPort(),
+                server.targetPort(),
+                server.secure(),
+                server.official(),
+                server.lastHeartbeat()
+            )
+            .onConflict(SERVERS.HOST, SERVERS.PROXY_PORT)
+            .doNothing()
+            .execute() > 0;
+    }
+
     public List<StoredServer> findAll() {
         return dsl.selectFrom(SERVERS)
             .fetch(record -> new StoredServer(

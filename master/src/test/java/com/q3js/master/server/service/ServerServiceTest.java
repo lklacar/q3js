@@ -12,8 +12,42 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ServerServiceTest {
+    @Test
+    void addsPieterAsASecureCommunityServerBeforeRefreshing() {
+        var repository = new ServerRepository(null) {
+            private RegisteredServer inserted;
+
+            @Override
+            public boolean insertIfMissing(RegisteredServer server) {
+                inserted = server;
+                return true;
+            }
+
+            @Override
+            public List<StoredServer> findAll() {
+                return List.of();
+            }
+        };
+        ServerService service = new ServerService(
+            repository,
+            new ServerStatusClient(new ServerStatusParser(), Duration.ofSeconds(1)),
+            new ObjectMapper(),
+            Duration.ofMinutes(2)
+        );
+
+        service.refreshServers();
+
+        assertEquals("q3.pieter.com", repository.inserted.host());
+        assertEquals(443, repository.inserted.proxyPort());
+        assertEquals(0, repository.inserted.targetPort());
+        assertTrue(repository.inserted.secure());
+        assertFalse(repository.inserted.official());
+    }
+
     @Test
     void listsOfficialServersBeforeCommunityServersRegardlessOfPlayerCount() {
         OffsetDateTime now = OffsetDateTime.now();
