@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQueries } from "@tanstack/react-query";
 import { Crosshair, Skull, Users } from "@phosphor-icons/react";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import { QueryBoundary } from "@/components/query-boundary";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SiteStatsResponse } from "@/lib/api/generated/types.gen";
-import { masterStatsQueryOptions } from "@/lib/master-server-query";
+import { masterServerQueryOptions, masterStatsQueryOptions } from "@/lib/master-server-query";
 
 function countLabel(count: number, label: string): string {
   return `${count} ${label}${count === 1 ? "" : "s"}`;
@@ -17,7 +17,7 @@ function formatNumber(value: number): string {
   return new Intl.NumberFormat("en").format(value);
 }
 
-function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
+function HomeStatsContent({ arenaCount, stats }: Readonly<{ arenaCount: number; stats: SiteStatsResponse }>) {
   const topFragger = stats.mostFragsLast24Hours;
   const totalPlayersOnline = stats.playersOnline + stats.botsOnline;
   return (
@@ -29,7 +29,7 @@ function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
         <dd className="mt-3 font-mono text-2xl font-bold tracking-[0.03em] tabular-nums">
           {formatNumber(totalPlayersOnline)}
         </dd>
-        <p className="mt-2 text-sm text-muted-foreground">Across live arenas.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Across {countLabel(arenaCount, "live arena")}.</p>
       </div>
 
       <div className="arena-card border border-border/60 bg-card/55 p-4">
@@ -60,8 +60,10 @@ function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
 }
 
 function HomeStatsQuery() {
-  const { data: stats } = useSuspenseQuery(masterStatsQueryOptions());
-  return <HomeStatsContent stats={stats} />;
+  const [{ data: stats }, { data: servers }] = useSuspenseQueries({
+    queries: [masterStatsQueryOptions(), masterServerQueryOptions()],
+  });
+  return <HomeStatsContent arenaCount={servers.length} stats={stats} />;
 }
 
 function HomeStatsPending() {

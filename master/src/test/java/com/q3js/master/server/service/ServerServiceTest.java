@@ -83,4 +83,41 @@ class ServerServiceTest {
             service.servers().stream().map(server -> server.host()).toList()
         );
     }
+
+    @Test
+    void listsOfficialFfaBeforeCtfWhenRealPlayerCountsAreEqual() {
+        OffsetDateTime now = OffsetDateTime.now();
+        List<StoredServer> storedServers = List.of(
+            new StoredServer(
+                new RegisteredServer("ctf.example.com", 27961, 27960, true, true, now),
+                "{\"sv_hostname\":\"CTF\",\"g_gametype\":4,\"players\":2,\"users\":["
+                    + "{\"score\":10,\"ping\":25,\"name\":\"Human\"},"
+                    + "{\"score\":5,\"ping\":0,\"name\":\"Bot\"}]}",
+                now
+            ),
+            new StoredServer(
+                new RegisteredServer("ffa.example.com", 27961, 27960, true, true, now),
+                "{\"sv_hostname\":\"FFA\",\"g_gametype\":0,\"players\":1,\"users\":["
+                    + "{\"score\":10,\"ping\":30,\"name\":\"Human\"}]}",
+                now
+            )
+        );
+        ServerRepository repository = new ServerRepository(null) {
+            @Override
+            public List<StoredServer> findAll() {
+                return storedServers;
+            }
+        };
+        ServerService service = new ServerService(
+            repository,
+            new ServerStatusClient(new ServerStatusParser(), Duration.ofSeconds(1)),
+            new ObjectMapper(),
+            Duration.ofMinutes(2)
+        );
+
+        assertEquals(
+            List.of("ffa.example.com", "ctf.example.com"),
+            service.servers().stream().map(server -> server.host()).toList()
+        );
+    }
 }

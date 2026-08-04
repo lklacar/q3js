@@ -62,6 +62,7 @@ public class ServerService {
             .sorted(
                 Comparator.comparing(ServerResponse::official).reversed()
                     .thenComparing(Comparator.comparingInt(ServerService::realPlayerCount).reversed())
+                    .thenComparingInt(ServerService::officialGameTypePriority)
             )
             .toList();
     }
@@ -166,6 +167,17 @@ public class ServerService {
         return (int) server.info().users().stream()
             .filter(user -> user.ping() > 0)
             .count();
+    }
+
+    private static int officialGameTypePriority(ServerResponse server) {
+        if (!server.official()) {
+            return 0;
+        }
+        return switch (server.info().g_gametype()) {
+            case 0 -> 0;
+            case 4 -> 1;
+            default -> 2;
+        };
     }
 
     public record PlayerCounts(int players, int bots) {
