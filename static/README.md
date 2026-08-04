@@ -9,32 +9,52 @@ Build it from the repository root:
 docker build -f static/Dockerfile -t q3js-static .
 ```
 
-Run it with directories containing the base game and CPMA PK3 files:
+Run the manifest-generator check with:
+
+```sh
+sh static/test/generate-manifests.test.sh
+```
+
+Mount one data directory containing the base game and any mod directories:
 
 ```sh
 docker run --rm \
   -p 8080:8080 \
-  -v /path/to/baseq3:/data/baseq3:ro \
-  -v /path/to/cpma:/data/cpma:ro \
+  -v /path/to/data:/data:ro \
   q3js-static
 ```
 
-Files are available at `http://localhost:8080/baseq3/<filename>.pk3`, and the
-CPMA files are available at `http://localhost:8080/cpma/<filename>.pk3`. The
-container generates `/cpma/manifest.json` from the mounted CPMA files when it
-starts. The health endpoint is `http://localhost:8080/healthz`.
+Organize the mounted directory by Quake filesystem game name:
+
+```text
+data/
+├── baseq3/
+│   ├── pak0.pk3
+│   └── ...
+├── cpma/
+│   └── z-cpma-pak153.pk3
+└── osp/
+    └── osp-pak0.pk3
+```
+
+Every safe first-level directory is exposed using the same contract. PK3 files
+are available at `/<game>/<filename>.pk3`, and the container generates
+`/<game>/manifest.json` when it starts. For example, OSP is exposed at
+`/osp/manifest.json` and `/osp/osp-pak0.pk3`. The health endpoint is
+`http://localhost:8080/healthz`.
 
 ## Dokploy
 
 - Build with `static/Dockerfile` and the repository root as the build context.
-- Route the desired domain or both `/baseq3` and `/cpma` paths to container port `8080`.
-- Attach the base game PK3 volume read-only at `/data/baseq3` and put
-  `pak0.pk3` through `pak8.pk3` at its root.
-- Attach the CPMA PK3 volume read-only at `/data/cpma` and put the CPMA `.pk3`
-  files directly at its root.
-- Mount the same volume at `/data/baseq3` in the dedicated-server container.
+- Route the desired static domain or all game paths to container port `8080`.
+- Attach one read-only volume at `/data`.
+- Put base game PK3s in `/data/baseq3` and each mod's PK3s in a directory whose
+  name matches its `fs_game`, such as `/data/cpma` or `/data/osp`.
+- If the dedicated server shares this data, mount the appropriate subdirectory
+  (for example the volume's `baseq3` directory) at its expected game-data path.
 
 The server supports GET, HEAD, single byte-range requests, CORS, ETags, and
 long-lived immutable caching. Directory listings and non-PK3 paths are disabled.
-Restart the static container after changing the CPMA mount so its manifest is
+Game directory names and PK3 filenames are restricted to URL-safe Quake names.
+Restart the static container after changing `/data` so its manifests are
 regenerated.

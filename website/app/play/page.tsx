@@ -32,7 +32,7 @@ function identifier(value: string | undefined): string | undefined {
 }
 
 function clientProfile(value: string | undefined): ClientProfile {
-  return value === "cpma" ? "cpma" : "baseq3";
+  return identifier(value) ?? "baseq3";
 }
 
 function selectedServer(parameters: SearchParameters): SelectedServer | undefined {

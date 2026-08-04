@@ -7,7 +7,7 @@ export interface ListedPlayer {
   bot: boolean;
 }
 
-export type ClientProfile = "baseq3" | "cpma";
+export type ClientProfile = string;
 
 export interface ListedServer {
   id: string;
@@ -83,9 +83,16 @@ function mapServer(server: ServerResponse): ListedServer | undefined {
 
   const fallbackName = `${host}:${proxyPort}`;
   const rawName = info.sv_hostname?.trim() || fallbackName;
-  const gameNames = [info.fs_game, info.gamename, info.com_gamename]
+  const fsGame = info.fs_game?.trim() || undefined;
+  const gameNames = [fsGame, info.gamename, info.com_gamename]
     .map((value) => value?.trim().toLowerCase())
     .filter(Boolean);
+  const advertisedProfile = gameNames.includes("cpma") ? "cpma" : fsGame;
+  const clientProfile = advertisedProfile
+    && !["baseq3", "q3js"].includes(advertisedProfile.toLowerCase())
+    && /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(advertisedProfile)
+    ? advertisedProfile
+    : "baseq3";
   const users = [...(info.users ?? [])]
     .sort((left, right) => right.score - left.score)
     .map((user) => ({
@@ -101,8 +108,8 @@ function mapServer(server: ServerResponse): ListedServer | undefined {
     targetPort: server.targetPort,
     secure: server.secure ?? false,
     official: server.official ?? false,
-    clientProfile: gameNames.includes("cpma") ? "cpma" : "baseq3",
-    fsGame: info.fs_game?.trim() || undefined,
+    clientProfile,
+    fsGame,
     comGameName: info.com_gamename?.trim() || "Quake3Arena",
     name: stripQuakeColors(rawName) || fallbackName,
     coloredName: rawName,

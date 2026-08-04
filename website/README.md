@@ -69,6 +69,8 @@ docker run --rm -p 3000:3000 \
 
 The website image never downloads, contains, or serves proprietary Quake III
 data. Build `static/Dockerfile`, mount the PK3 volume into that container, and
-route `/baseq3` to it. To support CPMA servers, also mount the CPMA directory at
-`/data/cpma` and route `/cpma`; the static container exposes a generated CPMA
-asset manifest for the browser client.
+route the static asset paths to it. Mount one directory at `/data`, put base
+assets under `/data/baseq3`, and put each mod under the directory matching its
+`fs_game` (for example `/data/cpma` or `/data/osp`). The static container
+generates a manifest for every safe first-level game directory, and the browser
+client loads the matching manifest automatically.

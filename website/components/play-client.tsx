@@ -14,34 +14,34 @@ const BASE_ASSETS = Array.from({ length: 9 }, (_, index) => ({
   url: `/baseq3/pak${index}.pk3`,
   path: `/baseq3/pak${index}.pk3`,
 }));
-const CPMA_FILE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*\.pk3$/;
+const PK3_FILE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*\.pk3$/;
 
 async function assetsForClientProfile(clientProfile: ClientProfile): Promise<readonly Q3Asset[]> {
-  if (clientProfile !== "cpma") {
+  if (clientProfile === "baseq3") {
     return BASE_ASSETS;
   }
 
-  const response = await fetch("/cpma/manifest.json", { cache: "no-cache" });
+  const response = await fetch(`/${encodeURIComponent(clientProfile)}/manifest.json`, { cache: "no-cache" });
   if (!response.ok) {
-    throw new Error(`Unable to load the CPMA asset manifest (HTTP ${response.status}).`);
+    throw new Error(`Unable to load the ${clientProfile} asset manifest (HTTP ${response.status}).`);
   }
 
   const manifest: unknown = await response.json();
   const files = typeof manifest === "object" && manifest !== null && "files" in manifest
     ? (manifest as { files?: unknown }).files
     : undefined;
-  if (!Array.isArray(files) || !files.every((file) => typeof file === "string" && CPMA_FILE_PATTERN.test(file))) {
-    throw new Error("The CPMA asset manifest is invalid.");
+  if (!Array.isArray(files) || !files.every((file) => typeof file === "string" && PK3_FILE_PATTERN.test(file))) {
+    throw new Error(`The ${clientProfile} asset manifest is invalid.`);
   }
   if (files.length === 0) {
-    throw new Error("No CPMA PK3 files are available on the static server.");
+    throw new Error(`No ${clientProfile} PK3 files are available on the static server.`);
   }
 
-  const cpmaAssets = [...new Set(files)].map((filename) => ({
-    url: `/cpma/${filename}`,
-    path: `/cpma/${filename}`,
+  const modAssets = [...new Set(files)].map((filename) => ({
+    url: `/${clientProfile}/${filename}`,
+    path: `/${clientProfile}/${filename}`,
   }));
-  return [...BASE_ASSETS, ...cpmaAssets];
+  return [...BASE_ASSETS, ...modAssets];
 }
 
 interface Session {
@@ -273,8 +273,8 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
             {selectedServer ? selectedServer.name : "Launch Q3JS"}
           </h1>
           <p className="mt-3 text-sm leading-5 text-muted-foreground">
-            {selectedServer?.clientProfile === "cpma"
-              ? "The first CPMA launch downloads the base game and CPMA packages into browser storage. Later launches reuse the local copy."
+            {selectedServer?.clientProfile !== "baseq3"
+              ? `The first launch downloads the base game and ${selectedServer?.clientProfile} packages into browser storage. Later launches reuse the local copy.`
               : "The first launch downloads the base game data into browser storage. Later launches reuse the local copy. The Q3JS game package comes directly from the connected server."}
           </p>
           {selectedServer && (
