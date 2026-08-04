@@ -13,6 +13,8 @@
 
 # JavaScript workspace dependencies
 node_modules/
+.next/
+*.tsbuildinfo
 
 # Local environment files
 .env*

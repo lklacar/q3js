@@ -1,5 +1,6 @@
-FROM node:24-bookworm AS builder
+FROM emscripten/emsdk:6.0.5 AS builder
 
+USER root
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         build-essential \
@@ -20,6 +21,7 @@ RUN pnpm install --frozen-lockfile --filter @q3js/server...
 COPY game/engine game/engine
 COPY game/server game/server
 RUN ./game/server/build.sh
+RUN pnpm --filter @q3js/server deploy --legacy --prod /workspace/server-runtime
 
 FROM node:24-bookworm-slim AS runtime
 
@@ -34,6 +36,7 @@ RUN apt-get update \
 WORKDIR /opt/q3js/server
 
 COPY --from=builder --chown=q3js:q3js /workspace/game/server/dist ./
+COPY --from=builder --chown=q3js:q3js /workspace/server-runtime/node_modules ./node_modules
 
 ENV NODE_ENV=production \
     Q3JS_BASEPATH=/data \
@@ -44,7 +47,7 @@ ENV NODE_ENV=production \
     Q3JS_GATEWAY_PORT=27961
 
 VOLUME ["/data/baseq3", "/state"]
-EXPOSE 27960/udp 27961/tcp
+EXPOSE 27960/udp 27961/tcp 27961/udp
 
 USER q3js
 

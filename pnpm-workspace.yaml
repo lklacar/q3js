@@ -4,6 +4,7 @@ packages:
   - game/server
 
 allowBuilds:
+  '@fails-components/webtransport-transport-http3-quiche': true
   esbuild: true
   sharp: true
   unrs-resolver: true

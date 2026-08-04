@@ -51,12 +51,63 @@ async function assetsForGame(baseGame: string, fsGame: string | undefined): Prom
 interface Session {
   playerName: string;
   countryCode?: string;
-  websocketUrl: string;
+  webtransportUrl: string;
+  serverCertificateHashes?: readonly {
+    algorithm: "sha-256";
+    value: BufferSource;
+  }[];
   address: string;
   baseGame: string;
   fsGame?: string;
   comGameName: string;
   assets: readonly Q3Asset[];
+}
+
+function certificateHashes(hexValue: string | undefined): Session["serverCertificateHashes"] {
+  const hex = (hexValue ?? "").replaceAll(":", "").trim();
+  if (!/^[a-fA-F0-9]{64}$/.test(hex)) {
+    return undefined;
+  }
+  return [{
+    algorithm: "sha-256",
+    value: Uint8Array.from({ length: 32 }, (_, index) => Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16)),
+  }];
+}
+
+function isLocalHost(host: string): boolean {
+  return ["localhost", "127.0.0.1", "::1", "[::1]"].includes(host.toLowerCase());
+}
+
+function localIpv4Host(host: string): string {
+  return isLocalHost(host) ? "127.0.0.1" : host;
+}
+
+async function localCertificateHashes(host: string, port: number): Promise<Session["serverCertificateHashes"]> {
+  const configured = certificateHashes(process.env.NEXT_PUBLIC_Q3JS_WEBTRANSPORT_CERT_SHA256);
+  if (configured || !isLocalHost(host)) {
+    return configured;
+  }
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/webtransport.json`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(2_000),
+    });
+    if (!response.ok) {
+      return undefined;
+    }
+    const body = await response.json() as { certificateHash?: unknown };
+    return certificateHashes(typeof body.certificateHash === "string" ? body.certificateHash : undefined);
+  } catch {
+    return undefined;
+  }
+}
+
+function normalizedWebTransportUrl(value: string): string {
+  const url = new URL(value);
+  if (isLocalHost(url.hostname)) {
+    url.hostname = "127.0.0.1";
+  }
+  return url.href;
 }
 
 async function requesterCountryCode(): Promise<string | undefined> {
@@ -75,7 +126,7 @@ async function requesterCountryCode(): Promise<string | undefined> {
 export interface SelectedServer {
   host: string;
   proxyPort: number;
-  secure: boolean;
+  targetPort: number;
   baseGame: string;
   fsGame?: string;
   comGameName: string;
@@ -161,8 +212,11 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
     }
     return {
       server: {
-        websocketUrl: session.websocketUrl,
+        webtransportUrl: session.webtransportUrl,
         address: session.address,
+        ...(session.serverCertificateHashes
+          ? { serverCertificateHashes: session.serverCertificateHashes }
+          : {}),
       },
       game: {
         comBaseGame: session.baseGame,
@@ -201,15 +255,20 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
     }
 
     if (selectedServer) {
-      const host = selectedServer.host.includes(":") && !selectedServer.host.startsWith("[")
-        ? `[${selectedServer.host}]`
-        : selectedServer.host;
-      const websocketProtocol = selectedServer.secure ? "wss:" : "ws:";
+      const endpointHost = localIpv4Host(selectedServer.host);
+      const host = endpointHost.includes(":") && !endpointHost.startsWith("[")
+        ? `[${endpointHost}]`
+        : endpointHost;
+      const serverCertificateHashes = await localCertificateHashes(
+        selectedServer.host,
+        selectedServer.proxyPort,
+      );
       setSession({
         playerName: playerName.trim() || "Player",
         countryCode,
-        websocketUrl: `${websocketProtocol}//${host}:${selectedServer.proxyPort}/ws`,
-        address: `${host}:${selectedServer.proxyPort}`,
+        webtransportUrl: `https://${host}:${selectedServer.proxyPort}/wt`,
+        ...(serverCertificateHashes ? { serverCertificateHashes } : {}),
+        address: `${host}:${selectedServer.targetPort}`,
         baseGame,
         ...(fsGame ? { fsGame } : {}),
         comGameName,
@@ -218,15 +277,23 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
       return;
     }
 
-    const host = window.location.hostname || "localhost";
-    const websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const pageHost = window.location.hostname || "localhost";
+    const configuredUrl = process.env.NEXT_PUBLIC_Q3JS_WEBTRANSPORT_URL
+      ?? `https://${localIpv4Host(pageHost)}:27961/wt`;
+    const webtransportUrl = normalizedWebTransportUrl(configuredUrl);
+    const parsedTransportUrl = new URL(webtransportUrl);
+    const serverCertificateHashes = await localCertificateHashes(
+      parsedTransportUrl.hostname,
+      Number.parseInt(parsedTransportUrl.port || "443", 10),
+    );
     setSession({
       playerName: playerName.trim() || "Player",
       countryCode,
-      websocketUrl:
-        process.env.NEXT_PUBLIC_Q3JS_WEBSOCKET_URL
-        ?? `${websocketProtocol}//${host}:27961/ws`,
-      address: process.env.NEXT_PUBLIC_Q3JS_SERVER_ADDRESS ?? `${host}:27961`,
+      webtransportUrl,
+      ...(serverCertificateHashes
+        ? { serverCertificateHashes }
+        : {}),
+      address: process.env.NEXT_PUBLIC_Q3JS_SERVER_ADDRESS ?? `${localIpv4Host(pageHost)}:27960`,
       baseGame,
       ...(fsGame ? { fsGame } : {}),
       comGameName,
@@ -281,7 +348,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
           </p>
           {selectedServer && (
             <p className="mt-3 text-xs uppercase text-muted-foreground">
-              {selectedServer.secure ? "wss" : "ws"}://{selectedServer.host}:{selectedServer.proxyPort}/ws
+              https://{selectedServer.host}:{selectedServer.proxyPort}/wt
             </p>
           )}
 

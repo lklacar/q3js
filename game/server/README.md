@@ -1,8 +1,12 @@
 # Q3JS server
 
-Combined Q3JS dedicated server and WebSocket-to-UDP gateway. The Node entry
-point owns the `ioq3ded` child process, health endpoint, gateway lifecycle, and
-graceful shutdown.
+The packaged server runs `ioq3ded` as Node.js + WebAssembly and terminates
+HTTP/3 WebTransport directly inside that engine process. Browser Quake packets
+travel as unreliable WebTransport datagrams; there is no WebSocket service and
+no WebTransport-to-UDP forwarding process.
+
+The same engine socket also accepts ordinary Quake UDP traffic, so native
+clients and the master status checker remain compatible.
 
 Build and run from the repository root:
 
@@ -11,70 +15,75 @@ make server
 Q3JS_BASEPATH=/path/containing/baseq3 make server-run
 ```
 
-The release contains `ioq3ded` and a content-addressed PK3 with `cgame.qvm`,
-`qagame.qvm`, and `ui.qvm`. The server advertises and transfers that PK3 with
-Quake 3's built-in download protocol; the gateway does not serve game files.
+For local development, `server-run` creates a short-lived ECDSA certificate in
+the ignored state directory and prints its SHA-256 fingerprint. Pass that hash
+to the browser client with `serverCertificateHashes`. Production deployments
+should use a publicly trusted certificate.
 
-Once the game is ready, the packaged server registers its published WebSocket
-address with the Q3JS master and refreshes that heartbeat every five seconds.
-The master then obtains map, player, and game information through the same
-WebSocket-to-UDP gateway used by browser clients.
+Network endpoints:
 
-Browser connections use `ws://localhost:27961/ws`. Native Quake traffic and
-the gateway target use UDP port `27960`. `GET /healthz` reports combined
-gateway and game-server readiness.
+- `27960/udp`: native Quake III traffic and master status queries
+- `27961/udp`: direct HTTP/3 WebTransport at `https://host:27961/wt`
+- `27961/tcp`: plain HTTP `GET /healthz` for container health checks
+
+Local clients can read the public development-certificate fingerprint from
+`GET /webtransport.json`; the endpoint includes permissive CORS and no secrets.
+
+The release also contains a content-addressed PK3 with `cgame.qvm`,
+`qagame.qvm`, and `ui.qvm`. Quake III's built-in download protocol transfers
+that package; the health endpoint does not serve game files.
 
 Runtime variables:
 
 - `Q3JS_BASEPATH`: directory containing `baseq3` assets (defaults to `game/server/data`)
 - `Q3JS_HOME_PATH`: writable server state (defaults to `game/server/state`)
-- `Q3JS_GAME_HOST`, `Q3JS_GAME_PORT`: ioq3ded bind/target, defaults `127.0.0.1:27960`
-- `Q3JS_GATEWAY_HOST`, `Q3JS_GATEWAY_PORT`: gateway bind, defaults `0.0.0.0:27961`
+- `Q3JS_GAME_HOST`, `Q3JS_GAME_PORT`: native UDP bind, defaults `127.0.0.1:27960`
+- `Q3JS_GATEWAY_HOST`, `Q3JS_GATEWAY_PORT`: WebTransport UDP and health HTTP bind,
+  defaults `0.0.0.0:27961` (the legacy variable names are retained for deployment compatibility)
+- `Q3JS_TLS_CERT_FILE`, `Q3JS_TLS_KEY_FILE`: PEM certificate chain and private key;
+  both are required by the packaged entry point
+- `Q3JS_ALLOWED_ORIGINS`: comma-separated browser origins allowed to connect,
+  defaults to `*`
+- `Q3JS_WEBTRANSPORT_MAX_DATAGRAM_BYTES`: maximum framed datagram size, defaults `1000`
+- `Q3JS_MAX_CONNECTIONS`: maximum concurrent WebTransport sessions, defaults `128`
 - `Q3JS_MASTER_URL`: master HTTP base URL, defaults `http://localhost:8080`
-- `Q3JS_EVENT_URL`: authenticated event-ingestion endpoint, defaults to
-  `/api/events` on `Q3JS_MASTER_URL`
-- `Q3JS_EVENT_CLIENT_SECRET`: shared event-ingestion secret. Local masters use
-  the same development-only fallback as the master application. It is required
-  when `Q3JS_MASTER_URL` is remote; `openssl rand -hex 32` generates one. The
-  server also sends it with heartbeats so matching servers are marked official.
-- `Q3JS_PUBLISH_HOST`, `Q3JS_PUBLISH_PORT`: browser-reachable gateway address,
+- `Q3JS_EVENT_URL`: authenticated event endpoint, defaults to `/api/events` on the master
+- `Q3JS_EVENT_CLIENT_SECRET`: shared event secret; required when the event URL is remote
+- `Q3JS_PUBLISH_HOST`, `Q3JS_PUBLISH_PORT`: browser-reachable WebTransport address,
   defaults `localhost` and `Q3JS_GATEWAY_PORT`
-- `Q3JS_SECURE`: publish the gateway as `wss` instead of `ws`, defaults `false`
-- `Q3JS_HEARTBEAT_INTERVAL_MS`, `Q3JS_HEARTBEAT_TIMEOUT_MS`: heartbeat timing,
-  defaults `5000` and `3000`
 - `Q3JS_RCON_PASSWORD`: optional RCON password
-- `Q3JS_SERVER_CONFIG`: complete ioq3 server config. When set, it replaces the
-  bundled `q3js-defaults.cfg` and `autoexec.cfg`; include a `map` command.
+- `Q3JS_SERVER_CONFIG`: complete ioq3 server config; include a `map` command
 
 Arguments passed to `game/server/run.sh` are appended to the ioq3ded command line.
 
 ## Container image
 
-Build the combined game server and WebSocket gateway from the repository root:
+Build from the repository root:
 
 ```sh
 docker build -f game/server/Dockerfile -t q3js-server .
 ```
 
-The image never downloads or contains proprietary Quake III data. Mount the
-directory containing `pak0.pk3` through `pak8.pk3` at `/data/baseq3`, and
-persist generated server state at `/state`:
+Mount licensed Quake data plus your TLS certificate and key, and publish both
+UDP ports:
 
 ```sh
 docker run --rm \
   -p 27960:27960/udp \
+  -p 27961:27961/udp \
   -p 27961:27961/tcp \
   -v /path/to/baseq3:/data/baseq3:ro \
+  -v /path/to/tls:/tls:ro \
   -v q3js-server-state:/state \
+  -e Q3JS_TLS_CERT_FILE=/tls/fullchain.pem \
+  -e Q3JS_TLS_KEY_FILE=/tls/privkey.pem \
   -e Q3JS_MASTER_URL=https://master.example.com \
   -e Q3JS_EVENT_CLIENT_SECRET=replace-with-a-production-secret \
   -e Q3JS_PUBLISH_HOST=quake.example.com \
-  -e Q3JS_SECURE=true \
-  -e 'Q3JS_SERVER_CONFIG=seta sv_hostname "Q3JS Arena"; seta sv_maxclients "16"; seta g_gametype "0"; seta fraglimit "20"; seta timelimit "15"; map q3dm17' \
+  -e 'Q3JS_SERVER_CONFIG=seta sv_hostname "Q3JS Arena"; seta sv_maxclients "16"; map q3dm17' \
   q3js-server
 ```
 
-In Dokploy, attach the PK3 volume to `/data/baseq3`. The PK3 files must be at
-the root of that volume; no build arguments or download URLs are required.
-Put the full Quake config in a single `Q3JS_SERVER_CONFIG` environment entry;
-commands may be separated with semicolons or literal newlines.
+The certificate must cover `Q3JS_PUBLISH_HOST`. Ensure UDP `27961` is permitted
+through the host firewall and cloud security rules; opening only TCP is not
+enough for HTTP/3.

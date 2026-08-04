@@ -19,8 +19,6 @@ export interface ServerConfig {
   publishPort: number;
   secure: boolean;
   maxConnections: number;
-  maxPacketBytes: number;
-  idleTimeoutMs: number;
   startupTimeoutMs: number;
   shutdownTimeoutMs: number;
   rconPassword?: string;
@@ -38,20 +36,6 @@ function integer(environment: NodeJS.ProcessEnv, name: string, fallback: number,
     throw new Error(`${name} must be an integer between ${minimum} and ${maximum}.`);
   }
   return value;
-}
-
-function boolean(environment: NodeJS.ProcessEnv, name: string, fallback: boolean): boolean {
-  const raw = environment[name]?.trim().toLowerCase();
-  if (raw === undefined || raw === "") {
-    return fallback;
-  }
-  if (raw === "true" || raw === "1") {
-    return true;
-  }
-  if (raw === "false" || raw === "0") {
-    return false;
-  }
-  throw new Error(`${name} must be true, false, 1, or 0.`);
 }
 
 function httpUrl(environment: NodeJS.ProcessEnv, name: string, fallback: string): string {
@@ -110,7 +94,7 @@ export function loadConfig(
 
   const config: ServerConfig = {
     releaseDirectory,
-    serverBinary: path.resolve(environment.Q3JS_SERVER_BINARY ?? path.join(releaseDirectory, "bin", "ioq3ded")),
+    serverBinary: path.resolve(environment.Q3JS_SERVER_BINARY ?? path.join(releaseDirectory, "bin", "ioq3ded.cjs")),
     basePath: path.resolve(environment.Q3JS_BASEPATH ?? path.join(releaseDirectory, "..", "data")),
     homePath,
     gameHost: environment.Q3JS_GAME_HOST?.trim() || "127.0.0.1",
@@ -124,10 +108,8 @@ export function loadConfig(
     heartbeatTimeoutMs: integer(environment, "Q3JS_HEARTBEAT_TIMEOUT_MS", 3000, 100, 60000),
     publishHost: environment.Q3JS_PUBLISH_HOST?.trim() || "localhost",
     publishPort: integer(environment, "Q3JS_PUBLISH_PORT", gatewayPort, 1, 65535),
-    secure: boolean(environment, "Q3JS_SECURE", false),
+    secure: true,
     maxConnections: integer(environment, "Q3JS_MAX_CONNECTIONS", 128, 1, 4096),
-    maxPacketBytes: integer(environment, "Q3JS_MAX_PACKET_BYTES", 65535, 1024, 1048576),
-    idleTimeoutMs: integer(environment, "Q3JS_IDLE_TIMEOUT_MS", 120000, 1000, 3600000),
     startupTimeoutMs: integer(environment, "Q3JS_STARTUP_TIMEOUT_MS", 30000, 1000, 300000),
     shutdownTimeoutMs: integer(environment, "Q3JS_SHUTDOWN_TIMEOUT_MS", 10000, 1000, 60000),
     extraGameArguments,

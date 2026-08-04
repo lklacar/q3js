@@ -1,8 +1,8 @@
 # Q3JS master server
 
 The master server is the Q3JS game-server registry. Packaged Q3JS servers send
-periodic heartbeats to it; the master queries their Quake status through the
-WebSocket gateway, persists the latest successful response, and removes servers
+periodic heartbeats to it; the master queries their native Quake UDP port,
+persists the latest successful response, and removes servers
 that stop reporting.
 
 The public API is compatible with the previous Q3JS server registry:

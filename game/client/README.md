@@ -1,7 +1,7 @@
 # @q3js/client
 
 Framework-independent browser client for Q3JS. It owns the Emscripten runtime,
-virtual filesystem, asset loading, persistence, WebSocket configuration, and
+virtual filesystem, asset loading, persistence, WebTransport configuration, and
 mobile input bridge.
 
 Build it from the repository root:
@@ -18,7 +18,7 @@ import { createQ3Client } from "@q3js/client";
 const client = await createQ3Client({
   canvas,
   server: {
-    websocketUrl: "wss://example.test:27960",
+    webtransportUrl: "https://example.test:27961/wt",
     address: "example.test:27960",
   },
   player: {
@@ -30,6 +30,11 @@ const client = await createQ3Client({
   ],
 });
 ```
+
+The endpoint must be HTTPS and support HTTP/3 WebTransport datagrams. For a
+short-lived development certificate, pass its SHA-256 DER fingerprint through
+`serverCertificateHashes`; production servers should normally use a publicly
+trusted TLS certificate.
 
 `player.countryCode` is normalized as a two-letter ISO code and sent through
 Quake userinfo as `country`, allowing compatible game VMs to show it on the
