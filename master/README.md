@@ -1,8 +1,7 @@
 # Q3JS master server
 
 The master server is the Q3JS game-server registry. Packaged Q3JS servers send
-periodic heartbeats to it; the master queries WebTransport servers through their
-native Quake UDP port and legacy servers through their WebSocket endpoint,
+periodic heartbeats to it; the master queries their native Quake UDP port,
 persists the latest successful response, and removes servers
 that stop reporting.
 
@@ -24,10 +23,6 @@ The public API is compatible with the previous Q3JS server registry:
 - `GET /q/health` reports Quarkus health checks.
 - `GET /q/openapi` returns the generated OpenAPI document.
 - `GET /q/swagger-ui` opens the interactive Swagger UI.
-
-Heartbeat senders may declare `transport` as `webtransport` or `websocket`.
-Missing declarations are stored as `websocket` for compatibility with existing
-community servers. The selected transport is returned on each server entry.
 
 Swagger UI is included in packaged builds as well as development mode.
 Building the master also writes `target/openapi/openapi.json` and

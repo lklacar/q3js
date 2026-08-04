@@ -47,7 +47,6 @@ test("registers the packaged server with the master", async () => {
     proxyPort: 27961,
     targetPort: 27960,
     secure: true,
-    transport: "webtransport",
   });
 
   await heartbeat.start();
@@ -63,7 +62,6 @@ test("registers the packaged server with the master", async () => {
       proxyPort: 27961,
       targetPort: 27960,
       secure: true,
-      transport: "webtransport",
     },
   });
 });

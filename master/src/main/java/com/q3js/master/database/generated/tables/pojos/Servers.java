@@ -24,7 +24,6 @@ public class Servers implements Serializable {
     private String lastInfoJson;
     private OffsetDateTime lastInfoFetchedAt;
     private Boolean official;
-    private String transport;
 
     public Servers() {}
 
@@ -37,7 +36,6 @@ public class Servers implements Serializable {
         this.lastInfoJson = value.lastInfoJson;
         this.lastInfoFetchedAt = value.lastInfoFetchedAt;
         this.official = value.official;
-        this.transport = value.transport;
     }
 
     public Servers(
@@ -48,8 +46,7 @@ public class Servers implements Serializable {
         OffsetDateTime lastHeartbeat,
         String lastInfoJson,
         OffsetDateTime lastInfoFetchedAt,
-        Boolean official,
-        String transport
+        Boolean official
     ) {
         this.host = host;
         this.proxyPort = proxyPort;
@@ -59,7 +56,6 @@ public class Servers implements Serializable {
         this.lastInfoJson = lastInfoJson;
         this.lastInfoFetchedAt = lastInfoFetchedAt;
         this.official = official;
-        this.transport = transport;
     }
 
     /**
@@ -174,20 +170,6 @@ public class Servers implements Serializable {
         this.official = official;
     }
 
-    /**
-     * Getter for <code>servers.transport</code>.
-     */
-    public String getTransport() {
-        return this.transport;
-    }
-
-    /**
-     * Setter for <code>servers.transport</code>.
-     */
-    public void setTransport(String transport) {
-        this.transport = transport;
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -245,12 +227,6 @@ public class Servers implements Serializable {
         }
         else if (!this.official.equals(other.official))
             return false;
-        if (this.transport == null) {
-            if (other.transport != null)
-                return false;
-        }
-        else if (!this.transport.equals(other.transport))
-            return false;
         return true;
     }
 
@@ -266,7 +242,6 @@ public class Servers implements Serializable {
         result = prime * result + ((this.lastInfoJson == null) ? 0 : this.lastInfoJson.hashCode());
         result = prime * result + ((this.lastInfoFetchedAt == null) ? 0 : this.lastInfoFetchedAt.hashCode());
         result = prime * result + ((this.official == null) ? 0 : this.official.hashCode());
-        result = prime * result + ((this.transport == null) ? 0 : this.transport.hashCode());
         return result;
     }
 
@@ -282,7 +257,6 @@ public class Servers implements Serializable {
         sb.append(", ").append(lastInfoJson);
         sb.append(", ").append(lastInfoFetchedAt);
         sb.append(", ").append(official);
-        sb.append(", ").append(transport);
 
         sb.append(")");
         return sb.toString();

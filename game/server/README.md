@@ -7,9 +7,6 @@ no WebTransport-to-UDP forwarding process.
 
 The same engine socket also accepts ordinary Quake UDP traffic, so native
 clients and the master status checker remain compatible.
-The server heartbeat declares `transport: "webtransport"`, allowing the browser
-to distinguish it from community servers that still use the legacy WebSocket
-gateway.
 
 Build and run from the repository root:
 

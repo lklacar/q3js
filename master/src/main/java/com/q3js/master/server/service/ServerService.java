@@ -49,7 +49,6 @@ public class ServerService {
             heartbeat.proxyPort(),
             heartbeat.targetPort(),
             heartbeat.secure(),
-            heartbeat.transport(),
             official,
             OffsetDateTime.now()
         ));
@@ -119,7 +118,6 @@ public class ServerService {
             proxyPort,
             0,
             secure,
-            "websocket",
             false,
             OffsetDateTime.now()
         );
@@ -148,7 +146,6 @@ public class ServerService {
                 stored.server().proxyPort(),
                 stored.server().targetPort(),
                 stored.server().secure(),
-                stored.server().transport(),
                 stored.server().official(),
                 objectMapper.readValue(stored.infoJson(), ServerInfo.class)
             ));

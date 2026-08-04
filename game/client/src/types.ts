@@ -37,29 +37,16 @@ export interface Q3PlayerOptions {
   countryCode?: string;
 }
 
-interface Q3ServerOptionsBase {
-  address?: string;
-}
-
-export interface Q3WebSocketServerOptions extends Q3ServerOptionsBase {
-  /** Missing transport declarations use the legacy WebSocket backend. */
-  transport?: "websocket";
-  websocketUrl: string;
-  subprotocol?: string;
-}
-
-export interface Q3WebTransportServerOptions extends Q3ServerOptionsBase {
-  transport: "webtransport";
+export interface Q3ServerOptions {
   /** Direct HTTP/3 WebTransport endpoint, for example https://arena.example:27961/wt. */
   webtransportUrl: string;
+  address?: string;
   serverCertificateHashes?: readonly {
     algorithm: "sha-256";
     value: BufferSource;
   }[];
   maxDatagramBytes?: number;
 }
-
-export type Q3ServerOptions = Q3WebSocketServerOptions | Q3WebTransportServerOptions;
 
 export interface Q3PersistenceOptions {
   /** IndexedDB mount points. Defaults to asset roots and homePath. */

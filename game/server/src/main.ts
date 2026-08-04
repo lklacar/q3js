@@ -26,7 +26,6 @@ async function main(): Promise<void> {
     proxyPort: config.publishPort,
     targetPort: config.gamePort,
     secure: config.secure,
-    transport: "webtransport",
   });
   let gameReady = false;
   let stopping = false;

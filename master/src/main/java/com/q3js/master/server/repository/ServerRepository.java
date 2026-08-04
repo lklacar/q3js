@@ -26,7 +26,6 @@ public class ServerRepository {
                 SERVERS.PROXY_PORT,
                 SERVERS.TARGET_PORT,
                 SERVERS.SECURE,
-                SERVERS.TRANSPORT,
                 SERVERS.OFFICIAL,
                 SERVERS.LAST_HEARTBEAT
             )
@@ -35,7 +34,6 @@ public class ServerRepository {
                 server.proxyPort(),
                 server.targetPort(),
                 server.secure(),
-                server.transport(),
                 server.official(),
                 server.lastHeartbeat()
             )
@@ -43,7 +41,6 @@ public class ServerRepository {
             .doUpdate()
             .set(SERVERS.TARGET_PORT, server.targetPort())
             .set(SERVERS.SECURE, server.secure())
-            .set(SERVERS.TRANSPORT, server.transport())
             .set(SERVERS.OFFICIAL, server.official())
             .set(SERVERS.LAST_HEARTBEAT, server.lastHeartbeat())
             .execute();
@@ -58,7 +55,6 @@ public class ServerRepository {
                 SERVERS.PROXY_PORT,
                 SERVERS.TARGET_PORT,
                 SERVERS.SECURE,
-                SERVERS.TRANSPORT,
                 SERVERS.OFFICIAL,
                 SERVERS.LAST_HEARTBEAT
             )
@@ -67,7 +63,6 @@ public class ServerRepository {
                 server.proxyPort(),
                 server.targetPort(),
                 server.secure(),
-                server.transport(),
                 server.official(),
                 server.lastHeartbeat()
             )
@@ -84,7 +79,6 @@ public class ServerRepository {
                     record.getProxyPort(),
                     record.getTargetPort(),
                     Boolean.TRUE.equals(record.getSecure()),
-                    record.getTransport(),
                     Boolean.TRUE.equals(record.getOfficial()),
                     record.getLastHeartbeat()
                 ),

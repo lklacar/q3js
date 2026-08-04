@@ -32,7 +32,7 @@ class ServerControllerTest {
             ServerInfo.class
         );
         when(serverService.servers()).thenReturn(List.of(
-            new ServerResponse("game.example.com", 27961, 27960, true, "webtransport", true, info)
+            new ServerResponse("game.example.com", 27961, 27960, true, true, info)
         ));
 
         given()
@@ -41,7 +41,6 @@ class ServerControllerTest {
             .statusCode(200)
             .body("size()", is(1))
             .body("[0].host", is("game.example.com"))
-            .body("[0].transport", is("webtransport"))
             .body("[0].official", is(true))
             .body("[0].info.sv_hostname", is("Q3JS Arena"));
     }
@@ -60,10 +59,7 @@ class ServerControllerTest {
             .then()
             .statusCode(204);
 
-        verify(serverService).register(
-            new HeartbeatRequest("game.example.com", 27961, 27960, true, "websocket"),
-            false
-        );
+        verify(serverService).register(new HeartbeatRequest("game.example.com", 27961, 27960, true), false);
     }
 
     @Test
@@ -75,17 +71,13 @@ class ServerControllerTest {
                 "targetHost", "official.example.com",
                 "proxyPort", 27961,
                 "targetPort", 27960,
-                "secure", true,
-                "transport", "webtransport"
+                "secure", true
             ))
             .when().put("/api/servers/heartbeat")
             .then()
             .statusCode(204);
 
-        verify(serverService).register(
-            new HeartbeatRequest("official.example.com", 27961, 27960, true, "webtransport"),
-            true
-        );
+        verify(serverService).register(new HeartbeatRequest("official.example.com", 27961, 27960, true), true);
     }
 
     @Test
@@ -97,22 +89,6 @@ class ServerControllerTest {
                 "proxyPort", 0,
                 "targetPort", 27960,
                 "secure", false
-            ))
-            .when().put("/api/servers/heartbeat")
-            .then()
-            .statusCode(400);
-    }
-
-    @Test
-    void rejectsUnsupportedTransport() {
-        given()
-            .contentType("application/json")
-            .body(Map.of(
-                "targetHost", "game.example.com",
-                "proxyPort", 27961,
-                "targetPort", 27960,
-                "secure", true,
-                "transport", "quic"
             ))
             .when().put("/api/servers/heartbeat")
             .then()

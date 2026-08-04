@@ -33,7 +33,6 @@ export type HeartbeatRequest = {
     proxyPort: number;
     targetPort: number;
     secure: boolean;
-    transport?: 'websocket' | 'webtransport';
 };
 
 export type KillDistributionPointResponse = {
@@ -151,7 +150,6 @@ export type ServerResponse = {
     proxyPort: number;
     targetPort: number;
     secure: boolean;
-    transport: 'websocket' | 'webtransport';
     official: boolean;
     info: ServerInfo;
 };

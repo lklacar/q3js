@@ -45,7 +45,6 @@ class ServerServiceTest {
         assertEquals(443, repository.inserted.proxyPort());
         assertEquals(0, repository.inserted.targetPort());
         assertTrue(repository.inserted.secure());
-        assertEquals("websocket", repository.inserted.transport());
         assertFalse(repository.inserted.official());
     }
 
@@ -54,14 +53,14 @@ class ServerServiceTest {
         OffsetDateTime now = OffsetDateTime.now();
         List<StoredServer> storedServers = List.of(
             new StoredServer(
-                new RegisteredServer("community.example.com", 27961, 27960, true, "websocket", false, now),
+                new RegisteredServer("community.example.com", 27961, 27960, true, false, now),
                 "{\"sv_hostname\":\"Community\",\"players\":2,\"users\":["
                     + "{\"score\":10,\"ping\":25,\"name\":\"Player One\"},"
                     + "{\"score\":5,\"ping\":30,\"name\":\"Player Two\"}]}",
                 now
             ),
             new StoredServer(
-                new RegisteredServer("official.example.com", 27961, 27960, true, "webtransport", true, now),
+                new RegisteredServer("official.example.com", 27961, 27960, true, true, now),
                 "{\"sv_hostname\":\"Official\",\"players\":0,\"users\":[]}",
                 now
             )
@@ -90,14 +89,14 @@ class ServerServiceTest {
         OffsetDateTime now = OffsetDateTime.now();
         List<StoredServer> storedServers = List.of(
             new StoredServer(
-                new RegisteredServer("ctf.example.com", 27961, 27960, true, "webtransport", true, now),
+                new RegisteredServer("ctf.example.com", 27961, 27960, true, true, now),
                 "{\"sv_hostname\":\"CTF\",\"g_gametype\":4,\"players\":2,\"users\":["
                     + "{\"score\":10,\"ping\":25,\"name\":\"Human\"},"
                     + "{\"score\":5,\"ping\":0,\"name\":\"Bot\"}]}",
                 now
             ),
             new StoredServer(
-                new RegisteredServer("ffa.example.com", 27961, 27960, true, "webtransport", true, now),
+                new RegisteredServer("ffa.example.com", 27961, 27960, true, true, now),
                 "{\"sv_hostname\":\"FFA\",\"g_gametype\":0,\"players\":1,\"users\":["
                     + "{\"score\":10,\"ping\":30,\"name\":\"Human\"}]}",
                 now
