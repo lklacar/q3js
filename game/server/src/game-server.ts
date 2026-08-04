@@ -72,14 +72,9 @@ export class GameServer {
 
     await this.#installReleaseFiles();
     const arguments_ = this.#arguments();
-    const child = spawn(process.execPath, [this.#config.serverBinary, ...arguments_], {
+    const child = spawn(this.#config.serverBinary, arguments_, {
       stdio: "inherit",
-      env: {
-        ...process.env,
-        Q3JS_WEBTRANSPORT_HOST: this.#config.gatewayHost,
-        Q3JS_WEBTRANSPORT_PORT: String(this.#config.gatewayPort),
-        Q3JS_MAX_CONNECTIONS: String(this.#config.maxConnections),
-      },
+      env: process.env,
     });
     this.#process = child;
     this.#exitPromise = new Promise((resolve) => {
@@ -110,6 +105,7 @@ export class GameServer {
         throw new Error("ioq3ded exited before becoming ready.");
       }
       if (await queryStatus(this.#config.gameHost, this.#config.gamePort, 500)) {
+        await this.#removeRuntimeConfigs();
         return;
       }
       await delay(250);

@@ -34,14 +34,15 @@ function joinHref(server: ListedServer, playerName: string): string {
   const parameters = new URLSearchParams({
     host: server.host,
     proxyPort: String(server.proxyPort),
-    targetPort: String(server.targetPort),
+    secure: server.secure ? "1" : "0",
     baseGame: server.baseGame,
     comGameName: server.comGameName,
     serverName: server.name,
     name: playerName.trim() || "Player",
   });
   if (server.fsGame) parameters.set("fsGame", server.fsGame);
-  return `/play?${parameters.toString()}`;
+  const insecurePlayUrl = process.env.NEXT_PUBLIC_Q3JS_INSECURE_PLAY_URL?.replace(/\/$/, "") ?? "";
+  return `${server.secure ? "" : insecurePlayUrl}/play?${parameters.toString()}`;
 }
 
 function isOpen(server: ListedServer): boolean {

@@ -12,13 +12,12 @@ import {
 import path from "node:path";
 import process from "node:process";
 
-const [, , serverBuildDirectory, qvmBuildDirectory, outputDirectory, configFile] = process.argv;
-if (!serverBuildDirectory || !qvmBuildDirectory || !outputDirectory || !configFile) {
-  throw new Error(
-    "Usage: package-release.mjs <server-build-directory> <qvm-build-directory> <output-directory> <config-file>",
-  );
+const [, , releaseBuildDirectory, outputDirectory, configFile] = process.argv;
+if (!releaseBuildDirectory || !outputDirectory || !configFile) {
+  throw new Error("Usage: package-release.mjs <release-build-directory> <output-directory> <config-file>");
 }
 
+const binaryName = process.platform === "win32" ? "ioq3ded.exe" : "ioq3ded";
 const qvmNames = ["cgame.qvm", "qagame.qvm", "ui.qvm"];
 const stagingDirectory = path.join(outputDirectory, ".package");
 const stagingVmDirectory = path.join(stagingDirectory, "vm");
@@ -32,19 +31,15 @@ await mkdir(path.join(outputDirectory, "config"), { recursive: true });
 await mkdir(gameDirectory, { recursive: true });
 
 await copyFile(
-  path.join(serverBuildDirectory, "ioq3ded.js"),
-  path.join(outputDirectory, "bin", "ioq3ded.cjs"),
-);
-await copyFile(
-  path.join(serverBuildDirectory, "ioq3ded.wasm"),
-  path.join(outputDirectory, "bin", "ioq3ded.wasm"),
+  path.join(releaseBuildDirectory, binaryName),
+  path.join(outputDirectory, "bin", binaryName),
 );
 await copyFile(configFile, path.join(outputDirectory, "config", "q3js-defaults.cfg"));
 
 const stableTimestamp = new Date("1980-01-01T00:00:00.000Z");
 for (const qvmName of qvmNames) {
   const target = path.join(stagingVmDirectory, qvmName);
-  await copyFile(path.join(qvmBuildDirectory, "baseq3", "vm", qvmName), target);
+  await copyFile(path.join(releaseBuildDirectory, "baseq3", "vm", qvmName), target);
   await utimes(target, stableTimestamp, stableTimestamp);
 }
 

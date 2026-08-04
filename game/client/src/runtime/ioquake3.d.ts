@@ -16,13 +16,9 @@ export interface Q3EngineModuleOptions {
   canvas: HTMLCanvasElement;
   noInitialRun: boolean;
   elementPointerLock?: boolean;
-  webtransport?: {
+  websocket?: {
     url: string;
-    serverCertificateHashes?: readonly {
-      algorithm: "sha-256";
-      value: BufferSource;
-    }[];
-    maxDatagramBytes?: number;
+    subprotocol: string;
   };
   locateFile?: (path: string, prefix: string) => string;
   print?: (message: string) => void;

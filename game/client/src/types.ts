@@ -38,14 +38,9 @@ export interface Q3PlayerOptions {
 }
 
 export interface Q3ServerOptions {
-  /** Direct HTTP/3 WebTransport endpoint, for example https://arena.example:27961/wt. */
-  webtransportUrl: string;
+  websocketUrl: string;
   address?: string;
-  serverCertificateHashes?: readonly {
-    algorithm: "sha-256";
-    value: BufferSource;
-  }[];
-  maxDatagramBytes?: number;
+  subprotocol?: string;
 }
 
 export interface Q3PersistenceOptions {

@@ -33,16 +33,7 @@ function identifier(value: string | undefined): string | undefined {
 function selectedServer(parameters: SearchParameters): SelectedServer | undefined {
   const host = parameter(parameters, "host")?.trim();
   const proxyPort = Number.parseInt(parameter(parameters, "proxyPort") ?? "", 10);
-  const targetPort = Number.parseInt(parameter(parameters, "targetPort") ?? "27960", 10);
-  if (
-    !host
-    || !Number.isInteger(proxyPort)
-    || proxyPort < 1
-    || proxyPort > 65535
-    || !Number.isInteger(targetPort)
-    || targetPort < 1
-    || targetPort > 65535
-  ) {
+  if (!host || !Number.isInteger(proxyPort) || proxyPort < 1 || proxyPort > 65535) {
     return undefined;
   }
 
@@ -53,7 +44,7 @@ function selectedServer(parameters: SearchParameters): SelectedServer | undefine
   return {
     host,
     proxyPort,
-    targetPort,
+    secure: parameter(parameters, "secure") === "1",
     baseGame,
     fsGame,
     comGameName,

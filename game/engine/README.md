@@ -152,10 +152,9 @@ For Emscripten,
      see https://developer.chrome.com/blog/wasm-debugging-2020
 
 The dedicated server can also be built with Emscripten. The `ioq3ded` target
-is emitted as a Node.js JavaScript + WebAssembly pair. Q3JS replaces
-Emscripten's browser socket adapter with direct HTTP/3 WebTransport datagrams;
-the Node server terminates WebTransport inside the engine process while also
-retaining its native-client UDP socket.
+is emitted as a Node.js JavaScript + WebAssembly pair and uses Emscripten's
+WebSocket-backed socket layer by default. At runtime Node must be able to
+resolve the `ws` package.
 
 Installation, for *nix
   1. Set the CMAKE_INSTALL_PREFIX to your prefered installation directory.
@@ -644,3 +643,4 @@ Significant contributions from
   * optical <alex@rigbo.se>
   * Aaron Gyes <floam@aaron.gy>
   * surrealchemist
+

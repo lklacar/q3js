@@ -15,7 +15,7 @@ export const metadata: Metadata = buildPageMetadata({
     "Quake 3 dedicated server",
     "Quake 3 Docker server",
     "run Quake 3 server",
-    "WebTransport Quake 3 server",
+    "WebSocket Quake 3 server",
     "Q3JS guide",
   ],
 });
@@ -45,12 +45,12 @@ const guideStructuredData = {
     {
       "@type": "HowToStep",
       name: "Start the Docker container",
-      text: "Run the lukaklacar/q3js-server image with UDP 27960, UDP 27961, and TCP 27961 exposed; mount baseq3 and a TLS certificate.",
+      text: "Run the lukaklacar/q3js-server image with UDP 27960 and TCP 27961 exposed and mount baseq3 into /server/baseq3.",
     },
     {
       "@type": "HowToStep",
       name: "Open the required ports",
-      text: "Forward UDP 27960 and UDP 27961 to the machine running the container; TCP 27961 is used for health checks.",
+      text: "Forward UDP 27960 and TCP 27961 to the machine running the container.",
     },
     {
       "@type": "HowToStep",
@@ -114,7 +114,7 @@ export default function GuidePage() {
           <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
             Q3JS can list and connect to standard Quake III dedicated servers. The simplest setup uses
             the official Docker image, which starts an <code className="font-mono text-sm text-foreground">ioq3ded</code>-compatible
-            server with HTTP/3 WebTransport built directly into the engine for browser players.
+            server and the WebSocket proxy required by browser players.
           </p>
 
           <div className="mt-7 grid gap-3 sm:grid-cols-3">
@@ -156,34 +156,26 @@ export default function GuidePage() {
           <Step number="03" title="Start the container">
             <p>From inside <code>my-q3-server</code>, run:</p>
             <Code>{`docker run \\
+  -p 27961:27961 \\
   -p 27960:27960/udp \\
-  -p 27961:27961/udp \\
-  -p 27961:27961/tcp \\
-  -v "$(pwd)/baseq3":/data/baseq3:ro \\
-  -v "$(pwd)/tls":/tls:ro \\
-  -e Q3JS_TLS_CERT_FILE=/tls/fullchain.pem \\
-  -e Q3JS_TLS_KEY_FILE=/tls/privkey.pem \\
-  -e 'Q3JS_SERVER_CONFIG=map q3dm17' \\
-  lukaklacar/q3js-server`}</Code>
+  -v "$(pwd)/baseq3":/server/baseq3 \\
+  lukaklacar/q3js-server \\
+  +map q3dm17`}</Code>
           </Step>
 
           <Step number="04" title="Open the required ports">
             <p>
-              To make the server reachable outside your local network, forward both UDP ports on your router to
+              To make the server reachable outside your local network, forward both ports on your router to
               the machine running the container.
             </p>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="bg-card/50 p-4">
                 <p className="font-mono font-bold text-foreground">27960 / UDP</p>
                 <p className="mt-1 text-sm leading-6">Normal Quake III game traffic.</p>
               </div>
               <div className="bg-card/50 p-4">
-                <p className="font-mono font-bold text-foreground">27961 / UDP</p>
-                <p className="mt-1 text-sm leading-6">Direct HTTP/3 WebTransport for browser clients.</p>
-              </div>
-              <div className="bg-card/50 p-4">
                 <p className="font-mono font-bold text-foreground">27961 / TCP</p>
-                <p className="mt-1 text-sm leading-6">The container health endpoint.</p>
+                <p className="mt-1 text-sm leading-6">The WebSocket proxy used by browser clients.</p>
               </div>
             </div>
             <p>
@@ -195,15 +187,15 @@ export default function GuidePage() {
           <Step number="05" title="How the Docker command works">
             <ul className="grid list-disc gap-3 pl-5 marker:text-primary">
               <li>
-                <strong>Ports:</strong> <code>-p 27960:27960/udp</code> exposes native Quake III traffic, while <code>-p 27961:27961/udp</code> exposes
-                direct WebTransport. TCP 27961 is only the health endpoint.
+                <strong>Ports:</strong> <code>-p 27960:27960/udp</code> exposes the Quake III server, while <code>-p 27961:27961</code> exposes
+                the Q3JS proxy.
               </li>
               <li>
-                <strong>Volume mount:</strong> <code>-v &quot;$(pwd)/baseq3&quot;:/data/baseq3:ro</code> mounts your local game data into the
+                <strong>Volume mount:</strong> <code>-v &quot;$(pwd)/baseq3&quot;:/server/baseq3</code> mounts your local game data into the
                 container.
               </li>
               <li>
-                <strong>TLS:</strong> the certificate must cover the published host. Browser-trusted certificates need no client-side fingerprint override.
+                <strong>Dedicated server behavior:</strong> the container accepts standard <code>ioq3ded</code> <code>+set</code> and <code>+map</code> arguments.
               </li>
               <li>
                 <strong>Map loading:</strong> the example starts on <code>q3dm17</code>. Replace it with any map present in your data files.

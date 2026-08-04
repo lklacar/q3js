@@ -34,8 +34,6 @@ list(APPEND CLIENT_LINK_OPTIONS
     -sEXPORT_ES6
     -sEXPORT_NAME=${CLIENT_NAME}
     -lidbfs.js
-    "SHELL:--pre-js ${SOURCE_DIR}/web/webtransport-framing.js"
-    "SHELL:--pre-js ${SOURCE_DIR}/web/client-webtransport-pre.js"
 )
 
 list(APPEND SERVER_LINK_OPTIONS
@@ -44,8 +42,8 @@ list(APPEND SERVER_LINK_OPTIONS
     -sEXIT_RUNTIME=1
     -sENVIRONMENT=node
     -sNODERAWFS=1
-    "SHELL:--pre-js ${SOURCE_DIR}/web/webtransport-framing.js"
-    "SHELL:--pre-js ${SOURCE_DIR}/web/server-node-pre.js"
+    -sWEBSOCKET_SUBPROTOCOL=binary
+    --pre-js ${SOURCE_DIR}/web/server-node-pre.js
 )
 
 option(EMSCRIPTEN_PRELOAD_FILE "Preload game files into .data file" OFF)
@@ -60,17 +58,6 @@ endif()
 list(APPEND POST_CONFIGURE_FUNCTIONS deploy_shell_files)
 
 function(deploy_shell_files)
-    if(TARGET ${CLIENT_NAME})
-        set_property(TARGET ${CLIENT_NAME} APPEND PROPERTY LINK_DEPENDS
-            ${SOURCE_DIR}/web/webtransport-framing.js
-            ${SOURCE_DIR}/web/client-webtransport-pre.js)
-    endif()
-    if(TARGET ${SERVER_NAME})
-        set_property(TARGET ${SERVER_NAME} APPEND PROPERTY LINK_DEPENDS
-            ${SOURCE_DIR}/web/webtransport-framing.js
-            ${SOURCE_DIR}/web/server-node-pre.js)
-    endif()
-
     configure_file(${SOURCE_DIR}/web/client.html.in
         ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${CLIENT_NAME}.html @ONLY)
 
