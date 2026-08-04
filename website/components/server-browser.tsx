@@ -193,32 +193,36 @@ function ServerCard({ onJoin, server }: Readonly<{
             <Users className="size-4" />
             <span className="font-semibold text-foreground">Players ({server.users.length})</span>
           </div>
-          {server.users.length ? (
-            <ScrollArea className="h-40 overflow-y-auto rounded-md border border-border/40 bg-background/40">
-              <div className="grid grid-cols-[4rem_4rem_minmax(0,1fr)] border-b border-border/40 px-3 py-2 font-mono text-[11px] text-muted-foreground">
-                <span>Score</span>
-                <span>Ping</span>
-                <span>Name</span>
-              </div>
-              {server.users.map((player, index) => (
-                <div
-                  key={`${player.name}-${index}`}
-                  className="grid grid-cols-[4rem_4rem_minmax(0,1fr)] px-3 py-1.5 font-mono text-[11px] text-foreground odd:bg-background/40"
-                >
-                  <span className="tabular-nums">{player.score}</span>
-                  <span className="tabular-nums">{player.ping}</span>
-                  <Link
-                    href={`/players/${encodeURIComponent(player.name)}`}
-                    className="min-w-0 truncate transition-opacity hover:opacity-80"
-                  >
-                    <Q3ColoredText text={player.name} className="block truncate" />
-                  </Link>
+          <ScrollArea className="h-40 overflow-y-auto rounded-md border border-border/40 bg-background/40">
+            {server.users.length ? (
+              <>
+                <div className="grid grid-cols-[4rem_4rem_minmax(0,1fr)] border-b border-border/40 px-3 py-2 font-mono text-[11px] text-muted-foreground">
+                  <span>Score</span>
+                  <span>Ping</span>
+                  <span>Name</span>
                 </div>
-              ))}
-            </ScrollArea>
-          ) : (
-            <p className="text-xs italic text-muted-foreground">No players online.</p>
-          )}
+                {server.users.map((player, index) => (
+                  <div
+                    key={`${player.name}-${index}`}
+                    className="grid grid-cols-[4rem_4rem_minmax(0,1fr)] px-3 py-1.5 font-mono text-[11px] text-foreground odd:bg-background/40"
+                  >
+                    <span className="tabular-nums">{player.score}</span>
+                    <span className="tabular-nums">{player.ping}</span>
+                    <Link
+                      href={`/players/${encodeURIComponent(player.name)}`}
+                      className="min-w-0 truncate transition-opacity hover:opacity-80"
+                    >
+                      <Q3ColoredText text={player.name} className="block truncate" />
+                    </Link>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <p className="flex h-full items-center justify-center px-3 text-xs italic text-muted-foreground">
+                No players online.
+              </p>
+            )}
+          </ScrollArea>
         </div>
       </div>
 
@@ -271,10 +275,27 @@ function ServerBrowserQuery() {
   const [filter, setFilter] = useState<ServerFilter>("all");
   const [selectedServer, setSelectedServer] = useState<ListedServer>();
   const { data: servers, error, isFetching, refetch } = useSuspenseQuery(masterServerQueryOptions());
+  // Keep the first meaningful server order for this visit. The master sorts by
+  // live player count, which would otherwise reshuffle whole cards every poll.
+  const [serverOrder] = useState<ReadonlyMap<string, number>>(
+    () => new Map(servers.map((server, index) => [server.id, index])),
+  );
+
+  const orderedServers = useMemo(() => {
+    return [...servers].sort((left, right) => {
+      const leftOrder = serverOrder.get(left.id);
+      const rightOrder = serverOrder.get(right.id);
+
+      if (leftOrder !== undefined && rightOrder !== undefined) return leftOrder - rightOrder;
+      if (leftOrder !== undefined) return -1;
+      if (rightOrder !== undefined) return 1;
+      return left.id.localeCompare(right.id);
+    });
+  }, [serverOrder, servers]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const filteredServers = useMemo(
-    () => servers.filter((server) => {
+    () => orderedServers.filter((server) => {
       if (filter === "active" && server.players === 0) return false;
       if (filter === "open" && !isOpen(server)) return false;
       if (!normalizedQuery) return true;
@@ -282,7 +303,7 @@ function ServerBrowserQuery() {
       return [server.name, server.map, server.mode, server.host, ...server.users.map((player) => player.name)]
         .some((value) => value.toLowerCase().includes(normalizedQuery));
     }),
-    [filter, normalizedQuery, servers],
+    [filter, normalizedQuery, orderedServers],
   );
   const playerCount = servers.reduce((total, server) => total + server.players, 0);
   const openServer = servers.find(isOpen);
@@ -332,7 +353,10 @@ function ServerBrowserQuery() {
       </div>
 
       {error && (
-        <p role="alert" className="mt-4 border-l-2 border-primary px-3 py-2 text-sm text-primary">
+        <p
+          role="alert"
+          className="fixed bottom-4 left-4 right-4 z-50 border border-primary/60 bg-background px-4 py-3 text-sm text-primary shadow-lg sm:left-auto sm:max-w-md"
+        >
           Refresh failed: {error.message}. Showing cached results.
         </p>
       )}
