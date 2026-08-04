@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, ShareNetwork } from "@phosphor-icons/react";
+import { sendGAEvent } from "@next/third-parties/google";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,11 +13,23 @@ import {
 } from "@/components/ui/dialog";
 
 const HIDE_INVITE_KEY = "q3js-hide-invite-prompt";
+const ANALYTICS_COMPONENT = "homepage_invite_dialog";
+
+function trackInviteEvent(eventName: string, parameters?: Record<string, string>) {
+  sendGAEvent("event", eventName, {
+    component: ANALYTICS_COMPONENT,
+    ...parameters,
+  });
+}
 
 export function InviteFriendsDialog() {
   const [open, setOpen] = useState(false);
   const [shared, setShared] = useState(false);
   const resetTimer = useRef<number>(undefined);
+  const actionTaken = useRef(false);
+  const dismissTracked = useRef(false);
+  const optOutTracked = useRef(false);
+  const shareTracked = useRef(false);
 
   useEffect(() => {
     const showTimer = window.setTimeout(() => {
@@ -27,7 +40,12 @@ export function InviteFriendsDialog() {
         // Storage can be unavailable in strict privacy modes; the prompt can
         // still work for the current page view.
       }
+      actionTaken.current = false;
+      dismissTracked.current = false;
+      optOutTracked.current = false;
+      shareTracked.current = false;
       setOpen(true);
+      trackInviteEvent("invite_dialog_viewed");
     }, 900);
 
     return () => {
@@ -35,6 +53,21 @@ export function InviteFriendsDialog() {
       if (resetTimer.current) window.clearTimeout(resetTimer.current);
     };
   }, []);
+
+  function trackShare(method: "native" | "clipboard") {
+    actionTaken.current = true;
+    if (shareTracked.current) return;
+    shareTracked.current = true;
+    trackInviteEvent("invite_dialog_shared", { share_method: method });
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen && open && !actionTaken.current && !dismissTracked.current) {
+      dismissTracked.current = true;
+      trackInviteEvent("invite_dialog_closed");
+    }
+    setOpen(nextOpen);
+  }
 
   async function inviteFriends() {
     const url = window.location.origin;
@@ -47,6 +80,7 @@ export function InviteFriendsDialog() {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        trackShare("native");
         return;
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
@@ -55,6 +89,7 @@ export function InviteFriendsDialog() {
 
     try {
       await navigator.clipboard.writeText(url);
+      trackShare("clipboard");
       setShared(true);
       resetTimer.current = window.setTimeout(() => setShared(false), 2500);
     } catch {
@@ -63,6 +98,11 @@ export function InviteFriendsDialog() {
   }
 
   function neverShowAgain() {
+    actionTaken.current = true;
+    if (!optOutTracked.current) {
+      optOutTracked.current = true;
+      trackInviteEvent("invite_dialog_do_not_show_again");
+    }
     try {
       window.localStorage.setItem(HIDE_INVITE_KEY, "1");
     } catch {
@@ -72,7 +112,7 @@ export function InviteFriendsDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="normal-case tracking-normal sm:whitespace-nowrap">Quake is more fun with friends</DialogTitle>
