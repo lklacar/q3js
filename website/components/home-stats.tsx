@@ -19,15 +19,15 @@ function formatNumber(value: number): string {
 
 function HomeStatsContent({ stats }: Readonly<{ stats: SiteStatsResponse }>) {
   const topFragger = stats.mostFragsLast24Hours;
+  const totalPlayersOnline = stats.playersOnline + stats.botsOnline;
   return (
     <dl className="mb-10 grid gap-3 sm:grid-cols-3">
       <div className="arena-card border border-border/60 bg-card/55 p-4">
         <dt className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">
           <Users className="size-4 text-primary" /> Players online
         </dt>
-        <dd className="mt-3 flex items-baseline gap-2 font-mono tabular-nums">
-          <span className="text-2xl font-bold tracking-[0.03em]">{formatNumber(stats.playersOnline)}</span>
-          <span className="text-sm text-muted-foreground">+ {countLabel(stats.botsOnline, "bot")}</span>
+        <dd className="mt-3 font-mono text-2xl font-bold tracking-[0.03em] tabular-nums">
+          {formatNumber(totalPlayersOnline)}
         </dd>
         <p className="mt-2 text-sm text-muted-foreground">Across live arenas.</p>
       </div>
