@@ -928,6 +928,18 @@ void Cvar_WriteVariables(fileHandle_t f)
 		if(!var->name || Q_stricmp( var->name, "cl_cdkey" ) == 0)
 			continue;
 
+#ifdef __EMSCRIPTEN__
+		// Browser dimensions come from the canvas and are recalculated on every
+		// resize. Persisting them makes a previous window size leak into the next
+		// session before the canvas has been measured.
+		if( Q_stricmp( var->name, "r_mode" ) == 0 ||
+			Q_stricmp( var->name, "r_customwidth" ) == 0 ||
+			Q_stricmp( var->name, "r_customheight" ) == 0 )
+		{
+			continue;
+		}
+#endif
+
 		if( var->flags & CVAR_ARCHIVE ) {
 			// write the latched value, even if it hasn't taken effect yet
 			if ( var->latchedString ) {

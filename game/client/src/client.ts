@@ -73,6 +73,7 @@ export function buildQ3Arguments(
   addSet(arguments_, "r_customheight", renderSize?.height);
   addSet(arguments_, "r_fullscreen", 0);
   addSet(arguments_, "com_introplayed", 1);
+  addSet(arguments_, "con_scale", 2);
   addSet(arguments_, "com_basegame", comBaseGame);
   addSet(arguments_, "fs_basegame", fsBaseGame);
   addSet(arguments_, "fs_game", options.game?.fsGame);

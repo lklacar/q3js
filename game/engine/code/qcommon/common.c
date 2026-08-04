@@ -2852,6 +2852,12 @@ void Com_Init( char *commandLine ) {
 
 	com_fullyInitialized = qtrue;
 
+#ifdef __EMSCRIPTEN__
+	// Rewrite the browser config once so resolution values saved by older
+	// builds are removed by Cvar_WriteVariables.
+	cvar_modifiedFlags |= CVAR_ARCHIVE;
+#endif
+
 	// always set the cvar, but only print the info if it makes sense.
 	Com_DetectAltivec();
 #if idppc
