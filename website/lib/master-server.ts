@@ -96,7 +96,14 @@ function mapServer(server: ServerResponse): ListedServer | undefined {
     && !["baseq3", "q3js"].includes(gameVmName.toLowerCase())
     ? gameVmName
     : undefined;
-  const fsGame = advertisedFsGame ?? inferredFsGame;
+  // Q3JS servers deliberately look like baseq3 in getstatus. Their actual
+  // fs_game is carried in systeminfo after connecting, which the master
+  // cannot see. Select it up front so the downloaded Q3JS VMs (including the
+  // country-aware scoreboard) are active from startup.
+  const officialFsGame = server.official && !standaloneGame && gameVmName?.toLowerCase() === "baseq3"
+    ? "q3js"
+    : undefined;
+  const fsGame = advertisedFsGame ?? officialFsGame ?? inferredFsGame;
   const users = [...(info.users ?? [])]
     .sort((left, right) => right.score - left.score)
     .map((user) => ({
