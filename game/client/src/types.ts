@@ -23,8 +23,11 @@ export interface Q3Asset {
 }
 
 export interface Q3GameOptions {
-  baseGame?: string;
-  game?: string;
+  comBaseGame?: string;
+  fsBaseGame?: string;
+  fsGame?: string;
+  /** Engine identity sent during the server challenge, for example Quake3Arena or spaitial. */
+  comGameName?: string;
   homePath?: string;
 }
 

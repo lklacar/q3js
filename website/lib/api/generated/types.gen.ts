@@ -111,7 +111,7 @@ export type ServerInfo = {
     timelimit: number;
     sv_maxclients: number;
     g_needpass: number;
-    fsGame: string;
+    fs_game: string;
     capturelimit: number;
     version: string;
     location: string;

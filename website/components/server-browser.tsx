@@ -35,10 +35,12 @@ function joinHref(server: ListedServer, playerName: string): string {
     host: server.host,
     proxyPort: String(server.proxyPort),
     secure: server.secure ? "1" : "0",
-    game: server.game,
+    clientProfile: server.clientProfile,
+    comGameName: server.comGameName,
     serverName: server.name,
     name: playerName.trim() || "Player",
   });
+  if (server.fsGame) parameters.set("fsGame", server.fsGame);
   const insecurePlayUrl = process.env.NEXT_PUBLIC_Q3JS_INSECURE_PLAY_URL?.replace(/\/$/, "") ?? "";
   return `${server.secure ? "" : insecurePlayUrl}/play?${parameters.toString()}`;
 }
@@ -156,9 +158,16 @@ function ServerCard({ onJoin, server }: Readonly<{
                   Official
                 </span>
               )}
+              {!server.official && (
+                <span className="inline-flex shrink-0 items-center border border-border/70 bg-secondary/60 px-2 py-1 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  Community
+                </span>
+              )}
               {server.passwordProtected && <LockKey className="size-4 text-muted-foreground" aria-label="Password required" />}
             </div>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">{server.host}:{server.targetPort}</p>
+            <p className="mt-1 font-mono text-xs text-muted-foreground">
+              {server.host}:{server.targetPort > 0 ? server.targetPort : server.proxyPort}
+            </p>
           </div>
           {isOpen(server) ? (
             <Button size="lg" className="sm:self-start" onClick={() => onJoin(server)}>
@@ -273,14 +282,16 @@ function ServerBrowserQuery() {
   const [filter, setFilter] = useState<ServerFilter>("all");
   const [selectedServer, setSelectedServer] = useState<ListedServer>();
   const { data: servers, error, isFetching, refetch } = useSuspenseQuery(masterServerQueryOptions());
-  // Keep the first meaningful server order for this visit. The master sorts by
-  // live player count, which would otherwise reshuffle whole cards every poll.
+  // Keep the first meaningful order within each official/community group for
+  // this visit. Live player counts would otherwise reshuffle cards every poll.
   const [serverOrder] = useState<ReadonlyMap<string, number>>(
     () => new Map(servers.map((server, index) => [server.id, index])),
   );
 
   const orderedServers = useMemo(() => {
     return [...servers].sort((left, right) => {
+      if (left.official !== right.official) return left.official ? -1 : 1;
+
       const leftOrder = serverOrder.get(left.id);
       const rightOrder = serverOrder.get(right.id);
 

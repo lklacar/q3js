@@ -8,7 +8,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(requiredProperties = {
     "id", "sv_hostname", "mapname", "g_gametype", "fraglimit", "timelimit",
-    "sv_maxclients", "g_needpass", "fsGame", "capturelimit", "version", "location",
+    "sv_maxclients", "g_needpass", "fs_game", "capturelimit", "version", "location",
     "players", "ping", "host", "port", "challenge", "sv_maxPing", "sv_minPing",
     "com_gamename", "com_protocol", "dmflags", "sv_privateClients", "sv_minRate",
     "sv_maxRate", "sv_dlRate", "sv_floodProtect", "sv_allowDownload", "bot_minplayers",
@@ -23,7 +23,7 @@ public record ServerInfo(
     int timelimit,
     int sv_maxclients,
     int g_needpass,
-    String fsGame,
+    String fs_game,
     int capturelimit,
     String version,
     String location,

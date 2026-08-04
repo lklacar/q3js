@@ -61,7 +61,8 @@ export function buildQ3Arguments(
   renderSize?: RenderSize,
 ): string[] {
   const arguments_: string[] = [];
-  const baseGame = options.game?.baseGame ?? "baseq3";
+  const comBaseGame = options.game?.comBaseGame ?? "baseq3";
+  const fsBaseGame = options.game?.fsBaseGame ?? comBaseGame;
   const homePath = options.game?.homePath ?? "/persist";
 
   addSet(arguments_, "sv_pure", 0);
@@ -70,9 +71,10 @@ export function buildQ3Arguments(
   addSet(arguments_, "r_customheight", renderSize?.height);
   addSet(arguments_, "r_fullscreen", 0);
   addSet(arguments_, "com_introplayed", 1);
-  addSet(arguments_, "com_basegame", baseGame);
-  addSet(arguments_, "fs_basegame", baseGame);
-  addSet(arguments_, "fs_game", options.game?.game);
+  addSet(arguments_, "com_basegame", comBaseGame);
+  addSet(arguments_, "fs_basegame", fsBaseGame);
+  addSet(arguments_, "fs_game", options.game?.fsGame);
+  addSet(arguments_, "com_gamename", options.game?.comGameName);
   addSet(arguments_, "name", options.player?.name ?? "Player");
   addUserinfo(arguments_, "country", normalizeCountryCode(options.player?.countryCode));
   addSet(arguments_, "cl_allowDownload", 1);

@@ -39,7 +39,7 @@ public class ServerStatusParser {
             integer(rules, "timelimit"),
             integer(rules, "sv_maxclients"),
             integer(rules, "g_needpass"),
-            value(rules, "fs_game", "baseq3"),
+            value(rules, "fs_game", ""),
             integer(rules, "capturelimit"),
             value(rules, "version", value(rules, "com_gamename", value(rules, "gamename", ""))),
             value(rules, "location", ""),

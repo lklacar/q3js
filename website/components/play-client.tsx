@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { usePlayerName } from "@/hooks/use-player-name";
 import { getRequesterCountry } from "@/lib/api/generated/sdk.gen";
 import { client } from "@/lib/api/client";
+import type { ClientProfile } from "@/lib/master-server";
 
 const BASE_ASSETS = Array.from({ length: 9 }, (_, index) => ({
   url: `/baseq3/pak${index}.pk3`,
@@ -15,8 +16,8 @@ const BASE_ASSETS = Array.from({ length: 9 }, (_, index) => ({
 }));
 const CPMA_FILE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*\.pk3$/;
 
-async function assetsForGame(game: string): Promise<readonly Q3Asset[]> {
-  if (game !== "cpma") {
+async function assetsForClientProfile(clientProfile: ClientProfile): Promise<readonly Q3Asset[]> {
+  if (clientProfile !== "cpma") {
     return BASE_ASSETS;
   }
 
@@ -48,7 +49,9 @@ interface Session {
   countryCode?: string;
   websocketUrl: string;
   address: string;
-  game: string;
+  clientProfile: ClientProfile;
+  fsGame?: string;
+  comGameName: string;
   assets: readonly Q3Asset[];
 }
 
@@ -69,7 +72,9 @@ export interface SelectedServer {
   host: string;
   proxyPort: number;
   secure: boolean;
-  game: string;
+  clientProfile: ClientProfile;
+  fsGame?: string;
+  comGameName: string;
   name: string;
 }
 
@@ -156,8 +161,10 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         address: session.address,
       },
       game: {
-        baseGame: "baseq3",
-        game: session.game,
+        comBaseGame: "baseq3",
+        fsBaseGame: "baseq3",
+        ...(session.fsGame ? { fsGame: session.fsGame } : {}),
+        comGameName: session.comGameName,
       },
       player: {
         name: session.playerName,
@@ -173,14 +180,16 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
   const start = useCallback(async () => {
     setError(undefined);
     setProgress(undefined);
-    const game = selectedServer?.game ?? "q3js";
+    const clientProfile = selectedServer?.clientProfile ?? "baseq3";
+    const fsGame = selectedServer?.fsGame ?? (selectedServer ? undefined : "q3js");
+    const comGameName = selectedServer?.comGameName ?? "Quake3Arena";
 
     let countryCode: string | undefined;
     let assets: readonly Q3Asset[];
     try {
       [countryCode, assets] = await Promise.all([
         requesterCountryCode(),
-        assetsForGame(game),
+        assetsForClientProfile(clientProfile),
       ]);
     } catch (startError) {
       setError(startError instanceof Error ? startError.message : String(startError));
@@ -197,7 +206,9 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         countryCode,
         websocketUrl: `${websocketProtocol}//${host}:${selectedServer.proxyPort}/ws`,
         address: `${host}:${selectedServer.proxyPort}`,
-        game,
+        clientProfile,
+        ...(fsGame ? { fsGame } : {}),
+        comGameName,
         assets,
       });
       return;
@@ -212,7 +223,9 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
         process.env.NEXT_PUBLIC_Q3JS_WEBSOCKET_URL
         ?? `${websocketProtocol}//${host}:27961/ws`,
       address: process.env.NEXT_PUBLIC_Q3JS_SERVER_ADDRESS ?? `${host}:27961`,
-      game,
+      clientProfile,
+      ...(fsGame ? { fsGame } : {}),
+      comGameName,
       assets,
     });
   }, [playerName, selectedServer]);
@@ -260,7 +273,7 @@ export function PlayClient({ selectedServer, initialPlayerName }: PlayClientProp
             {selectedServer ? selectedServer.name : "Launch Q3JS"}
           </h1>
           <p className="mt-3 text-sm leading-5 text-muted-foreground">
-            {selectedServer?.game === "cpma"
+            {selectedServer?.clientProfile === "cpma"
               ? "The first CPMA launch downloads the base game and CPMA packages into browser storage. Later launches reuse the local copy."
               : "The first launch downloads the base game data into browser storage. Later launches reuse the local copy. The Q3JS game package comes directly from the connected server."}
           </p>
