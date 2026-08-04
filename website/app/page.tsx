@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { HomeStats } from "@/components/home-stats";
+import { InviteFriendsDialog } from "@/components/invite-friends-dialog";
 import { JsonLd } from "@/components/json-ld";
 import { Q3ColoredText } from "@/components/q3-colored-text";
 import { ScoreboardPreview } from "@/components/scoreboard-preview";
@@ -64,6 +65,7 @@ export default function Home() {
     <div className="min-h-screen bg-background text-foreground">
       <JsonLd data={homeStructuredData} />
       <SiteHeader />
+      <InviteFriendsDialog />
       <main className="mx-auto w-full max-w-5xl px-4 pb-20 pt-10 md:pt-14">
         <section aria-labelledby="hero-heading" className="mb-14 py-6 text-center sm:py-8">
           <p className="font-mono text-xs uppercase tracking-[0.24em] text-primary">
