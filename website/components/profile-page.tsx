@@ -33,7 +33,7 @@ function Stat({
       <dt className="font-mono text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</dt>
       <dd className={cn(
         "mt-1 font-bold tabular-nums",
-        compact ? "font-mono text-xl leading-6 tracking-[0.025em]" : "truncate font-mono text-xl tracking-[0.025em]",
+        compact ? "whitespace-nowrap font-mono text-xl leading-6 tracking-[0.025em]" : "truncate font-mono text-xl tracking-[0.025em]",
       )}>{value}</dd>
     </div>
   );
