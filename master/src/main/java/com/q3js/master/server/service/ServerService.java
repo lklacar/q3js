@@ -58,8 +58,8 @@ public class ServerService {
             .map(this::response)
             .flatMap(Optional::stream)
             .sorted(
-                Comparator.comparingInt(ServerService::realPlayerCount).reversed()
-                    .thenComparing(Comparator.comparing(ServerResponse::official).reversed())
+                Comparator.comparing(ServerResponse::official).reversed()
+                    .thenComparing(Comparator.comparingInt(ServerService::realPlayerCount).reversed())
             )
             .toList();
     }
