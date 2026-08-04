@@ -60,6 +60,7 @@ bundle, so pass production values as build arguments:
 docker build -f website/Dockerfile -t q3js-website \
   --build-arg NEXT_PUBLIC_Q3JS_MASTER_URL=https://master.example.com \
   --build-arg NEXT_PUBLIC_Q3JS_SITE_URL=https://q3js.example.com \
+  --build-arg NEXT_PUBLIC_Q3JS_STATIC_URL=https://static.q3js.example.com \
   .
 
 docker run --rm -p 3000:3000 \
@@ -69,8 +70,10 @@ docker run --rm -p 3000:3000 \
 
 The website image never downloads, contains, or serves proprietary Quake III
 data. Build `static/Dockerfile`, mount the PK3 volume into that container, and
-route the static asset paths to it. Mount one directory at `/data`, put base
-assets under `/data/baseq3`, and put each mod under the directory matching its
-`fs_game` (for example `/data/cpma` or `/data/osp`). The static container
-generates a manifest for every safe first-level game directory, and the browser
-client loads the matching manifest automatically.
+set `NEXT_PUBLIC_Q3JS_STATIC_URL` to its public origin. This public value is
+compiled into the browser bundle, so pass it as a build argument and rebuild
+when it changes. Mount one directory at `/data`, put base assets under
+`/data/baseq3`, and put each mod under the directory matching its `fs_game`
+(for example `/data/cpma` or `/data/osp`). The static container generates a
+manifest for every safe first-level game directory, and the browser client
+loads manifests and PK3s from the configured static origin.

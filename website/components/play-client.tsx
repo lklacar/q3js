@@ -10,9 +10,15 @@ import { getRequesterCountry } from "@/lib/api/generated/sdk.gen";
 import { client } from "@/lib/api/client";
 
 const PK3_FILE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*\.pk3$/;
+const STATIC_BASE_URL = (process.env.NEXT_PUBLIC_Q3JS_STATIC_URL?.trim() || "").replace(/\/+$/, "");
+
+function staticUrl(path: string): string {
+  return `${STATIC_BASE_URL}/${path}`;
+}
 
 async function assetsForDirectory(gameDirectory: string): Promise<readonly Q3Asset[]> {
-  const response = await fetch(`/${encodeURIComponent(gameDirectory)}/manifest.json`, { cache: "no-cache" });
+  const encodedDirectory = encodeURIComponent(gameDirectory);
+  const response = await fetch(staticUrl(`${encodedDirectory}/manifest.json`), { cache: "no-cache" });
   if (!response.ok) {
     throw new Error(`Unable to load the ${gameDirectory} asset manifest (HTTP ${response.status}).`);
   }
@@ -29,7 +35,7 @@ async function assetsForDirectory(gameDirectory: string): Promise<readonly Q3Ass
   }
 
   return [...new Set(files)].map((filename) => ({
-    url: `/${gameDirectory}/${filename}`,
+    url: staticUrl(`${encodedDirectory}/${encodeURIComponent(filename)}`),
     path: `/${gameDirectory}/${filename}`,
   }));
 }
