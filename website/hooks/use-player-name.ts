@@ -37,7 +37,7 @@ export function usePlayerName(initialName?: string) {
   const fallbackName = normalizedInitialName || "Player";
   const playerName = useSyncExternalStore(
     subscribe,
-    () => storedPlayerName() || fallbackName,
+    () => storedPlayerName() ?? fallbackName,
     () => fallbackName,
   );
 
