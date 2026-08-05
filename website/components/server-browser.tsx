@@ -25,12 +25,19 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { usePlayerName } from "@/hooks/use-player-name";
+import { createAnalyticsId, trackAnalyticsEvent } from "@/lib/analytics";
 import type { ListedServer } from "@/lib/master-server";
 import { masterServerQueryOptions } from "@/lib/master-server-query";
 
 type ServerFilter = "featured" | "active" | "all" | "open";
+type JoinEntryPoint = "quick_play" | "server_card";
 
-function joinHref(server: ListedServer, playerName: string): string {
+function joinHref(
+  server: ListedServer,
+  playerName: string,
+  entryPoint: JoinEntryPoint,
+  handoffId: string,
+): string {
   const parameters = new URLSearchParams({
     host: server.host,
     proxyPort: String(server.proxyPort),
@@ -39,6 +46,12 @@ function joinHref(server: ListedServer, playerName: string): string {
     comGameName: server.comGameName,
     serverName: server.name,
     name: playerName.trim() || "Player",
+    serverMode: server.mode,
+    serverMap: server.map,
+    official: server.official ? "1" : "0",
+    humanPlayers: String(humanPlayerCount(server)),
+    entryPoint,
+    handoffId,
   });
   if (server.fsGame) parameters.set("fsGame", server.fsGame);
   const insecurePlayUrl = process.env.NEXT_PUBLIC_Q3JS_INSECURE_PLAY_URL?.replace(/\/$/, "") ?? "";
@@ -84,20 +97,32 @@ function PlayerNameDialog({
   onOpenChange,
   open,
   server,
+  entryPoint,
 }: Readonly<{
   onOpenChange: (open: boolean) => void;
   open: boolean;
   server?: ListedServer;
+  entryPoint?: JoinEntryPoint;
 }>) {
   const { playerName, randomizePlayerName, setPlayerName } = usePlayerName();
 
   const join = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!server) return;
+    if (!server || !entryPoint) return;
 
     const name = playerName.trim() || "Player";
+    const handoffId = createAnalyticsId();
     setPlayerName(name);
-    window.location.assign(joinHref(server, name));
+    trackAnalyticsEvent("server_join_submitted", {
+      join_handoff_id: handoffId,
+      server_id: server.id,
+      server_mode: server.mode,
+      server_map: server.map,
+      server_official: server.official,
+      human_players_visible: humanPlayerCount(server),
+      join_entry_point: entryPoint,
+    });
+    window.location.assign(joinHref(server, name, entryPoint, handoffId));
   };
 
   return (
@@ -288,7 +313,10 @@ function BrowserHeading({ serverCount, playerCount, pending = false }: Readonly<
 function ServerBrowserQuery() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ServerFilter>("featured");
-  const [selectedServer, setSelectedServer] = useState<ListedServer>();
+  const [selection, setSelection] = useState<{
+    server: ListedServer;
+    entryPoint: JoinEntryPoint;
+  }>();
   const { data: servers, error, isFetching, refetch } = useSuspenseQuery(masterServerQueryOptions());
   // Keep the first meaningful order within each official/community group for
   // this visit. Live player counts would otherwise reshuffle cards every poll.
@@ -347,7 +375,11 @@ function ServerBrowserQuery() {
 
           <div className="flex gap-2">
             {openServer && (
-              <Button size="lg" className="h-10 flex-1 px-4 lg:flex-none" onClick={() => setSelectedServer(openServer)}>
+              <Button
+                size="lg"
+                className="h-10 flex-1 px-4 lg:flex-none"
+                onClick={() => setSelection({ server: openServer, entryPoint: "quick_play" })}
+              >
                 Quick play
               </Button>
             )}
@@ -385,7 +417,11 @@ function ServerBrowserQuery() {
       {filteredServers.length ? (
         <div className="mt-5 grid gap-4">
           {filteredServers.map((server) => (
-            <ServerCard key={server.id} onJoin={setSelectedServer} server={server} />
+            <ServerCard
+              key={server.id}
+              onJoin={(selected) => setSelection({ server: selected, entryPoint: "server_card" })}
+              server={server}
+            />
           ))}
         </div>
       ) : (
@@ -405,10 +441,11 @@ function ServerBrowserQuery() {
       )}
 
       <PlayerNameDialog
-        open={selectedServer !== undefined}
-        server={selectedServer}
+        open={selection !== undefined}
+        server={selection?.server}
+        entryPoint={selection?.entryPoint}
         onOpenChange={(open) => {
-          if (!open) setSelectedServer(undefined);
+          if (!open) setSelection(undefined);
         }}
       />
     </section>

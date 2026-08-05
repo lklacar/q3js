@@ -78,6 +78,16 @@ EMSCRIPTEN_KEEPALIVE void Q3JS_RequestQuit( void )
 	Cbuf_ExecuteText( EXEC_APPEND, "quit\n" );
 }
 
+EMSCRIPTEN_KEEPALIVE int Q3JS_IsConnected( void )
+{
+	return clc.state == CA_ACTIVE ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE int Q3JS_IsDisconnected( void )
+{
+	return clc.state == CA_DISCONNECTED ? 1 : 0;
+}
+
 EMSCRIPTEN_KEEPALIVE void Q3JS_Resize( int width, int height )
 {
 	if( width < 1 || height < 1 )

@@ -127,6 +127,16 @@ export class Q3Client {
     this.#renderSize = renderSize;
   }
 
+  /** True only after the engine reaches Quake's active server state. */
+  get connected(): boolean {
+    return !this.#disposed && this.#runtime._Q3JS_IsConnected?.() === 1;
+  }
+
+  /** True only when the engine has fully left the server connection flow. */
+  get disconnected(): boolean {
+    return this.#disposed || this.#runtime._Q3JS_IsDisconnected?.() === 1;
+  }
+
   resize(width: number, height: number, scale = 1): void {
     const nextWidth = Math.max(1, Math.round(width * scale));
     const nextHeight = Math.max(1, Math.round(height * scale));

@@ -29,6 +29,40 @@ The sitemap includes every player profile known to the master server. Keep
 `Q3JS_MASTER_URL` configured with a server-reachable API URL in production so
 Next.js can populate those entries during sitemap requests.
 
+### Play analytics event contract
+
+The browser emits a privacy-safe lifecycle through GA4:
+
+- `server_join_submitted`: join intent, entry point, selected server/mode/map,
+  and visible human-player count.
+- `game_launch_started`: a new play attempt.
+- `game_asset_milestone`: manifest start/ready, cached assets, and 25/50/75/100
+  percent download thresholds.
+- `game_load_phase`: engine, filesystem, asset, startup, and ready phase timing.
+- `game_launch_ready`: the WebAssembly client is initialized.
+- `game_connected`: the Quake engine has reached `CA_ACTIVE` on the server.
+- `game_launch_error`: stable error code and phase; raw error messages are never
+  sent to analytics.
+- `game_play_heartbeat`: emitted every 60 seconds after connection.
+- `game_disconnected`: a real `CA_DISCONNECTED` transition or explicit exit,
+  including connected duration.
+- `game_session_ended`: terminal event for every attempt, including attempts
+  that end before connection.
+
+Every event receives a random local-storage anonymous user ID, a tab-scoped
+session ID, a per-attempt play session ID, client timestamp, page visibility,
+and server context. A one-time `join_handoff_id` correlates a homepage join with
+the `/play` lifecycle even when the insecure play page is on another origin.
+Player names and raw errors are deliberately excluded. Page-exit events request
+beacon transport.
+
+High-cardinality IDs should remain raw export fields rather than GA4 custom
+dimensions. Register only low-cardinality fields such as `load_phase`,
+`asset_milestone`, `error_code`, `end_reason`, `server_mode`, and
+`join_entry_point` for GA4 UI reporting. Raw retention and concurrency analysis
+requires a GA4 BigQuery export or another event-level sink; the existing daily
+Fivetran aggregate reports cannot reconstruct user/session paths.
+
 ## Master API client
 
 The master API types, client functions, and TanStack Query options are generated

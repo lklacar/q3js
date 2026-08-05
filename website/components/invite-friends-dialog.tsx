@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, ShareNetwork } from "@phosphor-icons/react";
-import { sendGAEvent } from "@next/third-parties/google";
 import { Button } from "@/components/ui/button";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ const HIDE_INVITE_KEY = "q3js-hide-invite-prompt";
 const ANALYTICS_COMPONENT = "homepage_invite_dialog";
 
 function trackInviteEvent(eventName: string, parameters?: Record<string, string>) {
-  sendGAEvent("event", eventName, {
+  trackAnalyticsEvent(eventName, {
     component: ANALYTICS_COMPONENT,
     ...parameters,
   });

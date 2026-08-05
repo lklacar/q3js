@@ -4,6 +4,8 @@ export interface Q3EngineModule {
   FS: Q3FileSystem;
   IDBFS?: unknown;
   callMain(arguments_: readonly string[]): number | void;
+  _Q3JS_IsConnected?: () => number;
+  _Q3JS_IsDisconnected?: () => number;
   _Q3JS_MobileInitBindings?: () => void;
   _Q3JS_MobileJoystickAxis?: (axis: number, value: number) => void;
   _Q3JS_MobileKeyEvent?: (key: number, down: number) => void;
