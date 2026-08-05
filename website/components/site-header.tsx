@@ -31,6 +31,14 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          <a
+            href={siteConfig.supportUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="bg-primary px-2.5 py-1 font-mono text-sm font-bold uppercase tracking-[0.05em] text-primary-foreground transition-colors hover:bg-primary/80"
+          >
+            Support
+          </a>
         </div>
 
         <div className="md:hidden">

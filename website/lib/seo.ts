@@ -5,6 +5,7 @@ const configuredSiteUrl = process.env.NEXT_PUBLIC_Q3JS_SITE_URL?.trim().replace(
 export const siteConfig = {
   name: "Q3JS",
   url: configuredSiteUrl || "https://q3js.com",
+  supportUrl: "https://ko-fi.com/quake3js",
   author: {
     name: "LK",
     coloredName: "^1L^2K",

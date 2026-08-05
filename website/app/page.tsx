@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Coffee } from "@phosphor-icons/react/dist/ssr";
 import { Footer } from "@/components/footer";
 import { HomeStats } from "@/components/home-stats";
 import { InviteFriendsDialog } from "@/components/invite-friends-dialog";
@@ -80,7 +81,7 @@ export default function Home() {
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
             No install step. Pick a server and jump straight into a live Quake 3 match.
           </p>
-          <div className="mx-auto mt-6 grid max-w-md grid-cols-2 gap-3">
+          <div className="mx-auto mt-6 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-3">
             <Link
               href="/#servers"
               className="inline-flex h-10 items-center justify-center bg-primary px-4 font-mono text-sm font-bold uppercase tracking-[0.05em] text-primary-foreground hover:bg-primary/80"
@@ -93,6 +94,15 @@ export default function Home() {
             >
               Scoreboard
             </Link>
+            <a
+              href={siteConfig.supportUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="col-span-2 inline-flex h-10 items-center justify-center gap-2 bg-primary px-4 font-mono text-sm font-bold uppercase tracking-[0.05em] text-primary-foreground transition-colors hover:bg-primary/80 sm:col-span-1"
+            >
+              <Coffee className="size-4" weight="fill" aria-hidden="true" />
+              Support Q3JS
+            </a>
           </div>
           <p className="mt-5 font-mono text-xs uppercase tracking-[0.16em] text-muted-foreground">
             Created by{" "}

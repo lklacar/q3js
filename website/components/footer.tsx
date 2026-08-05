@@ -26,6 +26,9 @@ export function Footer() {
           </p>
         </div>
         <div className="flex flex-wrap content-start gap-x-4 md:justify-end">
+          <a href={siteConfig.supportUrl} target="_blank" rel="noreferrer" className="hover:text-foreground">
+            Support Q3JS
+          </a>
           <Link href="/guide" className="hover:text-foreground">Run a server</Link>
           <a href="https://github.com/lklacar/q3js" target="_blank" rel="noreferrer" className="hover:text-foreground">
             GitHub source
