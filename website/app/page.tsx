@@ -125,8 +125,8 @@ export default function Home() {
           </a>
         </section>
         <HomeStats />
-        <ScoreboardPreview />
         <ServerBrowser />
+        <ScoreboardPreview />
       </main>
 
       <Footer />

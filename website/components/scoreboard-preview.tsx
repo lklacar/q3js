@@ -33,7 +33,7 @@ function PreviewQuery() {
   const activePeriod = periods.find((option) => option.value === period) ?? periods[0];
 
   return (
-    <section aria-labelledby="top-fraggers-heading" className="arena-card mb-10 border border-border/60 bg-card/35 p-5 md:p-6">
+    <section aria-labelledby="top-fraggers-heading" className="arena-card my-10 border border-border/60 bg-card/35 p-5 md:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="mb-2 font-mono text-xs uppercase tracking-[0.16em] text-primary">01 / Global frag feed</p>
@@ -107,7 +107,7 @@ function PreviewQuery() {
 function ScoreboardPreviewPending() {
   return (
     <section
-      className="arena-card mb-10 border border-border/60 bg-card/35 p-5 md:p-6"
+      className="arena-card my-10 border border-border/60 bg-card/35 p-5 md:p-6"
       aria-busy="true"
       aria-label="Loading top fraggers"
     >
@@ -164,7 +164,7 @@ export function ScoreboardPreview() {
     <QueryBoundary
       pendingFallback={<ScoreboardPreviewPending />}
       errorFallback={() => (
-        <div className="mb-10 border border-border/60 bg-card/35 px-5 py-4 text-sm text-muted-foreground">
+        <div className="my-10 border border-border/60 bg-card/35 px-5 py-4 text-sm text-muted-foreground">
           Scoreboard preview is temporarily unavailable.
         </div>
       )}
