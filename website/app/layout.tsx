@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Providers } from "@/app/providers";
+import { OnlinePlayersSheet } from "@/components/online-players-sheet";
 import { siteConfig, socialImage } from "@/lib/seo";
 import "./globals.css";
 
@@ -80,7 +81,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang={siteConfig.language}>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <OnlinePlayersSheet />
+        </Providers>
         <GoogleAnalytics gaId={analyticsId} />
       </body>
     </html>
