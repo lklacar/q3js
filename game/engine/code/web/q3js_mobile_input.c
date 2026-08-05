@@ -87,7 +87,9 @@ EMSCRIPTEN_KEEPALIVE void Q3JS_Resize( int width, int height )
 
 	if( Cvar_VariableIntegerValue( "r_mode" ) == -1 &&
 		Cvar_VariableIntegerValue( "r_customwidth" ) == width &&
-		Cvar_VariableIntegerValue( "r_customheight" ) == height )
+		Cvar_VariableIntegerValue( "r_customheight" ) == height &&
+		cls.glconfig.vidWidth == width &&
+		cls.glconfig.vidHeight == height )
 	{
 		return;
 	}

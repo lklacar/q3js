@@ -137,11 +137,19 @@ export class Q3Client {
       this.canvas.height = nextHeight;
     }
 
-    if (
-      this.#disposed
-      || (this.#renderSize.width === nextWidth && this.#renderSize.height === nextHeight)
-      || (this.#pendingRenderSize?.width === nextWidth && this.#pendingRenderSize.height === nextHeight)
-    ) {
+    if (this.#disposed) {
+      return;
+    }
+
+    if (this.#renderSize.width === nextWidth && this.#renderSize.height === nextHeight) {
+      // A server-triggered game/filesystem restart can reapply a legacy
+      // q3config after startup. Keep verifying the engine's active renderer
+      // even when the browser's requested canvas size has not changed.
+      this.#runtime._Q3JS_Resize?.(nextWidth, nextHeight);
+      return;
+    }
+
+    if (this.#pendingRenderSize?.width === nextWidth && this.#pendingRenderSize.height === nextHeight) {
       return;
     }
 
@@ -260,6 +268,11 @@ export async function createQ3Client(options: Q3ClientOptions): Promise<Q3Client
     };
     const client = new Q3Client(runtime, options.canvas, persistent, renderSize);
     runtime.callMain(buildQ3Arguments(options, renderSize));
+    // SDL can occasionally initialize its active WebGL viewport from an older
+    // canvas size even though the requested custom resolution is already set.
+    // Reconcile once after startup; the engine skips the restart when glConfig
+    // already matches the canvas.
+    runtime._Q3JS_Resize?.(renderSize.width, renderSize.height);
     report({ phase: "ready", loadedBytes: 0, totalBytes: 0 });
     options.onReady?.(client);
     return client;
