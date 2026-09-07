@@ -18,10 +18,39 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import static com.q3js.master.database.generated.Tables.EVENTS;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProfileRepositoryTest {
+    @Test
+    void lastOnlineUsesTwoIndependentIndexedLookupsInOneQuery() {
+        String playerName = "^1Ranger's";
+        var queries = new ArrayList<String>();
+        MockDataProvider provider = context -> {
+            String sql = context.sql().toLowerCase(Locale.ROOT);
+            queries.add(sql);
+            assertTrue(sql.startsWith("select greatest((select max("));
+            assertTrue(sql.contains("where \"events\".\"killer_name\" = ?"));
+            assertTrue(sql.contains("where \"events\".\"victim_name\" = ?"));
+            assertEquals(2, sql.split("from \"events\"", -1).length - 1);
+            assertFalse(sql.contains(" or "));
+            assertArrayEquals(new Object[]{playerName, playerName}, context.bindings());
+
+            var dsl = DSL.using(SQLDialect.POSTGRES);
+            var result = dsl.newResult(EVENTS.RECEIVED_AT);
+            result.add(dsl.newRecord(EVENTS.RECEIVED_AT).values((OffsetDateTime) null));
+            return new MockResult[]{new MockResult(1, result)};
+        };
+        var repository = new ProfileRepository(DSL.using(new MockConnection(provider), SQLDialect.POSTGRES));
+
+        assertNull(repository.findLastOnline(playerName));
+        assertEquals(1, queries.size());
+    }
+
     @Test
     void searchIgnoresQuakeColorsAndAppliesTheLimit() {
         var provider = new SearchProvider();
