@@ -152,7 +152,7 @@ public class Events extends TableImpl<EventsRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_EVENTS_EVENT_TYPE_KILLER_NAME, Indexes.IDX_EVENTS_EVENT_TYPE_RECEIVED_AT, Indexes.IDX_EVENTS_RECEIVED_AT, Indexes.IDX_EVENTS_WEAPON_USAGE);
+        return Arrays.asList(Indexes.IDX_EVENTS_EVENT_TYPE_KILLER_NAME, Indexes.IDX_EVENTS_EVENT_TYPE_RECEIVED_AT, Indexes.IDX_EVENTS_KILLER_NAME_RECEIVED_AT, Indexes.IDX_EVENTS_RECEIVED_AT, Indexes.IDX_EVENTS_VICTIM_NAME_RECEIVED_AT, Indexes.IDX_EVENTS_WEAPON_USAGE);
     }
 
     @Override

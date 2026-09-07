@@ -105,9 +105,18 @@ public class ProfileRepository {
     }
 
     public OffsetDateTime findLastOnline(String playerName) {
-        return dsl.select(DSL.max(EVENTS.RECEIVED_AT))
+        Field<OffsetDateTime> lastKillerEvent = dsl.select(DSL.max(EVENTS.RECEIVED_AT))
             .from(EVENTS)
-            .where(EVENTS.KILLER_NAME.eq(playerName).or(EVENTS.VICTIM_NAME.eq(playerName)))
+            .where(EVENTS.KILLER_NAME.eq(playerName))
+            .asField();
+        Field<OffsetDateTime> lastVictimEvent = dsl.select(DSL.max(EVENTS.RECEIVED_AT))
+            .from(EVENTS)
+            .where(EVENTS.VICTIM_NAME.eq(playerName))
+            .asField();
+
+        // Separate lookups use the player/time indexes. PostgreSQL GREATEST ignores
+        // a missing side and returns null only when neither side has any events.
+        return dsl.select(DSL.greatest(lastKillerEvent, lastVictimEvent))
             .fetchOne(0, OffsetDateTime.class);
     }
 

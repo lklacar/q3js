@@ -170,6 +170,17 @@ not use a fallback and only return countries resolved from the requester's IP.
 
 ## Build
 
+Run the latest-event query regression tests against a running PostgreSQL database:
+
+```shell
+./mvnw -Dtest=ProfileRepositoryTest,ProfileRepositoryPostgresTest,ProfileServiceTest \
+  -Dq3js.test.db.url=jdbc:postgresql://localhost:5432/postgres test
+```
+
+These database tests use temporary tables and are skipped unless `q3js.test.db.url`
+is set. Override `q3js.test.db.user` and `q3js.test.db.password` if needed; both
+default to `postgres`.
+
 ```shell
 make master
 ```

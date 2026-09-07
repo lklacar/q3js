@@ -27,7 +27,9 @@ public class Indexes {
 
     public static final Index IDX_EVENTS_EVENT_TYPE_KILLER_NAME = Internal.createIndex(DSL.name("idx_events_event_type_killer_name"), Events.EVENTS, new OrderField[] { Events.EVENTS.EVENT_TYPE, Events.EVENTS.KILLER_NAME }, false);
     public static final Index IDX_EVENTS_EVENT_TYPE_RECEIVED_AT = Internal.createIndex(DSL.name("idx_events_event_type_received_at"), Events.EVENTS, new OrderField[] { Events.EVENTS.EVENT_TYPE, Events.EVENTS.RECEIVED_AT.desc() }, false);
+    public static final Index IDX_EVENTS_KILLER_NAME_RECEIVED_AT = Internal.createIndex(DSL.name("idx_events_killer_name_received_at"), Events.EVENTS, new OrderField[] { Events.EVENTS.KILLER_NAME, Events.EVENTS.RECEIVED_AT.desc() }, false);
     public static final Index IDX_EVENTS_RECEIVED_AT = Internal.createIndex(DSL.name("idx_events_received_at"), Events.EVENTS, new OrderField[] { Events.EVENTS.RECEIVED_AT.desc() }, false);
+    public static final Index IDX_EVENTS_VICTIM_NAME_RECEIVED_AT = Internal.createIndex(DSL.name("idx_events_victim_name_received_at"), Events.EVENTS, new OrderField[] { Events.EVENTS.VICTIM_NAME, Events.EVENTS.RECEIVED_AT.desc() }, false);
     public static final Index IDX_EVENTS_WEAPON_USAGE = Internal.createIndex(DSL.name("idx_events_weapon_usage"), Events.EVENTS, new OrderField[] { Events.EVENTS.MEANS_OF_DEATH, Events.EVENTS.KILLER_NAME }, false);
     public static final Index IDX_PLAYER_ADDRESSES_BANNED_AT = Internal.createIndex(DSL.name("idx_player_addresses_banned_at"), PlayerAddresses.PLAYER_ADDRESSES, new OrderField[] { PlayerAddresses.PLAYER_ADDRESSES.BANNED_AT.desc() }, false);
     public static final Index IDX_PLAYER_ADDRESSES_LAST_SEEN_AT = Internal.createIndex(DSL.name("idx_player_addresses_last_seen_at"), PlayerAddresses.PLAYER_ADDRESSES, new OrderField[] { PlayerAddresses.PLAYER_ADDRESSES.LAST_SEEN_AT.desc() }, false);
