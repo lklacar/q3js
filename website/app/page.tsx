@@ -115,7 +115,7 @@ export default function Home() {
               className="inline-flex h-10 items-center justify-center gap-2 bg-primary px-4 font-mono text-sm font-bold uppercase tracking-[0.05em] text-primary-foreground transition-colors hover:bg-primary/80 min-[380px]:col-span-2 sm:col-span-1"
             >
               <Coffee className="size-4" weight="fill" aria-hidden="true" />
-              Support Q3JS
+              Buy me a coffee
             </a>
           </div>
           <p className="mt-5 font-mono text-xs uppercase tracking-[0.16em] text-muted-foreground">
