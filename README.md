@@ -50,7 +50,7 @@
   </a>
 </p>
 
-Q3JS brings the ioquake3 engine to the browser and surrounds it with everything needed for an online game: a framework-independent WebAssembly client, packaged dedicated servers, a WebSocket-to-UDP gateway, live server discovery, player statistics, and a responsive web interface.
+Q3JS brings the ioquake3 engine to the browser and surrounds it with everything needed for an online game: a framework-independent WebAssembly client, packaged dedicated servers, native WebSocket transport, live server discovery, player statistics, and a responsive web interface.
 
 > [!IMPORTANT]
 > Q3JS does not include or download proprietary Quake III Arena game data. You must provide your own legally obtained PK3 files.
@@ -67,9 +67,11 @@ flowchart LR
     Website --> Client["WebAssembly client"]
     Website --> Master["Quarkus master API"]
     Client -->|"PK3 manifests and assets"| Static["Static asset server"]
-    Client -->|"WebSocket"| Gateway["WebSocket-to-UDP gateway"]
-    Gateway -->|"UDP"| Game["ioquake3 dedicated server"]
-    Game -->|"heartbeats and events"| Master
+    Client -->|"WebSocket"| Game["ioquake3 dedicated server"]
+    Native["Native Quake clients"] -->|"UDP"| Game
+    Supervisor["Node supervisor"] -->|"Lifecycle and ban policy"| Game
+    Supervisor -->|"Heartbeats and player connections"| Master
+    Game -->|"Game events"| Master
     Master --> Database[("PostgreSQL")]
 ```
 
@@ -77,14 +79,14 @@ flowchart LR
 | --- | --- | --- | --- |
 | `website/` | Server browser, player profiles, scoreboards, and game launcher | Next.js, React, Tailwind CSS | [Website guide](website/README.md) |
 | `game/client/` | Browser runtime, virtual filesystem, asset loading, persistence, and mobile input | TypeScript, Emscripten, WebAssembly | [Client guide](game/client/README.md) |
-| `game/server/` | Dedicated server package and WebSocket-to-UDP gateway | ioquake3, Node.js, TypeScript | [Server guide](game/server/README.md) |
+| `game/server/` | Dedicated server package with native WebSockets | ioquake3, Node.js, TypeScript | [Server guide](game/server/README.md) |
 | `master/` | Server registry, event ingestion, profiles, scoreboards, statistics, and GeoIP | Java 17, Quarkus, jOOQ, Flyway | [Master guide](master/README.md) |
 | `static/` | Safe, cacheable PK3 and manifest delivery | nginx, shell | [Static server guide](static/README.md) |
 
 ## Features
 
 - Native ioquake3 gameplay compiled to WebAssembly with the OpenGL 2 renderer.
-- Browser-to-server play through a WebSocket-to-UDP gateway.
+- Browser-to-server play through native WebSocket transport.
 - Live community and official server discovery with health-aware heartbeats.
 - Global frag rankings, activity distribution, player profiles, rivals, maps, and weapon statistics.
 - Multi-mod asset manifests with persistent browser-side caching.
@@ -134,7 +136,7 @@ docker compose up -d database
 # Terminal 2 — master API
 make master-run
 
-# Terminal 3 — game server and WebSocket gateway
+# Terminal 3 — game server with native WebSockets
 export Q3JS_DATA_DIR=/absolute/path/to/quake3-data
 Q3JS_BASEPATH="$Q3JS_DATA_DIR" make server-run
 
@@ -147,7 +149,7 @@ docker run --rm -p 8081:8080 -v "$Q3JS_DATA_DIR:/data:ro" q3js-static
 pnpm --dir website dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The local game server publishes its gateway at `ws://localhost:27961/ws` and registers itself with the master automatically.
+Open [http://localhost:3000](http://localhost:3000). The local game server publishes its WebSocket listener at `ws://localhost:27961/ws` and registers itself with the master automatically.
 
 ### Local ports
 
@@ -158,14 +160,14 @@ Open [http://localhost:3000](http://localhost:3000). The local game server publi
 | `8080` | HTTP | Master API and Swagger UI |
 | `8081` | HTTP | Local static asset server |
 | `27960` | UDP | Quake III dedicated server |
-| `27961` | HTTP / WebSocket | Gateway and health endpoint |
+| `27961` | HTTP / WebSocket | Native WebSocket listener and health endpoint |
 
 ## Common commands
 
 | Command | Description |
 | --- | --- |
 | `make client` | Build the ioquake3 WebAssembly runtime and `@q3js/client` |
-| `make server` | Build the native dedicated server, game QVMs, and gateway package |
+| `make server` | Build the native dedicated server, game QVMs, and supervisor package |
 | `make server-run` | Build and run the packaged game server |
 | `make master` | Build the Quarkus master application |
 | `make master-run` | Run the master API in Quarkus development mode |
@@ -183,8 +185,8 @@ Each component documents its complete configuration surface. These variables con
 | `NEXT_PUBLIC_Q3JS_STATIC_URL` | Website/browser | Public PK3 manifest and asset origin |
 | `Q3JS_BASEPATH` | Game server | Directory containing game and mod data folders |
 | `Q3JS_EVENT_CLIENT_SECRET` | Master/game server | Shared secret for authenticated events and official heartbeats |
-| `Q3JS_PUBLISH_HOST` / `Q3JS_PUBLISH_PORT` | Game server | Browser-reachable gateway address |
-| `Q3JS_SECURE` | Game server | Publish the gateway with `wss` instead of `ws` |
+| `Q3JS_PUBLISH_HOST` / `Q3JS_PUBLISH_PORT` | Game server | Browser-reachable WebSocket address |
+| `Q3JS_SECURE` | Game server | Publish the WebSocket listener with `wss` instead of `ws` |
 | `Q3JS_DB_URL` / `Q3JS_DB_USER` / `Q3JS_DB_PASSWORD` | Master | PostgreSQL connection settings |
 
 Generate a production event secret with `openssl rand -hex 32` and provide the same value to the master and each official game server. Never use the development fallback in production.
@@ -209,7 +211,7 @@ Production Dockerfiles live beside their services:
 
 - `website/Dockerfile` builds the WebAssembly client and standalone Next.js server.
 - `master/Dockerfile` builds the Quarkus API on Java 17.
-- `game/server/Dockerfile` packages ioquake3, the game QVMs, and the gateway.
+- `game/server/Dockerfile` packages ioquake3, the game QVMs, and the Node supervisor.
 - `static/Dockerfile` serves mounted game data without embedding it in the image.
 
 The website's `NEXT_PUBLIC_*` values are compiled into the browser bundle, so provide production values as Docker build arguments. Detailed image examples and runtime variables are available in the component guides above.

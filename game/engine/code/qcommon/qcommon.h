@@ -157,7 +157,17 @@ typedef struct {
 
 	unsigned short	port;
 	unsigned long	scope_id;	// Needed for IPv6 link-local addresses
+	unsigned int websocketId; // Zero for UDP; connection identity is independent of IP and qport.
 } netadr_t;
+
+#ifdef USE_NATIVE_WEBSOCKETS
+qboolean NET_WSGetCvars(void);
+void NET_WSInit(void);
+void NET_WSShutdown(void);
+void NET_WSService(void);
+void NET_WSSendPacket(int length, const void *data, netadr_t to);
+void NET_WSPlayerConnected(netadr_t from, const char *userinfo);
+#endif
 
 void		NET_Init( void );
 void		NET_Shutdown( void );

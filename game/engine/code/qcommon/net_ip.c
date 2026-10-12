@@ -243,6 +243,7 @@ static void NetadrToSockadr( netadr_t *a, struct sockaddr *s ) {
 
 
 static void SockadrToNetadr( struct sockaddr *s, netadr_t *a ) {
+	memset(a, 0, sizeof(*a));
 	if (s->sa_family == AF_INET) {
 		a->type = NA_IP;
 		*(int *)&a->ip = ((struct sockaddr_in *)s)->sin_addr.s_addr;
@@ -457,6 +458,10 @@ Compares without the port
 */
 qboolean NET_CompareBaseAdr (netadr_t a, netadr_t b)
 {
+#ifdef USE_NATIVE_WEBSOCKETS
+	if (a.websocketId != b.websocketId)
+		return qfalse;
+#endif
 	return NET_CompareBaseAdrMask(a, b, -1);
 }
 
@@ -534,6 +539,7 @@ qboolean NET_GetPacket(netadr_t *net_from, msg_t *net_message, fd_set *fdr)
 	socklen_t	fromlen;
 	int		err;
 	
+	net_from->websocketId = 0;
 	if(ip_socket != INVALID_SOCKET && FD_ISSET(ip_socket, fdr))
 	{
 		fromlen = sizeof(from);
@@ -650,6 +656,13 @@ Sys_SendPacket
 void Sys_SendPacket( int length, const void *data, netadr_t to ) {
 	int				ret = SOCKET_ERROR;
 	struct sockaddr_storage	addr;
+
+#ifdef USE_NATIVE_WEBSOCKETS
+	if (to.websocketId) {
+		NET_WSSendPacket(length, data, to);
+		return;
+	}
+#endif
 
 	if( to.type != NA_BROADCAST && to.type != NA_IP && to.type != NA_IP6 && to.type != NA_MULTICAST6)
 	{
@@ -1487,6 +1500,9 @@ static qboolean NET_GetCvars( void ) {
 
 	net_dropsim = Cvar_Get("net_dropsim", "", CVAR_TEMP);
 
+#ifdef USE_NATIVE_WEBSOCKETS
+	modified += NET_WSGetCvars();
+#endif
 	return modified ? qtrue : qfalse;
 }
 
@@ -1536,6 +1552,9 @@ void NET_Config( qboolean enableNetworking ) {
 	}
 
 	if( stop ) {
+#ifdef USE_NATIVE_WEBSOCKETS
+		NET_WSShutdown();
+#endif
 		if ( ip_socket != INVALID_SOCKET ) {
 			closesocket( ip_socket );
 			ip_socket = INVALID_SOCKET;
@@ -1567,6 +1586,9 @@ void NET_Config( qboolean enableNetworking ) {
 		{
 			NET_OpenIP();
 			NET_SetMulticast6();
+#ifdef USE_NATIVE_WEBSOCKETS
+			NET_WSInit();
+#endif
 		}
 	}
 }
@@ -1665,6 +1687,12 @@ void NET_Sleep(int msec)
 	fd_set fdr;
 	int retval;
 	SOCKET highestfd = INVALID_SOCKET;
+	fd_set fdw;
+
+	FD_ZERO(&fdw);
+#ifdef USE_NATIVE_WEBSOCKETS
+	NET_WSService();
+#endif
 
 	if(msec < 0)
 		msec = 0;
@@ -1685,6 +1713,13 @@ void NET_Sleep(int msec)
 			highestfd = ip6_socket;
 	}
 
+#ifdef USE_NATIVE_WEBSOCKETS
+	{
+		extern int NET_WSSetFds(fd_set *readfds, fd_set *writefds, int highestfd, int *msec);
+		highestfd = NET_WSSetFds(&fdr, &fdw, highestfd, &msec);
+	}
+#endif
+
 #ifdef _WIN32
 	if(highestfd == INVALID_SOCKET)
 	{
@@ -1697,12 +1732,15 @@ void NET_Sleep(int msec)
 	timeout.tv_sec = msec/1000;
 	timeout.tv_usec = (msec%1000)*1000;
 
-	retval = select(highestfd + 1, &fdr, NULL, NULL, &timeout);
+	retval = select(highestfd + 1, &fdr, &fdw, NULL, &timeout);
 
 	if(retval == SOCKET_ERROR)
 		Com_Printf("Warning: select() syscall failed: %s\n", NET_ErrorString());
 	else if(retval > 0)
 		NET_Event(&fdr);
+#ifdef USE_NATIVE_WEBSOCKETS
+	NET_WSService();
+#endif
 }
 
 /*

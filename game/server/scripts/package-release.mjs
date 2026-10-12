@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import {
   copyFile,
+  cp,
   mkdir,
   readFile,
   rename,
@@ -34,6 +35,7 @@ await copyFile(
   path.join(releaseBuildDirectory, binaryName),
   path.join(outputDirectory, "bin", binaryName),
 );
+await cp(path.join(releaseBuildDirectory, "licenses"), path.join(outputDirectory, "licenses"), { recursive: true });
 await copyFile(configFile, path.join(outputDirectory, "config", "q3js-defaults.cfg"));
 
 const stableTimestamp = new Date("1980-01-01T00:00:00.000Z");

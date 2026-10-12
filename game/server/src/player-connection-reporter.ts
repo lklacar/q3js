@@ -1,4 +1,4 @@
-import type { PlayerConnection } from "./gateway.js";
+import type { PlayerConnection } from "./native-control.js";
 
 export interface PlayerConnectionReporterOptions {
   masterBaseUrl: string;

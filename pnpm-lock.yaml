@@ -15,10 +15,6 @@ importers:
         version: 5.9.3
 
   game/server:
-    dependencies:
-      ws:
-        specifier: ^8.18.3
-        version: 8.21.1
     devDependencies:
       '@types/node':
         specifier: ^24.10.1
@@ -32,6 +28,9 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      ws:
+        specifier: ^8.18.3
+        version: 8.21.1
 
   website:
     dependencies:

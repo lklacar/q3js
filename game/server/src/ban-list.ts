@@ -63,6 +63,10 @@ export class BanList {
     this.#request = undefined;
   }
 
+  get addresses(): readonly string[] {
+    return [...this.#addresses];
+  }
+
   isBanned(address: string): boolean {
     try {
       return this.#addresses.has(normalizeIpAddress(address));

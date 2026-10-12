@@ -1,13 +1,11 @@
 import { BanList } from "./ban-list.js";
 import { loadConfig } from "./config.js";
 import { GameServer } from "./game-server.js";
-import { Gateway } from "./gateway.js";
 import { MasterHeartbeat } from "./master-heartbeat.js";
 import { PlayerConnectionReporter } from "./player-connection-reporter.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
-  const gameServer = new GameServer(config);
   const masterHeartbeat = new MasterHeartbeat({
     masterBaseUrl: config.masterBaseUrl,
     eventClientSecret: config.eventClientSecret,
@@ -34,25 +32,8 @@ async function main(): Promise<void> {
   let gameReady = false;
   let stopping = false;
 
-  const gateway = new Gateway({
-    host: config.gatewayHost,
-    port: config.gatewayPort,
-    targetHost: config.gameHost,
-    targetPort: config.gamePort,
-    maxConnections: config.maxConnections,
-    maxPacketBytes: config.maxPacketBytes,
-    trustedProxyHops: config.trustedProxyHops,
-    idleTimeoutMs: config.idleTimeoutMs,
-    ready: () => gameReady,
-    isBanned: (clientIp) => banList.isBanned(clientIp),
-    playerConnected: (connection) => playerConnectionReporter.report(connection),
-  });
-  banList.onUpdate(() => {
-    const disconnected = gateway.disconnectBannedClients();
-    if (disconnected > 0) {
-      console.log(`Disconnected ${disconnected} newly banned client(s).`);
-    }
-  });
+  const gameServer = new GameServer(config, (connection) => playerConnectionReporter.report(connection));
+  banList.onUpdate(() => gameServer.setNativePolicy(gameReady, banList.addresses));
 
   let requestStop!: (exitCode: number) => void;
   const stopRequested = new Promise<number>((resolve) => {
@@ -68,7 +49,7 @@ async function main(): Promise<void> {
     masterHeartbeat.stop();
     playerConnectionReporter.stop();
     banList.stop();
-    await gateway.stop().catch((error: unknown) => console.error("Gateway shutdown failed:", error));
+    gameServer.setNativePolicy(false, banList.addresses);
     await gameServer.stop().catch((error: unknown) => console.error("Game server shutdown failed:", error));
     process.exitCode = exitCode;
   };
@@ -78,13 +59,15 @@ async function main(): Promise<void> {
 
   try {
     await banList.start();
-    await gateway.start();
+    gameServer.setNativePolicy(false, banList.addresses);
     await gameServer.start();
     void gameServer.waitForExit().then((exitCode) => requestStop(exitCode));
     await gameServer.waitUntilReady();
     gameReady = true;
+    gameServer.setNativePolicy(true, banList.addresses);
+    await gameServer.waitUntilWebSocketReady();
     await masterHeartbeat.start();
-    console.log(`Q3JS server ready: ws://${config.gatewayHost}:${gateway.address().port}/ws`);
+    console.log(`Q3JS server ready: ws://${config.gatewayHost}:${config.gatewayPort}/ws`);
     await stop(await stopRequested);
   } catch (error) {
     console.error("Q3JS server failed:", error);

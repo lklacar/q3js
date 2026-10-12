@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { compressHuffman, decompressHuffman } from "../dist/app/huffman.mjs";
+import { compressHuffman, decompressHuffman } from "./fixtures/huffman.mjs";
 
 const CONNECT_PAYLOAD = Buffer.from(
   "\"\\name\\Ranger\\rate\\25000\\snaps\\40\\model\\sarge"

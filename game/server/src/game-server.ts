@@ -3,6 +3,8 @@ import { type ChildProcess, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import type { Duplex } from "node:stream";
+import { NativeControl, type PlayerConnection } from "./native-control.js";
 import { eventConfigContents, type ServerConfig } from "./config.js";
 
 interface ReleaseManifest {
@@ -54,9 +56,27 @@ export class GameServer {
   #exitPromise?: Promise<number>;
   #eventConfigPath: string | undefined;
   #serverConfigPath: string | undefined;
+  #control: NativeControl | undefined;
+  #nativeReady = false;
+  #bannedAddresses: readonly string[] = [];
+  readonly #playerConnected: (connection: PlayerConnection) => void | Promise<void>;
 
-  constructor(config: ServerConfig) {
+  constructor(config: ServerConfig, playerConnected: (connection: PlayerConnection) => void | Promise<void>) {
     this.#config = config;
+    this.#playerConnected = playerConnected;
+  }
+
+  setNativePolicy(ready: boolean, bannedAddresses: readonly string[]): void {
+    this.#nativeReady = ready;
+    this.#bannedAddresses = bannedAddresses;
+    if (this.running) {
+      try {
+        this.#control?.setPolicy(ready, bannedAddresses);
+      } catch (error) {
+        this.#process?.kill("SIGTERM");
+        throw error;
+      }
+    }
   }
 
   get running(): boolean {
@@ -73,10 +93,15 @@ export class GameServer {
     await this.#installReleaseFiles();
     const arguments_ = this.#arguments();
     const child = spawn(this.#config.serverBinary, arguments_, {
-      stdio: "inherit",
-      env: process.env,
+      stdio: ["inherit", "inherit", "inherit", "pipe"],
+      env: { ...process.env, Q3JS_NATIVE_CONTROL_FD: "3" },
     });
     this.#process = child;
+    this.#control = new NativeControl(child.stdio[3] as Duplex, this.#playerConnected, (error) => {
+      console.error("Native server control failed:", error);
+      child.kill("SIGTERM");
+    });
+    this.#control.setPolicy(this.#nativeReady, this.#bannedAddresses);
     this.#exitPromise = new Promise((resolve) => {
       child.once("error", () => resolve(1));
       child.once("exit", (code, signal) => {
@@ -111,6 +136,24 @@ export class GameServer {
       await delay(250);
     }
     throw new Error(`ioq3ded did not become ready within ${this.#config.startupTimeoutMs}ms.`);
+  }
+
+  async waitUntilWebSocketReady(): Promise<void> {
+    const host = this.#config.gatewayHost === "0.0.0.0" ? "127.0.0.1"
+      : this.#config.gatewayHost === "::" ? "::1" : this.#config.gatewayHost;
+    const authority = host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
+    const endpoint = `http://${authority}:${this.#config.gatewayPort}/healthz`;
+    const deadline = Date.now() + this.#config.startupTimeoutMs;
+    while (Date.now() < deadline) {
+      if (!this.running) throw new Error("ioq3ded exited before WebSocket readiness.");
+      try {
+        const response = await fetch(endpoint, { signal: AbortSignal.timeout(500) });
+        await response.body?.cancel();
+        if (response.ok) return;
+      } catch {}
+      await delay(50);
+    }
+    throw new Error("Native WebSocket listener did not become ready.");
   }
 
   waitForExit(): Promise<number> {
@@ -150,6 +193,12 @@ export class GameServer {
       "+set", "fs_game", "q3js",
       "+set", "net_ip", this.#config.gameHost,
       "+set", "net_port", String(this.#config.gamePort),
+      "+set", "net_wsHost", this.#config.gatewayHost,
+      "+set", "net_wsPort", String(this.#config.gatewayPort),
+      "+set", "net_wsMaxConnections", String(this.#config.maxConnections),
+      "+set", "net_wsMaxPacketBytes", String(this.#config.maxPacketBytes),
+      "+set", "net_wsIdleTimeoutMs", String(this.#config.idleTimeoutMs),
+      "+set", "net_wsTrustedProxyHops", String(this.#config.trustedProxyHops),
       "+set", "sv_pure", "1",
       "+set", "sv_allowDownload", "1",
       "+set", "sv_dlURL", "",
