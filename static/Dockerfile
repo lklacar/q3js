@@ -1,4 +1,4 @@
-FROM nginx:1.28-alpine
+FROM nginx:1.30.7-alpine
 
 COPY static/nginx.conf /etc/nginx/nginx.conf
 COPY --chmod=755 static/generate-manifests.sh /docker-entrypoint.d/40-generate-manifests.sh
