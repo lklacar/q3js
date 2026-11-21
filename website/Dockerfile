@@ -36,7 +36,7 @@ ENV NEXT_PUBLIC_Q3JS_MASTER_URL=${NEXT_PUBLIC_Q3JS_MASTER_URL} \
 RUN ./game/build-client.sh
 RUN pnpm --dir website build
 
-FROM node:24-bookworm-slim AS runtime
+FROM node:24.22.3-bookworm-slim AS runtime
 
 ARG NEXT_PUBLIC_Q3JS_MASTER_URL=http://localhost:8080
 ARG NEXT_PUBLIC_Q3JS_SITE_URL=http://localhost:3000
